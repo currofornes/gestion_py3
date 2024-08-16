@@ -1,0 +1,12 @@
+basededatos/
+venv/
+basededatos/db.sqlite3
+*.pyc
+*.swp
+*.cfg
+*.csv
+.project
+.pydevproject
+vpython27
+*.pdf
+olddbs/
