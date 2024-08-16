@@ -1,0 +1,98 @@
+<div align="center"><strong><font size="4"> COMUNICADO DE LA CORRECCIÓN</font><br />
+<br />
+<br />
+<br />
+</strong></div>
+<strong>{{sancion.IdAlumno.Nombre}} </strong> ha incurrido en los siguientes hechos:
+<br/><br/>
+<strong>{{sancion.Comentario}}</strong><br />
+<br/>
+Estos hechos constituyen conductas gravemente perjudiciales para la convivencia según el artículo 37 del Decreto 327/2010.
+<br/><br/>
+<strong>Corrección impuesta</strong><br/><br/>
+
+Dª Ana María González Solís o miembro de la directiva en quien delegue, como Directora del IES Gonzalo Nazareno, le comunica que al alumno <strong>{{sancion.IdAlumno.Nombre}} </strong>le ha sido impuesta la corrección de <strong>{{sancion.Sancion}}</strong>
+ 
+{% if sancion.NoExpulsion %}
+    , la presente sanción no conlleva la retirada del derecho de asistencia a clase.      
+            {%else%}
+    , durante el cual deberá realizar las tareas de formación que el tutor le asigne, y seguir el plan de estudios que le indiquen sus profesores vía telemática o vía moodle. El alumno tiene la obligación de asistir a los exámenes viniendo al centro a la hora de comienzo de estos y abandonando el centro al terminar.
+            
+            {%endif%}
+
+<br />
+<br />
+
+El alumno o alumna, así como sus padres, madres o representantes legales, podrá presentar en el plazo de dos días lectivos, contados a partir de la fecha en que se comunique el acuerdo de corrección o medida disciplinaria, una reclamación contra la misma, ante quien la impuso. <br />
+
+</div>
+<br />
+<br />
+En Dos Hermanas, a <strong>{%now "d"%}</strong> de <strong>{%now "F"%}</strong> de <strong>{%now "Y"%}</strong>  <br />
+<br />
+<br />
+<table>
+    
+        <tr>
+            
+            <td>La Directora<br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            Fdo: Ana María González Solís<br />
+           <td>
+            El padre/madre o tutor legal<br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            Fdo:__________________________________</td>
+        </tr>
+    
+</table>
+<pdf:nextpage>
+
+<div align="center"><font size="4"><strong>VISTA Y AUDIENCIA</strong></font><br />
+</div>
+<br />
+<br />
+En Dos Hermanas, siendo las {%now "H:i"%} del día <strong>{%now "d"%}</strong> de <strong>{%now "F"%}</strong> de <strong>{%now "Y"%}</strong> ,comparecen ante la Directora o miembro del equipo directivo en quien delegue, el/la alumno/a: <strong>{{sancion.IdAlumno.Nombre}}</strong>, matriculado en el curso <strong>{{sancion.IdAlumno.Unidad.Curso}}</strong>, su representante legal, en el caso de ser menor de edad, <strong>D/Dña:{{sancion.IdAlumno.Nomtutor}} {{sancion.IdAlumno.Ap1tutor}} {{sancion.IdAlumno.Ap2tutor}}</strong> para llevar a efecto el trámite de Audiencia. El/la tutor/a del alumno/a será informado de dicha reunión.<br />
+<br />
+
+A tal fin les informa que en el procedimiento de corrección abierto se de le imputan los siguientes hechos:<br />
+<br />
+<strong>{{sancion.Comentario}}</strong><br />
+<br />
+Asimismo se le comunica que en relación con los hechos imputados puede(n) efectuar las alegaciones que en su defensa interesen.<br />
+<br />
+<br />
+<br />
+En prueba de conformidad con la celebración del acto, firma la presente:<br />
+<br />
+<br />
+<table width="653" cellspacing="1" cellpadding="1" border="0" height="83" summary="">
+    <tbody>
+        <tr>
+            <td> Padre, madre o tutor legal   <br />
+            Recibido:<br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            Fdo:__________________________________</td>
+            <td> La Directora<br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            Fdo: Ana María González Solís</td>
+            
+        </tr>
+    </tbody>
+</table>

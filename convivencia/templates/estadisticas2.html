@@ -1,0 +1,69 @@
+{% extends "base_menu.html" %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+<h3>Curso:{{curso}}</h3>
+ 
+<hr/>
+{% if not filtro %}
+<h3>Estadísticas</h3>
+<h4>1er Trimestre (1/9/{{fechas.0|date:"Y"}} - 31/12/{{fechas.0|date:"Y"}})</h4>
+<ul>
+	<li>Amonestaciones: {{datos.0}}</li>
+	<ul>
+	{% for i,j,k,l in tipos %}
+	<li>{{i}}:{{j}}</li>
+	{% endfor %}
+	</ul>
+	<li>Sanciones: {{datos.1}}</li>
+</ul>
+
+<h4>2º Trimestre (1/1/{{fechas.1|date:"Y"}} - 31/3/{{fechas.1|date:"Y"}})</h4>
+<ul>
+	<li>Amonestaciones: {{datos.2}}</li>
+	<ul>
+	{% for i,j,k,l in tipos %}
+	<li>{{i}}:{{k}}</li>
+	{% endfor %}
+	</ul>
+	<li>Sanciones: {{datos.3}}</li>
+</ul>
+
+
+<h4>3er Trimestre (1/4/{{fechas.1|date:"Y"}} - 30/6/{{fechas.1|date:"Y"}})</h4>
+<ul>
+	<li>Amonestaciones: {{datos.4}}</li>
+	<ul>
+		{% for i,j,k,l in tipos %}
+		<li>{{i}}:{{l}}</li>
+		{% endfor %}
+	</ul>
+
+	<li>Sanciones: {{datos.5}}</li>
+</ul>
+
+
+<h4><strong>Total</strong></h4>
+<ul>
+	<li>Amonestaciones: {{total.0}}</li>
+	<li>Sanciones: {{total.1}}</li>
+</ul>
+
+{% else %}
+<h3>Estadísticas</h3>
+<h4>{{fechas.0|date:"d/m/Y"}} - {{fechas.1|date:"d/m/Y"}}</h4>
+<ul>
+	<li>Amonestaciones: {{datos.0}}</li>
+	<ul>
+	{% for i,j in tipos %}
+	<li>{{i}}:{{j}}</li>
+	{% endfor %}
+	</ul>
+
+	<li>Sanciones: {{datos.1}}</li>
+</ul>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <div class="float-right">
+                            <a href="/tde/incidenciaticprofe" class="btn btn-warning"><i class="fa fa-plus"></i> Nueva
+                                incidencia </a>
+                        </div>
+                        <h2>Mis Incidencias TIC</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered dataTables-incidencias"
+                                   style="border-collapse: separate !important;">
+                                <thead>
+
+                                <tr>
+                                    <td class="text-center"><strong>ID</strong></td>
+                                    <td class="text-center"><strong>Descripción</strong></td>
+                                    <td class="text-center"><strong>Fecha</strong></td>
+                                    <td class="text-center"><strong>Aula</strong></td>
+                                    <td class="text-center"><strong>Elementos</strong></td>
+                                    <td class="text-center"><strong>Estado</strong></td>
+                                    <td class="text-center"><strong>Solución</strong></td>
+                                </tr>
+
+
+                                </thead>
+                                <tbody>
+                                {% for l in incidencias %}
+                                    <tr>
+                                        <td class="text-center">{{ l.id }}</td>
+                                        <td>{{ l.comentario }}</td>
+                                        <td>{{ l.fecha|date:"d/m/Y" }}</td>
+                                        <td>{{ l.aula }}</td>
+
+                                        <td>
+                                            {% for elemento in l.elementos.all %}
+                                                {{ elemento.nombre }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            {% if l.resuelta %}
+                                                <span class="status-resuelta">Resuelta</span>
+                                            {% else %}
+                                                <span class="status-pendiente">Pendiente</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ l.solucion }}</td>
+                                    </tr>
+
+                                {% endfor %}
+
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>Mis Incidencias TIC (cursos académicos anteriores)</h2>
+                    </div>
+                    <div class="ibox-content">
+
+                        {% for curso, incidencias_a in incidencias_anteriores.items %}
+
+                            <div class="panel panel-info">
+                                <div class="panel-heading">
+                                    <h3>{{ curso }}</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered dataTables-incidenciasantiguas"
+                                               style="border-collapse: separate !important;">
+                                            <thead>
+
+                                            <tr>
+                                                <td class="text-center"><strong>ID</strong></td>
+                                                <td class="text-center"><strong>Descripción</strong></td>
+                                                <td class="text-center"><strong>Fecha</strong></td>
+                                                <td class="text-center"><strong>Aula</strong></td>
+                                                <td class="text-center"><strong>Elementos</strong></td>
+                                                <td class="text-center"><strong>Estado</strong></td>
+                                                <td class="text-center"><strong>Solución</strong></td>
+                                            </tr>
+
+
+                                            </thead>
+                                            <tbody>
+                                            {% for l in incidencias_a %}
+                                                <tr>
+                                                    <td class="text-center">{{ l.id }}</td>
+                                                    <td>{{ l.comentario }}</td>
+                                                    <td>{{ l.fecha|date:"d/m/Y" }}</td>
+                                                    <td>{{ l.aula }}</td>
+
+                                                    <td>
+                                                        {% for elemento in l.elementos.all %}
+                                                            {{ elemento.nombre }}{% if not forloop.last %}, {% endif %}
+                                                        {% endfor %}
+                                                    </td>
+                                                    <td>
+                                                        {% if l.resuelta %}
+                                                            <span class="status-resuelta">Resuelta</span>
+                                                        {% else %}
+                                                            <span class="status-pendiente">Pendiente</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ l.solucion }}</td>
+                                                </tr>
+
+                                            {% endfor %}
+
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+
+    <script>
+
+        // Upgrade button class name
+        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
+
+        $(document).ready(function () {
+
+
+            $('.dataTables-incidencias').DataTable({
+                language: {
+                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
+                },
+                pageLength: 50,
+                scrollX: false,
+                scrollCollapse: true,
+                responsive: true,
+                dom: '<"html5buttons"B>lTfgitp',
+                buttons: [
+                    {extend: 'copy'},
+                    {extend: 'csv'},
+                    {extend: 'excel', title: 'Incidencias TIC'},
+                    {extend: 'pdf', title: 'Incidencias TIC'},
+
+                    {
+                        extend: 'print',
+                        customize: function (win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                columnDefs: [
+                    {type: 'num', targets: 0},  // Indica que la primera columna (índice 0) es de tipo numérico
+                ]
+
+            });
+
+
+            $('.dataTables-incidenciasantiguas').DataTable({
+                language: {
+                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
+                },
+                pageLength: 50,
+                scrollX: false,
+                scrollCollapse: true,
+                responsive: true,
+                columnDefs: [
+                    {type: 'num', targets: 0},  // Indica que la primera columna (índice 0) es de tipo numérico
+                ]
+
+            });
+        });
+
+    </script>
+{% endblock %}

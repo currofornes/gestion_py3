@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/datapicker/datepicker3.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/clockpicker/clockpicker.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h3>{{ titulo }}</h3>
+                    </div>
+                    <div class="ibox-content">
+                        <h4>Alumno/a: {{ alum.Nombre }} ({{ alum.Unidad }})</h4>
+                        {% if not alum.email %}
+                            <p><strong>Este alumno no tiene guardado un correo electrónico de contacto. <a
+                                    href="/admin/centro/alumnos/{{ alum.id }}/change/">Puedes añadir un nuevo
+                                correo.</a></strong></p>
+                        {% else %}
+                            <p>Correo electrónico de contacto: <strong>{{ alum.email }}</strong></p>
+                        {% endif %}
+                        <br/>
+                        <form action="/convivencia/{{ tipo }}/{{ alum.id }}" method="post">
+                            {% csrf_token %}
+                            {{ form.IdAlumno }}  <!-- Campo oculto -->
+                            {% if tipo == 'sancion' %}
+                                <div class="form-group row">
+                                    <label class="col-lg-1 col-form-label">{{ form.Fecha.label_tag }}</label>
+                                    <div class="col-lg-5">
+                                        {{ form.Fecha }}
+                                        {% if form.Fecha.help_text %}
+                                            <span class="help-block">{{ form.Fecha.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.Fecha.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    <label class="col-lg-2 col-form-label">{{ form.Fecha_fin.label_tag }}</label>
+                                    <div class="col-lg-4">
+                                        {{ form.Fecha_fin }}
+                                        {% if form.Fecha_fin.help_text %}
+                                            <span class="help-block">{{ form.Fecha_fin.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.Fecha_fin.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                            {% elif tipo == 'amonestacion' %}
+                                {{ form.ComunicadoFamilia }}  <!-- Campo oculto -->
+                                <div class="form-group row">
+                                    <label class="col-lg-1 col-form-label">{{ form.Fecha.label_tag }}</label>
+                                    <div class="col-lg-5">
+                                        {{ form.Fecha }}
+                                        {% if form.Fecha.help_text %}
+                                            <span class="help-block">{{ form.Fecha.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.Fecha.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    <label class="col-lg-1 col-form-label">{{ form.Hora.label_tag }}</label>
+                                    <div class="col-lg-5">
+                                        {{ form.Hora }}
+                                        {% if form.Hora.help_text %}
+                                            <span class="help-block">{{ form.Hora.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.Hora.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                            {% endif %}
+
+
+                            {% for field in form %}
+                                {% if field.name != 'IdAlumno' and field.name != 'Fecha_fin' and field.name != 'Fecha' and field.name != 'Hora' and field.name != 'Enviado'  and field.name != 'ComunicadoFamilia' and field.name != 'FamiliarComunicado' and field.name != 'FechaComunicado' and field.name != 'HoraComunicado' and field.name != 'Medio' and field.name != 'TelefonoComunicado' and field.name != 'ObservacionComunicado' and field.name != 'NoExpulsion' and field.name != 'curso_academico' %}
+                                    <!-- Ignorar campos ocultos -->
+                                    <div class="form-group row">
+                                        <label class="col-lg-1 col-form-label">{{ field.label_tag }}</label>
+                                        <div class="col-lg-11">
+                                            {{ field }}
+                                            {% if field.help_text %}
+                                                <span class="help-block">{{ field.help_text }}</span>
+                                            {% endif %}
+                                            {% for error in field.errors %}
+                                                <span class="text-danger">{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if tipo == 'sancion' %}
+                            <div class="form-group row">
+                                <label class="col-sm-1 col-form-label"></label>
+
+                                <div class="col-sm-11">
+                                    <div class="i-checks">
+                                        <label>
+                                            <input type="checkbox" value="">
+                                            <i></i> {{ form.NoExpulsion.label }}
+                                        </label>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            {% endif %}
+
+                            {% if tipo == 'amonestacion' %}
+
+                            <div class="form-group row">
+                                <label class="col-sm-1 col-form-label">Comunicado a familia:</label>
+
+                                <div class="col-sm-11">
+                                    <div class="switch">
+                                        <div class="onoffswitch">
+                                            <input type="checkbox" class="onoffswitch-checkbox"
+                                                   id="familiaswitch">
+                                            <label class="onoffswitch-label" for="familiaswitch">
+                                                <span class="onoffswitch-inner"></span>
+                                                <span class="onoffswitch-switch"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="toggleDiv">
+                                <div class="row">
+                                    <div class="col-lg-1">
+
+                                    </div>
+                                    <div class="col-lg-11">
+                                        <div class="form-group row">
+                                            <label class="col-lg-1 col-form-label">{{ form.FamiliarComunicado.label_tag }}</label>
+                                            <div class="col-lg-3">
+                                                {{ form.FamiliarComunicado }}
+                                                {% if form.FamiliarComunicado.help_text %}
+                                                    <span class="help-block">{{ form.FamiliarComunicado.help_text }}</span>
+                                                {% endif %}
+                                                {% for error in form.FamiliarComunicado.errors %}
+                                                    <span class="text-danger">{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                            <label class="col-lg-2 col-form-label">{{ form.FechaComunicado.label_tag }}</label>
+                                            <div class="col-lg-2">
+                                                {{ form.FechaComunicado }}
+                                                {% if form.FechaComunicado.help_text %}
+                                                    <span class="help-block">{{ form.FechaComunicado.help_text }}</span>
+                                                {% endif %}
+                                                {% for error in form.FechaComunicado.errors %}
+                                                    <span class="text-danger">{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                            <label class="col-lg-2 col-form-label">{{ form.HoraComunicado.label_tag }}</label>
+                                            <div class="col-lg-2">
+                                                {{ form.HoraComunicado }}
+                                                {% if form.HoraComunicado.help_text %}
+                                                    <span class="help-block">{{ form.HoraComunicado.help_text }}</span>
+                                                {% endif %}
+                                                {% for error in form.HoraComunicado.errors %}
+                                                    <span class="text-danger">{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-1 col-form-label">{{ form.Medio.label_tag }}</label>
+                                            <div class="col-lg-5">
+                                                {{ form.Medio }}
+                                                {% if form.Medio.help_text %}
+                                                    <span class="help-block">{{ form.Medio.help_text }}</span>
+                                                {% endif %}
+                                                {% for error in form.Medio.errors %}
+                                                    <span class="text-danger">{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                            <label class="col-lg-1 col-form-label telefono_field"
+                                                   style="display: none;">{{ form.TelefonoComunicado.label_tag }}</label>
+                                            <div class="col-lg-5 telefono_field" style="display: none;">
+                                                {{ form.TelefonoComunicado }}
+                                                {% if form.TelefonoComunicado.help_text %}
+                                                    <span class="help-block">{{ form.TelefonoComunicado.help_text }}</span>
+                                                {% endif %}
+                                                {% for error in form.TelefonoComunicado.errors %}
+                                                    <span class="text-danger">{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="col-lg-1 col-form-label">{{ form.ObservacionComunicado.label_tag }}</label>
+                                            <div class="col-lg-11">
+                                                {{ form.ObservacionComunicado }}
+                                                {% if form.ObservacionComunicado.help_text %}
+                                                    <span class="help-block">{{ form.ObservacionComunicado.help_text }}</span>
+                                                {% endif %}
+                                                {% for error in form.ObservacionComunicado.errors %}
+                                                    <span class="text-danger">{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <br/>
+                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {% elif tipo == 'sancion' %}
+                            <br/>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                            {% endif %}
+                        </form>
+                        <br/><br/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+
+    <script src="{% static 'js/plugins/datapicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'js/plugins/datapicker/locales/bootstrap-datepicker.es.min.js' %}"></script>
+    <script src="{% static 'js/plugins/clockpicker/clockpicker.js' %}"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+
+            // Asegurar que el campo oculto 'ComunicadoFamilia' esté sincronizado con el estado del checkbox al cargar la página
+            function updateComunicadoFamiliaField() {
+                $('#id_ComunicadoFamilia').val($('#familiaswitch').is(':checked') ? 'True' : 'False');
+            }
+
+            // Llama a la función al cargar la página para establecer el valor inicial
+            updateComunicadoFamiliaField();
+
+            // Escucha cambios en el checkbox y actualiza el campo oculto
+            $('#familiaswitch').change(function () {
+                updateComunicadoFamiliaField();
+                if ($(this).is(':checked')) {
+                    $('#toggleDiv').show();
+                } else {
+                    $('#toggleDiv').hide();
+                }
+            });
+
+            $(".select2_Medio").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un medio",
+                allowClear: false
+            }).on('change', function () {
+                toggleTelefonoField();
+            });
+
+            $(".select2_Hora").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona tramo horario",
+                allowClear: false
+            });
+
+            $(".select2_TipoParte").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona tipo de amonestación",
+                allowClear: true
+            });
+
+            $(".select2_Profesor").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona profesor",
+                allowClear: true
+            });
+
+            $('#id_FechaComunicado').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
+
+
+            $('#id_Fecha').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
+
+            $('#id_Fecha_fin').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            // Mostrar u ocultar el div en la carga de la página dependiendo del estado inicial del checkbox
+            if ($('#familiaswitch').is(':checked')) {
+                $('#toggleDiv').show();
+            } else {
+                $('#toggleDiv').hide();
+            }
+
+            // Función para mostrar/ocultar el campo Teléfono
+            function toggleTelefonoField() {
+                var medioVal = $('#id_Medio').val();
+                console.log(medioVal);
+                if (medioVal === '1') {
+                    $('.telefono_field').show();
+                } else {
+                    $('.telefono_field').hide();
+                }
+            }
+
+            // Llamar a la función al cargar la página
+            toggleTelefonoField();
+
+            $('.clockpicker').clockpicker({
+                donetext: 'Hecho'
+            });
+
+            $('form').submit(function () {
+                $('#id_ComunicadoFamilia').val($('#familiaswitch').is(':checked') ? 'True' : 'False');
+            });
+
+
+        });
+
+    </script>
+{% endblock %}
+

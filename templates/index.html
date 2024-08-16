@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load grupo_tags %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="ibox">
+                    {% if user|has_group:"jefatura de estudios" %}
+                        <div class="ibox-content product-box" onclick="location.href='/centro/alumnos';"
+                             style="cursor: pointer;">
+                    {% elif user|has_group:"profesor" %}
+                        <div class="ibox-content product-box" onclick="location.href='/centro/misalumnos';"
+                             style="cursor: pointer;">
+                    {% else %}
+                        <div class="ibox-content product-box">
+                    {% endif %}
+                    <div class="product-imitation">
+                        <i class="fa fa-thumbs-down fa-5x" aria-hidden="true"></i>
+                    </div>
+                    <div class="product-desc">
+                        <a href="#" class="product-name"> CONVIVENCIA</a>
+                        <div class="small m-t-xs">
+                            Gestión de Amonestaciones/Sanciones del alumnado
+                        </div>
+                    </div>
+                    </div>
+                    </div>
+                    </div>
+                    {% if is_tutor %}
+                        <div class="col-md-3">
+                            <div class="ibox">
+                                <div class="ibox-content product-box" onclick="location.href='/absentismo/misalumnos';"
+                             style="cursor: pointer;">
+                                    <div class="product-imitation">
+                                        <i class="fa fa-university fa-5x" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="product-desc">
+                                        <a href="#" class="product-name"> ABSENTISMO</a>
+                                        <div class="small m-t-xs">
+                                            Gestión de Absentismo en Tutoría
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% elif user|has_group:"jefatura de estudios" %}
+                        <div class="col-md-3">
+                            <div class="ibox">
+                                <div class="ibox-content product-box" onclick="location.href='/absentismo/alumnos';"
+                             style="cursor: pointer;">
+                                    <div class="product-imitation">
+                                        <i class="fa fa-university fa-5x" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="product-desc">
+                                        <a href="#" class="product-name"> ABSENTISMO</a>
+                                        <div class="small m-t-xs">
+                                            Gestión de Absentismo en Tutoría
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="col-md-3">
+                        <div class="ibox">
+                            <div class="ibox-content product-box"
+                                 onclick="location.href='https://docs.google.com/spreadsheets/d/1GO2xxRh2DcAs8T8g98t9EwKXLUjSbdgYMXpsZBzpWIU/edit?usp=sharing';"
+                                 style="cursor: pointer;">
+                                <div class="product-imitation">
+                                    <i class="fa fa-users fa-5x" aria-hidden="true"></i>
+                                </div>
+                                <div class="product-desc">
+                                    <a href="#" class="product-name"> GUARDIAS</a>
+                                    <div class="small m-t-xs">
+                                        Gestión de Guardias de profesorado
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="ibox">
+
+                            {% if user|has_group:"jefatura de estudios" %}
+                            <div class="ibox-content product-box" onclick="location.href='/reservas/verreservas';" style="cursor: pointer;">
+                            {% else %}
+                            <div class="ibox-content product-box" onclick="location.href='/reservas/misreservas';" style="cursor: pointer;">
+                            {% endif %}
+                                        <div class="product-imitation">
+                                    <i class="fa fa-calendar fa-5x" aria-hidden="true"></i>
+                                </div>
+                                <div class="product-desc">
+                                    <a href="#" class="product-name"> RESERVAS</a>
+                                    <div class="small m-t-xs">
+                                        Reserva los espacios y recursos comunes del centro
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-3">
+                        <div class="ibox">
+                            <div class="ibox-content product-box" onclick="location.href='/tde/misincidenciastic';"
+                             style="cursor: pointer;">
+                                <div class="product-imitation">
+                                    <i class="fa fa-keyboard-o fa-5x" aria-hidden="true"></i>
+                                </div>
+                                <div class="product-desc">
+                                    <a href="#" class="product-name"> INCIDENCIAS TIC</a>
+                                    <div class="small m-t-xs">
+                                        Genera o gestiona incidencias TIC
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if user.is_superuser %}
+                        <div class="col-md-3">
+                            <div class="ibox">
+                                <div class="ibox-content product-box" onclick="location.href='/admin';"
+                             style="cursor: pointer;">
+                                    <div class="product-imitation">
+                                        <i class="fa fa-cogs fa-5x" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="product-desc">
+                                        <a href="#" class="product-name"> ADMINISTRACIÓN</a>
+                                        <div class="small m-t-xs">
+                                            Administración de Gestiona IESGN
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+{% endblock %}

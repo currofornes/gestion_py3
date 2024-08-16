@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>{{ titulo }}</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <h4>Profesor/a: {{ profesor }}</h4>
+                        <br/>
+                        <form action="/tde/incidenciaticprofe" method="post">
+                            {% csrf_token %}
+                            {{ form.profesor }}  <!-- Campo oculto -->
+
+                            <!-- Mostrar errores no asociados a campos específicos -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    <ul>
+                                        {% for error in form.non_field_errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+
+                            <div class="form-group row">
+                                <label class="col-lg-1 col-form-label">{{ form.fecha.label_tag }}</label>
+                                <div class="col-lg-5">
+                                    {{ form.fecha }}
+                                    {% if form.fecha.help_text %}
+                                        <span class="help-block">{{ form.fecha.help_text }}</span>
+                                    {% endif %}
+                                    {% for error in form.fecha.errors %}
+                                        <span class="text-danger">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+
+                            </div>
+
+
+                            {% for field in form %}
+                                {% if field.name != 'profesor' and field.name != 'fecha' and field.name != 'resuelta' and field.name != 'solucion' %}
+                                    <!-- Ignorar campos ocultos -->
+                                    <div class="form-group row">
+                                        <label class="col-lg-1 col-form-label">{{ field.label_tag }}</label>
+                                        <div class="col-lg-11">
+                                            {{ field }}
+                                            {% if field.help_text %}
+                                                <span class="help-block">{{ field.help_text }}</span>
+                                            {% endif %}
+                                            {% for error in field.errors %}
+                                                <span class="text-danger">{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+
+
+                            <br/>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </form>
+                        <br/><br/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        $(document).ready(function () {
+
+            $(".select2_Prioridad").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona una prioridad",
+                allowClear: false
+            });
+
+            $(".select2_Aula").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un aula, espacio o recurso",
+                allowClear: true
+            });
+
+            $(".select2_Elementos").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona uno o varios elementos implicados",
+                allowClear: true
+            });
+
+
+
+
+            var mem = $('#id_fecha').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+
+        });
+
+    </script>
+{% endblock %}

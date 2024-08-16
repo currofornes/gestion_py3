@@ -1,0 +1,43 @@
+{% extends 'login_base.html' %}
+{% load static %}
+{% block title %}Gestiona IESGN{% endblock %}
+
+{% block content %}
+
+    <div class="loginColumns animated fadeInDown">
+        <div class="row">
+
+            <div class="col-md-6">
+                <h2 class="font-bold">Bienvenid@ a Gestiona IESGN</h2>
+
+                <div class="ibox-content no-padding border-left-right">
+                    <img alt="image" class="img-fluid" src="{% static 'img/iesgn.jpg' %}">
+                </div>
+
+            </div>
+            <div class="col-md-6">
+                <div class="ibox-content">
+
+                    <form action="{% url 'login' %}" method="post" class="m-t">
+                        {% csrf_token %}
+                        {% if error %}
+                          <h3 class="bg-danger">Error en login.</h3>
+                        {% endif%}
+                        <div class="form-group">
+                            <input type="text" name="username" id="inputText" class="form-control" placeholder="Usuario" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password" required>
+                            <input type="hidden" name="next" value="{{next}}">
+                        </div>
+                        <button type="submit" class="btn btn-primary block full-width m-b">Entrar</button>
+                    </form>
+                    <p class="m-t">
+                        <small>Sistema de gestión del IES Gonzalo Nazareno</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

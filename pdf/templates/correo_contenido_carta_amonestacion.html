@@ -1,0 +1,33 @@
+<div class="cabecera">
+    {{amonestacion.IdAlumno.Nomtutor}} {{amonestacion.IdAlumno.Ap1tutor}} {{amonestacion.IdAlumno.Ap2tutor}}<br />
+    {{amonestacion.IdAlumno.Direccion}}<br />
+    {{amonestacion.IdAlumno.CodPostal}} {{amonestacion.IdAlumno.Localidad}}<br />
+    ({{amonestacion.IdAlumno.Provincia}})      <br />
+    </div>
+    <br />
+    <br />
+Estimado Sr. / Sra.:<br />
+<br />
+<div align="justify">Su hijo/a <strong>{{amonestacion.IdAlumno.Nombre}}</strong>, ha recibido una amonestación por escrito de un profesor/a del centro por: <strong>{{amonestacion.Tipo}}</strong>.
+<br/><br/>
+Descripción del hecho:<br/>
+<strong>{{amonestacion.Comentario}}</strong>
+<br/><br/>
+<strong>{{amonestacion.IdAlumno.Nombre}}</strong> acumula un total de <strong>{{num_amon}}</strong> amonestaciones por escrito.
+    
+ {% if num_amon > 3 %}
+ <br /><br/>
+Estos hechos dificultan la labor de formación y educación que deseamos impartir a todos los alumnos del instituto.<br/>
+
+Si su hijo/a no modifica su conducta, se le podrá sancionar con la suspensión del derecho de asistencia al centro durante 3 días. Si después de cumplir la sanción, mantuviese estos comportamientos, se le podrá sancionar con una suspensión del derecho a asistencia al centro entre 5 y 29 días; Como establece el Decreto 327/2010, de 13 de julio, por el que se aprueba el Reglamento Orgánico de los Institutos de Educación Secundaria.
+{% endif %}
+<br/><br/>
+Para cualquier duda o aclaración, puede solicitar una entrevista con la Jefatura de Estudios los <strong>martes y jueves de 9:30 a 10:30</strong>.
+</div>
+<br />
+ Atentamente,<br />
+<br />
+<br />
+<br />
+JEFATURA DE ESTUDIOS<br />
+

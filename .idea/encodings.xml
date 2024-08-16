@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/absentismo/datos_iniciales/inicio_absentismo_tiposactuaciones.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/centro/datos_iniciales/RelMatProUni.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/centro/datos_iniciales/RelPerCen.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/centro/datos_iniciales/inicio_centro_areas.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/centro/datos_iniciales/inicio_centro_aulas.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/centro/datos_iniciales/inicio_centro_cursoacademico.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/centro/datos_iniciales/inicio_centro_departamentos.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/centro/datos_iniciales/inicio_centro_niveles.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/convivencia/datos_iniciales/inicio_convivencia_tiposamonestaciones.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/reservas/datos_iniciales/inicio_reservas_reservables.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/tde/datos_iniciales/inicio_tde_elemento.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/tde/datos_iniciales/inicio_tde_prioridad.csv" charset="windows-1252" />
+  </component>
+</project>

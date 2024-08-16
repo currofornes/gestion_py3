@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>{{ titulo }}</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <h4>Alumno/a: {{ protocolo.alumno.Nombre }}</h4>
+                        <br/>
+                        <form action="/absentismo/protocolo/{{ protocolo.id }}/nuevaactuacion" method="post">
+                            {% csrf_token %}
+                            {{ form.Protocolo }}  <!-- Campo oculto -->
+
+                            <!-- Mostrar errores no asociados a campos específicos -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    <ul>
+                                        {% for error in form.non_field_errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+
+                            <div class="form-group row">
+                                <label class="col-lg-1 col-form-label">{{ form.Fecha.label_tag }}</label>
+                                <div class="col-lg-5">
+                                    {{ form.Fecha }}
+                                    {% if form.Fecha.help_text %}
+                                        <span class="help-block">{{ form.Fecha.help_text }}</span>
+                                    {% endif %}
+                                    {% for error in form.Fecha.errors %}
+                                        <span class="text-danger">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+
+                            </div>
+
+
+                            {% for field in form %}
+                                {% if field.name != 'Protocolo' and field.name != 'Fecha' and field.name != 'curso_academico' %}
+                                    <!-- Ignorar campos ocultos -->
+                                    <div class="form-group row">
+                                        <label class="col-lg-1 col-form-label">
+                                            {% if field.name == 'Telefono' %}
+                                                <span id="label_telefono"
+                                                      style="display: none;">{{ field.label_tag }}</span>
+                                            {% else %}
+                                                {{ field.label_tag }}
+                                            {% endif %}
+                                        </label>
+                                        <div class="col-lg-11">
+                                            {% if field.name == 'Telefono' %}
+                                                <div id="telefono_field" style="display: none;">
+                                                    {{ field }}
+                                                    {% if field.help_text %}
+                                                        <span class="help-block">{{ field.help_text }}</span>
+                                                    {% endif %}
+                                                    {% for error in field.errors %}
+                                                        <span class="text-danger">{{ error }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                {{ field }}
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <span class="help-block">{{ field.help_text }}</span>
+                                            {% endif %}
+                                            {% for error in field.errors %}
+                                                <span class="text-danger">{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+
+
+                            <br/>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </form>
+                        <br/><br/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        $(document).ready(function () {
+
+            $(".select2_Medio").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un medio",
+                allowClear: false
+            }).on('change', function () {
+                toggleTelefonoField();
+            });
+
+            $(".select2_Tipo").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un tipo de actuación",
+                allowClear: true
+            });
+
+            var mem = $('#id_Fecha').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
+
+            // Función para mostrar/ocultar el campo Teléfono
+            function toggleTelefonoField() {
+                var medioVal = $('#id_Medio').val();
+                console.log(medioVal);
+                if (medioVal === '1') {
+                    $('#telefono_field').show();
+                    $('#label_telefono').show();
+
+                } else {
+                    $('#telefono_field').hide();
+                    $('#label_telefono').hide();
+                }
+            }
+
+            // Llamar a la función al cargar la página
+            toggleTelefonoField();
+
+        });
+
+    </script>
+{% endblock %}

@@ -1,0 +1,171 @@
+{% load static %}
+{% load grupo_tags %}
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav metismenu" id="side-menu">
+            <li class="nav-header">
+                <div class="dropdown profile-element" style="text-align: center;">
+                    <span style="color: white;">
+                        {% if user.is_superuser %}
+                            <i class="fa fa-user-secret fa-4x"></i>
+                        {% else %}
+                            <i class="fa fa-address-card-o fa-4x"></i>
+                        {% endif %}
+
+                    </span>
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                        <span class="clear"> <span class="block m-t-xs"> <strong
+                                class="font-bold">{{ user.username }}</strong>
+                         </span> <span class="text-muted text-xs block">{{ user.get_full_name }} <b
+                                class="caret"></b></span> </span> </a>
+                    <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                        <li><a href="/cambiar-password-custom">Cambiar contraseña</a></li>
+                        <li><a href="/logout">Desconectar</a></li>
+                    </ul>
+                </div>
+                <div class="logo-element">
+                    IESGN
+                </div>
+            </li>
+            {% if user.is_authenticated %}
+                {% if user.is_superuser %}
+                    <li>
+                        <a href="/admin"><i class="fa fa-cogs"></i> <span class="nav-label">Administración</span> </a>
+                    </li>
+                {% endif %}
+
+                <li class="menu-convivencia {% if menu_convivencia %} active{% endif %}">
+                    <a href="#"><i class="fa fa-thumbs-down"></i> <span class="nav-label">Convivencia</span><span
+                            class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+                        {% if user|has_group:"jefatura de estudios" %}
+                            <li><a href="/centro/busqueda">Búsqueda general</a></li>
+                            <li><a href="/centro/alumnos">Todos los Grupos</a></li>
+                            <li><a href="/convivencia/show">Resumen</a></li>
+                        {% endif %}
+                        {% if user|has_group:"profesor" %}
+                            <li><a href="/centro/misalumnos">Mis alumnos</a></li>
+                        {% endif %}
+
+
+                    </ul>
+                </li>
+
+                {% if user|has_group:"jefatura de estudios" %}
+                    <li class="{% if menu_estadistica %} active{% endif %}">
+                        <a href="#"><i class="fa fa-bar-chart"></i> <span class="nav-label">Estadística</span><span
+                                class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level collapse">
+                            <li><a href="/convivencia/estadistica">General</a></li>
+                            <li><a href="/convivencia/horas">Horas</a></li>
+                            <li><a href="/convivencia/profesores">Profesores</a></li>
+                            <li><a href="/convivencia/grupos">Grupos</a></li>
+                            <li><a href="/convivencia/niveles">Niveles</a></li>
+                            <li><a href="/convivencia/alumnos">Alumnos</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="/centro/cursos"><i class="fa fa-graduation-cap"></i> <span
+                                class="nav-label">Cursos</span> </a>
+                    </li>
+                    <li>
+                        <a href="/centro/profesores"><i class="fa fa-user-circle"></i> <span class="nav-label">Profesores</span>
+                        </a>
+                    </li>
+                {% endif %}
+                {% if is_tutor %}
+                    <li>
+                        <a href="/absentismo/misalumnos"><i class="fa fa-university"></i> <span class="nav-label">Absentismo (Tutoría)</span>
+                        </a>
+                    </li>
+                {% endif %}
+                {% if user|has_group:"jefatura de estudios" %}
+                    <li>
+                        <a href="/absentismo/alumnos"><i class="fa fa-university"></i> <span class="nav-label">Absentismo (Todos)</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li>
+                    <a href="https://docs.google.com/spreadsheets/d/1GO2xxRh2DcAs8T8g98t9EwKXLUjSbdgYMXpsZBzpWIU/edit?usp=sharing"><i class="fa fa-users"></i> <span class="nav-label">Guardias</span> </a>
+                </li>
+                <!--
+                <li>
+                    <a href="#"><i class="fa fa-address-book-o"></i> <span class="nav-label">Horarios</span> </a>
+                </li>
+                -->
+                {% if user|has_group:"jefatura de estudios" %}
+
+                    <li class="{% if menu_reservas %} active{% endif %}">
+                        <a href="#"><i class="fa fa-calendar"></i> <span class="nav-label">Reservas</span><span
+                                class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level collapse">
+                            <li><a href="/reservas/verreservas">Ver Reservas</a></li>
+                            <li><a href="/reservas/misreservas">Mis Reservas</a></li>
+                        </ul>
+                    </li>
+
+                {% else %}
+                    <li>
+                        <a href="/reservas/misreservas"><i class="fa fa-calendar"></i> <span
+                                class="nav-label">Reservas</span> </a>
+                    </li>
+                {% endif %}
+
+                {% if user|has_group:"jefatura de estudios" or user|has_group:"tde" %}
+
+                    <li class="{% if menu_tde %} active{% endif %}">
+                        <a href="#"><i class="fa fa-laptop"></i> <span class="nav-label">TDE</span><span
+                                class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level collapse">
+                            <li><a href="/tde/incidenciastic"><i class="fa fa-tasks"></i> <span class="nav-label">Incidencias TIC</span></a>
+                            </li>
+                            <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i> <span
+                                    class="nav-label">Mis Incidencias TIC</span></a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i> <span class="nav-label">Incidencias TIC</span></a>
+                    </li>
+                {% endif %}
+
+
+
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+{% block js %}
+
+    <script src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+    <script>
+
+        /*
+        $(document).ready(function () {
+            var currentPath = window.location.pathname;
+
+             // Lista de submenús con patrones regex
+            var submenus = {
+                "menu-convivencia": [
+                    /^\/centro\/alumnos$/,
+                    /^\/convivencia\/show$/,
+                    /^\/centro\/misalumnos$/,
+                    /^\/convivencia\/show\/amonestacion\/\d+\/\d{4}\/\d{2}\/\d{2}$/
+                ],
+                // Agrega más submenús aquí
+            };
+
+            $.each(submenus, function(menuClass, regexPatterns) {
+                for (var i = 0; i < regexPatterns.length; i++) {
+                    if (regexPatterns[i].test(currentPath)) {
+                        $("." + menuClass).addClass("active");
+                        $("." + menuClass + " ul").addClass("in");
+                        break;  // Detiene el bucle si encuentra una coincidencia
+                    }
+                }
+            });
+        });
+
+         */
+    </script>
+{% endblock %}

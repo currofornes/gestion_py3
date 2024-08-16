@@ -1,0 +1,43 @@
+{% extends "base_menu.html" %}
+
+{% block title %}Envío de amonestaciones por correo electrónico{% endblock %}
+
+{% block content %}
+<h3>Envío de amonestaciones por correo electrónico ({{info.fecha}})</h3>
+
+{% if info.enviados%}
+    <p><strong>Se han enviado</strong> un correo electrónico a los siguientes alumnos:</p>
+    <table class="table table-bordered">
+    
+    {% for alum in info.enviados%}
+        <tr><td>{{alum.Nombre}} ({{alum.email}})</td></tr>
+    {%endfor%}
+    </table>
+{%endif%}
+
+{% if info.noemail%}
+    <p><strong>No se han enviado</strong> correo a los siguientes alumnos, porque no tenemos el correo electrónico:</p>
+    <table class="table table-bordered">
+    
+    {% for alum in info.noemail%}
+        <tr><td>{{alum.Nombre}}</td></tr>
+    {%endfor%}
+    </table>
+{%endif%}
+
+{% if info.yaenviados%}
+    <p><strong>No se han enviado</strong> correo a los siguientes alumnos, porque ya se habían envíado:</p>
+    <table class="table table-bordered">
+    
+    {% for alum in info.yaenviados%}
+        <tr><td>{{alum.Nombre}} ({{alum.email}})</td></tr>
+    {%endfor%}
+    </table>
+{%endif%}
+
+
+<br/>
+<a href="{{url}}">Volver al resumen de amonestaciones</a>
+
+
+{% endblock %}

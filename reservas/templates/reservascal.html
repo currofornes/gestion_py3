@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/fullcalendar/fullcalendar.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <div class="float-right">
+                            <a href="/reservas/reservaprofe" class="btn btn-warning"><i class="fa fa-plus"></i> Nueva
+                                reserva para un profesor/a
+                            </a>
+                            <a href="/reservas/verreservas" class="btn btn-info"><i class="fa fa-list"></i> Vista Tabla
+                            </a>
+                        </div>
+                        <h2>Reservas</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+{% endblock %}
+
+{% block js %}
+
+    <script src="{% static 'js/plugins/fullcalendar/moment.min.js' %}"></script>
+    <script src="{% static 'js/plugins/dataTables/datetime-moment.js' %}"></script>
+    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'js/plugins/fullcalendar/fullcalendar.min.js' %}"></script>
+    <script src="{% static 'js/plugins/fullcalendar/locales/es.js' %}"></script>
+
+
+    <script>
+
+
+        $(document).ready(function () {
+
+
+
+            /* initialize the calendar
+         -----------------------------------------------------------------*/
+            var date = new Date();
+            var d = date.getDate();
+            var m = date.getMonth();
+            var y = date.getFullYear();
+
+            var calendar = $('#calendar').fullCalendar({
+                locale: 'es',
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay'
+                },
+                editable: false,
+                droppable: false,
+                weekends: false,
+                slotDuration: '00:15:00',
+                minTime: "06:00:00",
+                maxTime: "17:00:00",
+                nowIndicator: true,
+                businessHours: {
+                    // days of week. an array of zero-based day of week integers (0=Sunday)
+                    dow: [1, 2, 3, 4, 5],
+                    start: '08:00',
+                    end: '15:00',
+                },
+                events: '{% url "reservas_json" %}',
+            });
+
+
+        });
+
+    </script>
+{% endblock %}

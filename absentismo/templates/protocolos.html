@@ -1,0 +1,193 @@
+{% extends "base_menu.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h2>Protocolos de absentismo</h2>
+                    <h3>Alumno/a: {{ alum.Nombre }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row animated fadeInRight">
+        <div class="col-lg-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    {% if protocolo %}
+                    <div class="float-right">
+
+                            <a href="#" class="btn btn-danger cerrar-protocolo" data-id="{{ protocolo.id }}"> Cerrar protocolo </a>
+                            <a href="/absentismo/protocolo/{{ protocolo.id }}/nuevaactuacion"  class="btn btn-warning"><i class="fa fa-plus"></i> Nueva actuación </a>
+                        </div>
+                        {% endif %}
+                    <h3>Protocolo abierto</h3>
+                </div>
+                <div class="ibox-content">
+                {% if protocolo %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th class="text-center">Fecha</th>
+                                <th>Actuación</th>
+                                <th class="text-center">Medio</th>
+                                <th class="text-center">Teléfono/s</th>
+                                <th>Observaciones</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+
+                                {% for a in protocolo.actuaciones.all %}
+                                    <tr>
+                                        <td class="text-center">{{ a.Fecha|date:"d/m/Y" }}</td>
+                                        <td>{{ a.Tipo }}</td>
+                                        {% if a.Medio == None %}
+                                            <td></td>
+                                        {% else %}
+                                            <td class="text-center">{{ a.get_Medio_display }}</td>
+                                        {% endif %}
+                                        {% if a.Medio == 1 %}
+                                            <td class="text-center">{{ a.Telefono }}</td>
+                                        {% else %}
+                                            <td></td>
+                                        {% endif %}
+                                        <td>{{ a.Comentario }}</td>
+                                        {% if a.Tipo.id == 9 %}
+                                            <td>
+                                                <a href="/pdf/carta_abs_tutor/{{ protocolo.id }}"  class="btn btn-sm btn-success"><i class="fa fa-file-text"></i> Carta </a>
+                                            </td>
+                                        {% elif a.Tipo.id == 10 %}
+                                            <td>
+                                                <a href="/pdf/carta_abs_ED/{{ protocolo.id }}"  class="btn btn-sm btn-info"><i class="fa fa-file-text"></i> Carta </a>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {%  endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <h3>No hay protocolo de absentismo abierto para <strong>{{ alum.Nombre }}</strong></h3>
+                {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row animated fadeInRight">
+        <div class="col-lg-12">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h3>Protocolos antiguos cerrados</h3>
+                </div>
+                <div class="ibox-content">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th class="text-center">Fecha Apertura</th>
+                                <th class="text-center">Fecha Cierre</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            {% for p in protocolos_cerrados %}
+                                <tr>
+                                <td class="text-center">{{ p.fecha_apertura|date:"d/m/Y" }}</td>
+                                <td class="text-center">{{ p.fecha_cierre|date:"d/m/Y" }}</td>
+                                <td style="text-align: center; vertical-align: middle;">
+                                            <a href="/absentismo/protocolo/{{ p.id }}/ver" class="btn btn-info btn-sm" style="color: white;">Ver Actuaciones</a>
+                                        </td>
+
+
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+{% block js %}
+<script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+<script>
+
+
+        $(document).ready(function () {
+
+            $('.cerrar-protocolo').click(function () {
+                var protocoloId = $(this).data('id');
+
+                Swal.fire({
+                    title: "¿Estás seguro?",
+                    text: "Tendrás que abrir un nuevo protocolo en caso de nuevas actuaciones.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Sí, cerrar.",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        $.ajax({
+                            url: '{% url "cerrar_protocolo" %}', // Asegúrate de que esta URL sea la correcta
+                            method: 'POST',
+                            data: {
+                                'id': protocoloId,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: "¡Cerrado!",
+                                        text: "El protocolo ha sido cerrado.",
+                                        icon: "success"
+                                    }).then(() => {
+                                        window.location.href = "/absentismo/misalumnos"; // Redirige después de cerrar el alert de éxito
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: "No se pudo cerrar el protocolo.",
+                                        icon: "error"
+                                    });
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                Swal.fire({
+                                    title: "Error",
+                                    text: "Ocurrió un error al intentar cerrar el protocolo.",
+                                    icon: "error"
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
