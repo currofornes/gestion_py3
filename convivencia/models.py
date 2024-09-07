@@ -44,6 +44,8 @@ class Amonestaciones(models.Model):
 	Comentario=models.TextField(blank=True)
 	Enviado = models.BooleanField(default=False,verbose_name="Enviar por correo electrónico")
 
+	DerivadoConvivencia = models.BooleanField(default=False, verbose_name="Derivado a Aula de Convivencia")
+
 	ComunicadoFamilia = models.BooleanField(default=False, verbose_name="Comunicado a la familia")
 	FamiliarComunicado = models.TextField(blank=True, null=True)
 	FechaComunicado = models.DateField(blank=True, null=True)

@@ -350,9 +350,15 @@ def migrate_convivencia_data(conn):
         if not column_exists(cursor,'convivencia_amonestaciones', 'Enviado'):
             cursor.execute("ALTER TABLE convivencia_amonestaciones ADD COLUMN Enviado BOOL NOT NULL default 0")
 
+        if not column_exists(cursor,'convivencia_amonestaciones', 'DerivadoConvivencia'):
+            cursor.execute(
+                "ALTER TABLE convivencia_amonestaciones ADD COLUMN DerivadoConvivencia BOOL NOT NULL default 0")
+
         if not column_exists(cursor,'convivencia_amonestaciones', 'ComunicadoFamilia'):
             cursor.execute(
                 "ALTER TABLE convivencia_amonestaciones ADD COLUMN ComunicadoFamilia BOOL NOT NULL default 0")
+
+
 
         if not column_exists(cursor,'convivencia_amonestaciones', 'FamiliarComunicado'):
             cursor.execute("ALTER TABLE convivencia_amonestaciones ADD COLUMN FamiliarComunicado TEXT")
@@ -387,6 +393,7 @@ def migrate_convivencia_data(conn):
             Profesor_id INTEGER REFERENCES centro_profesores (id),
             Tipo_id INTEGER REFERENCES convivencia_tiposamonestaciones (id),
             Enviado BOOL NOT NULL,
+            DerivadoConvivencia BOOL NOT NULL,
             ComunicadoFamilia BOOL NOT NULL,
             FamiliarComunicado TEXT,
             FechaComunicado DATE,
@@ -401,9 +408,9 @@ def migrate_convivencia_data(conn):
         # Insertar los datos relevantes de la tabla antigua a la nueva
         cursor.execute("""
         INSERT INTO convivencia_amonestaciones_new (
-            id, Fecha, Hora, Comentario, IdAlumno_id, Profesor_id, Tipo_id, Enviado, ComunicadoFamilia, FamiliarComunicado, FechaComunicado, HoraComunicado, Medio, ObservacionComunicado, TelefonoComunicado, curso_academico_id 
+            id, Fecha, Hora, Comentario, IdAlumno_id, Profesor_id, Tipo_id, Enviado, DerivadoConvivencia, ComunicadoFamilia, FamiliarComunicado, FechaComunicado, HoraComunicado, Medio, ObservacionComunicado, TelefonoComunicado, curso_academico_id 
         ) SELECT
-            id, Fecha, Hora, Comentario, IdAlumno_id, Profesor_id, Tipo_id, Enviado, ComunicadoFamilia, FamiliarComunicado, FechaComunicado, HoraComunicado, Medio, ObservacionComunicado, TelefonoComunicado, curso_academico_id
+            id, Fecha, Hora, Comentario, IdAlumno_id, Profesor_id, Tipo_id, Enviado, DerivadoConvivencia, ComunicadoFamilia, FamiliarComunicado, FechaComunicado, HoraComunicado, Medio, ObservacionComunicado, TelefonoComunicado, curso_academico_id
         FROM convivencia_amonestaciones
         """)
 
@@ -970,7 +977,7 @@ def main():
     try:
         cursor = conn.cursor()
 
-        '''
+
         migrate_centro_data(conn)
         migrate_absentismo_data(conn)
         migrate_convivencia_data(conn)
@@ -1019,7 +1026,7 @@ def main():
 
         
         call_command('asignar_superusuario', 'jefe1')
-'''
+
         call_command('asignar_grupo', 'jefe1', 'jefatura de estudios')
 
 

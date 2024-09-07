@@ -26,6 +26,7 @@ class AmonestacionForm(forms.ModelForm):
             'Profesor': Select(attrs={'class': 'form-control select2_Profesor'}),
             'Comentario': Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'Enviado': CheckboxInput(attrs={'class': 'form-check-input'}),
+            'DerivadoConvivencia': CheckboxInput(attrs={'class': 'i-checks'}),
             'ComunicadoFamilia': HiddenInput(),
             'FamiliarComunicado': forms.TextInput(attrs={'class': 'form-control'}),
             'FechaComunicado': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
@@ -112,6 +113,7 @@ class AmonestacionProfeForm(forms.ModelForm):
             'Tipo': Select(attrs={'class': 'form-control select2_TipoParte'}),
             'Comentario': Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'Enviado': CheckboxInput(attrs={'class': 'form-check-input'}),
+            'DerivadoConvivencia': CheckboxInput(attrs={'class': 'i-checks'}),
 
             'ComunicadoFamilia': HiddenInput(),
             'FamiliarComunicado': forms.TextInput(attrs={'class': 'form-control'}),
