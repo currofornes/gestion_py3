@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
-from centro.views import group_check_prof, group_check_je
+from centro.views import group_check_prof, group_check_je, group_check_tde
 from reservas.forms import ReservaForm, ReservaProfeForm
 from reservas.models import Reservas, Reservables
 
@@ -151,7 +151,7 @@ def misreservas(request):
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_je, login_url='/')
+@user_passes_test(group_check_tde, login_url='/')
 def reservas(request):
 
 
@@ -164,7 +164,7 @@ def reservas(request):
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_je, login_url='/')
+@user_passes_test(group_check_tde, login_url='/')
 def reservascal(request):
 
 
