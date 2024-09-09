@@ -569,8 +569,15 @@ def grupos(request):
         else:
             datos = [Amonestaciones.objects.filter(IdAlumno__in=Alumnos.objects.filter(Unidad=curso), curso_academico=curso_seleccionado).count(),
                      Sanciones.objects.filter(IdAlumno__in=Alumnos.objects.filter(Unidad=curso), curso_academico=curso_seleccionado).count()]
-        datos.append(round(datos[0] * 100 / total[0], 2))
-        datos.append(round(datos[1] * 100 / total[1], 2))
+        if total[0] > 0:
+            datos.append(round(datos[0] * 100 / total[0], 2))
+        else:
+            datos.append(0)  # Si total[0] es 0, asigna 0 para evitar división por cero
+
+        if total[1] > 0:
+            datos.append(round(datos[1] * 100 / total[1], 2))
+        else:
+            datos.append(0)  # Si total[1] es 0, asigna 0 para evitar división por cero
         lista.append(datos)
 
         cursos_nombres.append({
@@ -634,8 +641,20 @@ def niveles(request):
         else:
             datos = [Amonestaciones.objects.filter(IdAlumno__Unidad__Nivel=nivel, curso_academico=curso_seleccionado).count(),
                      Sanciones.objects.filter(IdAlumno__Unidad__Nivel=nivel, curso_academico=curso_seleccionado).count()]
-        datos.append(round(datos[0] * 100 / total[0], 2))
-        datos.append(round(datos[1] * 100 / total[1], 2))
+
+        if total[0] > 0:
+            datos.append(round(datos[0] * 100 / total[0], 2))
+        else:
+            datos.append(0)  # Si total[0] es 0, asigna 0 para evitar división por cero
+
+        if total[1] > 0:
+            datos.append(round(datos[1] * 100 / total[1], 2))
+        else:
+            datos.append(0)  # Si total[1] es 0, asigna 0 para evitar división por cero
+
+
+
+
         lista.append(datos)
 
         niveles_nombres.append({

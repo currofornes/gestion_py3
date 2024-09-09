@@ -94,7 +94,7 @@
                     <a href="#"><i class="fa fa-address-book-o"></i> <span class="nav-label">Horarios</span> </a>
                 </li>
                 -->
-                {% if user|has_group:"jefatura de estudios" %}
+                {% if user|has_group:"jefatura de estudios" or user|has_group:"tde"%}
 
                     <li class="{% if menu_reservas %} active{% endif %}">
                         <a href="#"><i class="fa fa-calendar"></i> <span class="nav-label">Reservas</span><span
