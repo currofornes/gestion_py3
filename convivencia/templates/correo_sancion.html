@@ -1,12 +1,15 @@
-"Se informa que al alumno/a {{sanc.IdAlumno.Nombre}} ({{sanc.IdAlumno.Unidad}}) le ha sido impuesta la corrección corrección de <strong>{{sanc.Sancion}}</strong>.
+"Se informa que al alumno/a {{ sanc.IdAlumno.Nombre }} ({{ sanc.IdAlumno.Unidad }}) le ha sido impuesta la corrección de
+<strong>{{ sanc.Sancion }}</strong>.
 
 {% if sanc.NoExpulsion %}
-    . La presente sanción no conlleva la retirada del derecho de asistencia a clase. Un saludo.     
-            {%else%}
-    La sanción conlleva la suspensión del derecho de asistencia a clase durante el periodo: {{sanc.Fecha}} - {{sanc.Fecha_fin}}, durante el cual deberá realizar las tareas de formación que se le asignen, y que tendrá que recoger el día lectivo siguiente en la conserjería del instituto. Se ruega asignen dichas tareas. Un saludo
+    La presente sanción no conlleva la retirada del derecho de asistencia a clase. Un saludo.
+{% else %}
+    La sanción conlleva la suspensión del derecho de asistencia a clase durante el periodo: {{ sanc.Fecha }} -
+    {{ sanc.Fecha_fin }}, durante el cual deberá realizar las tareas de formación que se le asignen, y que tendrá que
+    recoger el día lectivo siguiente en la conserjería del instituto. Se ruega asignen dichas tareas. Un saludo
 
-La fecha de finalización de la sanción será el {{sanc.Fecha_fin}} 
+    La fecha de finalización de la sanción será el {{ sanc.Fecha_fin }}
 
-            {%endif%}
+{% endif %}
 
 

@@ -52,6 +52,7 @@ def parte(request, tipo, alum_id):
                 if correo_familia:
                     template = get_template("correo_amonestacion.html")
                     contenido = template.render({'amon': amon})
+
             # send_mail(
             #	'Nueva amonestación',
             #	contenido,
@@ -116,8 +117,6 @@ def historial(request, alum_id, prof):
     historial_actual = list(amon_actual) + list(sanc_actual)
     historial_actual = sorted(historial_actual, key=lambda x: x.Fecha, reverse=False)
 
-
-
     tipo_actual = ["Amonestación" if isinstance(h, Amonestaciones) else "Sanción" for h in historial_actual]
     hist_actual = zip(historial_actual, tipo_actual, range(1, len(historial_actual) + 1))
 
@@ -139,7 +138,6 @@ def historial(request, alum_id, prof):
             historial_anteriores[curso] = hist_anteriores
 
     prof = True if prof == "" else False
-
 
     context = {
         'prof': prof,
@@ -287,7 +285,6 @@ def estadisticas(request):
     if not curso_seleccionado:
         curso_seleccionado = get_current_academic_year()
 
-
     if request.method == "POST":
 
         # f1=datetime(int(request.POST.get('Fecha1_year')),int(request.POST.get('Fecha1_month')),int(request.POST.get('Fecha1_day')))
@@ -315,7 +312,8 @@ def estadisticas(request):
         tipos = []
         for i in TiposAmonestaciones.objects.all():
             tipos.append((i.TipoAmonestacion,
-                          Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado,
+                          Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2,
+                                                        curso_academico=curso_seleccionado,
                                                         Tipo=i).count(),
                           i.TipoFalta
                           ))
@@ -394,7 +392,8 @@ def estadisticas(request):
             ))
 
     context = {'filtro': filtro, 'curso_seleccionado': curso_seleccionado,
-        'cursos_academicos': cursos_academicos, 'tipos': tipos, 'total': total, 'form': form, 'datos1t': datos1t, 'datos2t': datos2t,
+               'cursos_academicos': cursos_academicos, 'tipos': tipos, 'total': total, 'form': form, 'datos1t': datos1t,
+               'datos2t': datos2t,
                'datos3t': datos3t, 'fechas': fechas, 'menu_estadistica': True}
 
     return render(request, 'estadisticas.html', context)
@@ -461,7 +460,6 @@ def horas(request):
     if not curso_seleccionado:
         curso_seleccionado = get_current_academic_year()
 
-
     if request.method == "POST":
         f1 = datetime.strptime(request.POST.get('Fecha1'), '%d/%m/%Y')
         f2 = datetime.strptime(request.POST.get('Fecha2'), '%d/%m/%Y')
@@ -470,18 +468,21 @@ def horas(request):
     horas = ["[1ª] Primera", "[2ª] Segunda", "[3ª] Tercera", "Recreo", "[4ª] Cuarta", "[5ª] Quinta", "[6ª] Sexta"]
     for i in range(1, 8):
         if request.method == "POST":
-            lista.append(Amonestaciones.objects.filter(Hora=i, Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
+            lista.append(Amonestaciones.objects.filter(Hora=i, Fecha__gte=f1, Fecha__lte=f2,
+                                                       curso_academico=curso_seleccionado).count())
         else:
             lista.append(Amonestaciones.objects.filter(Hora=i, curso_academico=curso_seleccionado).count())
-    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(curso_academico=curso_seleccionado)
+    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(
+        curso_academico=curso_seleccionado)
     horas.append("TOTAL")
     if request.method == "POST":
-        lista.append(Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
+        lista.append(
+            Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
     else:
         lista.append(Amonestaciones.objects.filter(curso_academico=curso_seleccionado).count())
 
     context = {'form': form, 'horas': zip(horas, lista), 'curso_seleccionado': curso_seleccionado,
-        'cursos_academicos': cursos_academicos, 'totales': lista, 'menu_estadistica': True}
+               'cursos_academicos': cursos_academicos, 'totales': lista, 'menu_estadistica': True}
     return render(request, 'horas.html', context)
 
 
@@ -502,25 +503,28 @@ def profesores(request):
     if not curso_seleccionado:
         curso_seleccionado = get_current_academic_year()
 
-
     if request.method == "POST":
         f1 = datetime.strptime(request.POST.get('Fecha1'), '%d/%m/%Y')
         f2 = datetime.strptime(request.POST.get('Fecha2'), '%d/%m/%Y')
     lista = []
     if request.method == "POST":
-        listAmon = Amonestaciones.objects.values('Profesor').filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).annotate(
+        listAmon = Amonestaciones.objects.values('Profesor').filter(Fecha__gte=f1, Fecha__lte=f2,
+                                                                    curso_academico=curso_seleccionado).annotate(
             Count('Profesor'))
     else:
-        listAmon = Amonestaciones.objects.values('Profesor').filter(curso_academico=curso_seleccionado).annotate(Count('Profesor'))
+        listAmon = Amonestaciones.objects.values('Profesor').filter(curso_academico=curso_seleccionado).annotate(
+            Count('Profesor'))
     newlist = sorted(listAmon, key=itemgetter('Profesor__count'), reverse=True)
     suma = 0
     for l in newlist:
         l["Profesor"] = Profesores.objects.get(id=l["Profesor"]).Apellidos + ", " + Profesores.objects.get(
             id=l["Profesor"]).Nombre
         suma += l["Profesor__count"]
-    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(curso_academico=curso_seleccionado)
-    context = {"form": form, "lista": newlist, 'menu_estadistica': True, "suma": suma, 'curso_seleccionado': curso_seleccionado,
-        'cursos_academicos': cursos_academicos}
+    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(
+        curso_academico=curso_seleccionado)
+    context = {"form": form, "lista": newlist, 'menu_estadistica': True, "suma": suma,
+               'curso_seleccionado': curso_seleccionado,
+               'cursos_academicos': cursos_academicos}
     return render(request, 'lprofesores.html', context)
 
 
@@ -551,7 +555,8 @@ def grupos(request):
     # Total
     total = []
     if request.method == "POST":
-        total.append(Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
+        total.append(
+            Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
         total.append(Sanciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
     else:
         total.append(Amonestaciones.objects.filter(curso_academico=curso_seleccionado).count())
@@ -567,8 +572,10 @@ def grupos(request):
                      Sanciones.objects.filter(IdAlumno__in=Alumnos.objects.filter(Unidad=curso)).filter(
                          Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count()]
         else:
-            datos = [Amonestaciones.objects.filter(IdAlumno__in=Alumnos.objects.filter(Unidad=curso), curso_academico=curso_seleccionado).count(),
-                     Sanciones.objects.filter(IdAlumno__in=Alumnos.objects.filter(Unidad=curso), curso_academico=curso_seleccionado).count()]
+            datos = [Amonestaciones.objects.filter(IdAlumno__in=Alumnos.objects.filter(Unidad=curso),
+                                                   curso_academico=curso_seleccionado).count(),
+                     Sanciones.objects.filter(IdAlumno__in=Alumnos.objects.filter(Unidad=curso),
+                                              curso_academico=curso_seleccionado).count()]
         if total[0] > 0:
             datos.append(round(datos[0] * 100 / total[0], 2))
         else:
@@ -586,13 +593,14 @@ def grupos(request):
             'sanciones': datos[1]
         })
 
-    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(curso_academico=curso_seleccionado)
+    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(
+        curso_academico=curso_seleccionado)
 
     cursos = zip(cursos_queryset, lista)
     cursos = sorted(cursos, key=lambda x: x[1][0], reverse=True)
     context = {'form': form, 'cursos': cursos, 'menu_estadistica': True, 'total': total,
                'cursos_nombres': cursos_nombres, 'curso_seleccionado': curso_seleccionado,
-        'cursos_academicos': cursos_academicos}
+               'cursos_academicos': cursos_academicos}
     return render(request, 'grupos.html', context)
 
 
@@ -623,7 +631,8 @@ def niveles(request):
     # Total
     total = []
     if request.method == "POST":
-        total.append(Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
+        total.append(
+            Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
         total.append(Sanciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
     else:
         total.append(Amonestaciones.objects.filter(curso_academico=curso_seleccionado).count())
@@ -635,12 +644,16 @@ def niveles(request):
 
         if request.method == "POST":
             datos = [Amonestaciones.objects.filter(IdAlumno__Unidad__Nivel=nivel).filter(Fecha__gte=f1,
-                Fecha__lte=f2, curso_academico=curso_seleccionado).count(),
+                                                                                         Fecha__lte=f2,
+                                                                                         curso_academico=curso_seleccionado).count(),
                      Sanciones.objects.filter(IdAlumno__Unidad__Nivel=nivel).filter(Fecha__gte=f1).filter(
-                         Fecha__lte=f2).filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count()]
+                         Fecha__lte=f2).filter(Fecha__gte=f1, Fecha__lte=f2,
+                                               curso_academico=curso_seleccionado).count()]
         else:
-            datos = [Amonestaciones.objects.filter(IdAlumno__Unidad__Nivel=nivel, curso_academico=curso_seleccionado).count(),
-                     Sanciones.objects.filter(IdAlumno__Unidad__Nivel=nivel, curso_academico=curso_seleccionado).count()]
+            datos = [Amonestaciones.objects.filter(IdAlumno__Unidad__Nivel=nivel,
+                                                   curso_academico=curso_seleccionado).count(),
+                     Sanciones.objects.filter(IdAlumno__Unidad__Nivel=nivel,
+                                              curso_academico=curso_seleccionado).count()]
 
         if total[0] > 0:
             datos.append(round(datos[0] * 100 / total[0], 2))
@@ -652,9 +665,6 @@ def niveles(request):
         else:
             datos.append(0)  # Si total[1] es 0, asigna 0 para evitar división por cero
 
-
-
-
         lista.append(datos)
 
         niveles_nombres.append({
@@ -663,12 +673,14 @@ def niveles(request):
             'sanciones': datos[1]
         })
 
-    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(curso_academico=curso_seleccionado)
+    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(
+        curso_academico=curso_seleccionado)
 
     niveles = zip(niveles_queryset, lista)
     niveles = sorted(niveles, key=lambda x: x[1][0], reverse=True)
-    context = {'form': form, 'niveles': niveles, 'menu_estadistica': True, 'total': total, 'curso_seleccionado': curso_seleccionado,
-        'cursos_academicos': cursos_academicos, 'niveles_nombres': niveles_nombres}
+    context = {'form': form, 'niveles': niveles, 'menu_estadistica': True, 'total': total,
+               'curso_seleccionado': curso_seleccionado,
+               'cursos_academicos': cursos_academicos, 'niveles_nombres': niveles_nombres}
     return render(request, 'niveles.html', context)
 
 
@@ -689,7 +701,6 @@ def alumnos(request):
     if not curso_seleccionado:
         curso_seleccionado = get_current_academic_year()
 
-
     if request.method == "POST":
         f1 = datetime.strptime(request.POST.get('Fecha1'), '%d/%m/%Y')
         f2 = datetime.strptime(request.POST.get('Fecha2'), '%d/%m/%Y')
@@ -697,20 +708,25 @@ def alumnos(request):
     # Total
     total = []
     if request.method == "POST":
-        total.append(Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
+        total.append(
+            Amonestaciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
         total.append(Sanciones.objects.filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).count())
     else:
         total.append(Amonestaciones.objects.filter(curso_academico=curso_seleccionado).count())
         total.append(Sanciones.objects.filter(curso_academico=curso_seleccionado).count())
 
     if request.method == "POST":
-        listAmon = Amonestaciones.objects.values('IdAlumno').filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).annotate(
+        listAmon = Amonestaciones.objects.values('IdAlumno').filter(Fecha__gte=f1, Fecha__lte=f2,
+                                                                    curso_academico=curso_seleccionado).annotate(
             Count('IdAlumno'))
-        listSan = Sanciones.objects.values('IdAlumno').filter(Fecha__gte=f1, Fecha__lte=f2, curso_academico=curso_seleccionado).annotate(
+        listSan = Sanciones.objects.values('IdAlumno').filter(Fecha__gte=f1, Fecha__lte=f2,
+                                                              curso_academico=curso_seleccionado).annotate(
             Count('IdAlumno'))
     else:
-        listAmon = Amonestaciones.objects.values('IdAlumno').filter(curso_academico=curso_seleccionado).annotate(Count('IdAlumno'))
-        listSan = Sanciones.objects.values('IdAlumno').filter(curso_academico=curso_seleccionado).annotate(Count('IdAlumno'))
+        listAmon = Amonestaciones.objects.values('IdAlumno').filter(curso_academico=curso_seleccionado).annotate(
+            Count('IdAlumno'))
+        listSan = Sanciones.objects.values('IdAlumno').filter(curso_academico=curso_seleccionado).annotate(
+            Count('IdAlumno'))
     newlist = sorted(listAmon, key=itemgetter('IdAlumno__count'), reverse=True)
     for l in newlist:
         try:
@@ -737,9 +753,11 @@ def alumnos(request):
         except Alumnos.DoesNotExist:
             l["IdAlumno"] = "Alumno no encontrado"
 
-    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(curso_academico=curso_seleccionado)
-    context = {"form": form, "lista": newlist, 'menu_estadistica': True, "suma": total, 'curso_seleccionado': curso_seleccionado,
-        'cursos_academicos': cursos_academicos}
+    form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(
+        curso_academico=curso_seleccionado)
+    context = {"form": form, "lista": newlist, 'menu_estadistica': True, "suma": total,
+               'curso_seleccionado': curso_seleccionado,
+               'cursos_academicos': cursos_academicos}
     return render(request, 'lalumnos.html', context)
 
 
@@ -782,6 +800,7 @@ def parteprofe(request, tipo, alum_id):
                 if correo_familia:
                     template = get_template("correo_amonestacion.html")
                     contenido = template.render({'amon': amon})
+
             # send_mail(
             #	'Nueva amonestación',
             #	contenido,
@@ -821,6 +840,5 @@ def aulaconvivencia(request):
         'menu_convivencia': True,
         'horas': horas,
     }
-
 
     return render(request, 'aulaconvivencia.html', context)
