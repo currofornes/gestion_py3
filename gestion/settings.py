@@ -25,7 +25,7 @@ SECRET_KEY = 'd$ug$)j1jhr2%z4gnpbc9^v^@4*sbu5we9nt_dtg72x7e+xq^('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1','gestion.gonzalonazareno.org']
+ALLOWED_HOSTS = ['localhost','127.0.0.1','gestion.gonzalonazareno.org','gestiona.gonzalonazareno.org']
 
 # Application definition
 
@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "tde.apps.TdeConfig",
     "absentismo.apps.AbsentismoConfig",
-    "reservas.apps.ReservasConfig"
+    "reservas.apps.ReservasConfig",
+    "horarios.apps.HorariosConfig"
 ]
 
 MIDDLEWARE = [
@@ -85,31 +86,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'basededatos/db.sqlite3'),
-    },
-    'db2017': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'basededatos/db2017.sqlite3'),
-    },
-    'db2018': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'basededatos/db2018.sqlite3'),
-    },
-    'db2019': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'basededatos/db2019.sqlite3'),
-    },
-    'db2020': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'basededatos/db2020.sqlite3'),
-    },
-    'db2021': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'basededatos/db2021.sqlite3'),
-    },
-    'db2022': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'basededatos/db2022.sqlite3'),
-    },
+    }
 }
 
 
@@ -163,11 +140,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 import configparser
 configuracion = configparser.ConfigParser()
 configuracion.read(os.path.join(BASE_DIR, 'gestion.cfg'))
-#EMAIL_HOST = configuracion.get('bd','EMAIL_HOST')
-#EMAIL_HOST_USER = configuracion.get('bd','EMAIL_HOST_USER')
-#EMAIL_HOST_PASSWORD = configuracion.get('bd','EMAIL_HOST_PASSWORD')
-#EMAIL_PORT = configuracion.get('bd','EMAIL_PORT')
-#EMAIL_USE_TLS = configuracion.get('bd','EMAIL_USE_TLS')
+EMAIL_HOST = configuracion.get('bd','EMAIL_HOST')
+EMAIL_HOST_USER = configuracion.get('bd','EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = configuracion.get('bd','EMAIL_HOST_PASSWORD')
+EMAIL_PORT = configuracion.get('bd','EMAIL_PORT')
+EMAIL_USE_TLS = configuracion.get('bd','EMAIL_USE_TLS')
 
 
 

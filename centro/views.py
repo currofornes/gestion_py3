@@ -1,7 +1,9 @@
+import os
 import time
 
 import unicodedata
 from django.db.models import Q
+from django.http import HttpResponseForbidden, FileResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from centro.models import Alumnos, Cursos, Departamentos, Profesores
@@ -9,6 +11,8 @@ from centro.utils import get_current_academic_year
 from convivencia.models import Amonestaciones, Sanciones
 from centro.forms import UnidadForm, DepartamentosForm, UnidadProfeForm, UnidadesProfeForm
 from datetime import datetime
+
+from gestion import settings
 
 
 def group_check_je(user):
@@ -31,6 +35,11 @@ def group_check_prof_and_tutor(user):
 def group_check_prof_and_tutor_or_je(user):
     return group_check_prof_and_tutor(user) or group_check_je(user)
 
+def group_check_je_or_orientacion(user):
+    return user.groups.filter(name__in=['jefatura de estudios', 'orientacion']).exists()
+
+def group_check_prof_and_tutor_or_je_or_orientacion(user):
+    return group_check_prof_and_tutor(user) or group_check_je_or_orientacion(user)
 
 def is_tutor(user):
     # Comprueba si el usuario tiene un perfil de profesor asociado
@@ -252,3 +261,5 @@ def busqueda(request):
 def normalizar_texto(texto):
     texto = unicodedata.normalize('NFKD', texto).encode('ASCII', 'ignore').decode('ASCII')
     return texto.lower()
+
+

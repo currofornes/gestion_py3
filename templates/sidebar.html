@@ -80,7 +80,7 @@
                         </a>
                     </li>
                 {% endif %}
-                {% if user|has_group:"jefatura de estudios" %}
+                {% if user|has_group:"jefatura de estudios" or user|has_group:"orientacion" %}
                     <li>
                         <a href="/absentismo/alumnos"><i class="fa fa-university"></i> <span class="nav-label">Absentismo (Todos)</span>
                         </a>

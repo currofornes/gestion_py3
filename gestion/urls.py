@@ -16,9 +16,11 @@ Including another URLconf
 from django.urls import include, re_path, path
 from django.contrib import admin
 
-from gestion.views import index, salir, login_view, cambiar_password, cambiar_password_custom
+from gestion.views import index, salir, login_view, cambiar_password, cambiar_password_custom, descargar_base_datos
 
 urlpatterns = [
+
+    path('admin/descargar-db/', descargar_base_datos, name='descargar_base_datos'),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^centro/', include('centro.urls')),
     re_path(r'^convivencia/', include('convivencia.urls')),
@@ -34,5 +36,7 @@ urlpatterns = [
 
     path('cambiar-password/', cambiar_password, name='cambiar_password'),
     path('cambiar-password-custom/', cambiar_password_custom, name='cambiar_password_custom'),
+
+
 
 ]
