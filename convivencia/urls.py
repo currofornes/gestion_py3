@@ -24,6 +24,8 @@ urlpatterns = [
 	# Curro Jul 24: Anado vista para permitir a un profesor anadir un parte
 	re_path(r'^profe/(?P<tipo>[a-z]+)/(?P<alum_id>[0-9]+)$', views.parteprofe),
 
+	re_path(r'^misamonestaciones/', views.misamonestaciones, name='misamonestaciones'),
+
 
         	
 
