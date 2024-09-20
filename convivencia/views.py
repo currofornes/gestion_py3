@@ -257,7 +257,7 @@ def show(request, tipo=None, mes=None, ano=None, dia=None):
 
 
 
-    datos = zip(range(1, len(datos) + 1), datos, ContarFaltas(datos.values("IdAlumno")))
+    datos = zip(range(1, len(datos) + 1), datos, ContarFaltas(datos.values("IdAlumno")), ContarFaltasHistorico(datos.values("IdAlumno")))
     context = {
         'form': form,
         'datos': datos,
@@ -782,6 +782,15 @@ def ContarFaltas(lista_id):
         contar.append(am + "/" + sa)
     return contar
 
+def ContarFaltasHistorico(lista_id):
+
+    contar = []
+    for alum in lista_id:
+        am = str(len(Amonestaciones.objects.filter(IdAlumno_id=list(alum.values())[0])))
+        sa = str(len(Sanciones.objects.filter(IdAlumno_id=list(alum.values())[0])))
+
+        contar.append(am + "/" + sa)
+    return contar
 
 # Curro Jul 24: Anado view para que un profesor pueda poner un parte
 @login_required(login_url='/')

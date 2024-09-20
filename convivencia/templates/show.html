@@ -86,6 +86,7 @@
 
                                     {% if tipo == 'amonestacion' %}
                                         <th>A/S</th>
+                                        <th>A/S Hist.</th>
                                         <th>Tramo horario</th>
                                     {% elif tipo  == 'sancion' %}
                                         <th>Sanción</th>
@@ -95,12 +96,13 @@
                                     <th data-hide="all">Comentario</th>
 
                                     {% if tipo == 'amonestacion' %}
-                                    <th data-hide="all">Derivado a Convivencia</th>
-                                    <th data-hide="all">Comunicado a</th>
-                                    <th data-hide="all">Fecha comunicación</th>
-                                    <th data-hide="all">Medio</th>
-                                    <th data-hide="all">Teléfono</th>
-                                    <th data-hide="all">Observaciones</th>
+                                        <th data-hide="all">Tipo</th>
+                                        <th data-hide="all">Derivado a Convivencia</th>
+                                        <th data-hide="all">Comunicado a</th>
+                                        <th data-hide="all">Fecha comunicación</th>
+                                        <th data-hide="all">Medio</th>
+                                        <th data-hide="all">Teléfono</th>
+                                        <th data-hide="all">Observaciones</th>
                                     {% endif %}
                                     {% if tipo  == 'sancion' %}
                                         <th>Carta</th>
@@ -109,7 +111,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for n,h,contar in datos %}
+                                {% for n,h,contar, contarhist in datos %}
                                     <tr>
                                         <td>
                                             {{ n }}
@@ -127,7 +129,11 @@
                                         </td>
                                         <td>
                                             {% if tipo == 'amonestacion' %}
-                                                <span class="label label-warning">Amonestación</span>
+                                                {% if h.Tipo.TipoFalta == 'G' %}
+                                                    <span class="label label-warning-warning">Amonestación Grave</span>
+                                                {% else %}
+                                                    <span class="label label-warning">Amonestación Leve</span>
+                                                {% endif %}
                                             {% elif tipo == 'sancion' %}
                                                 <span class="label label-danger">Sanción</span>
                                             {% endif %}
@@ -143,6 +149,7 @@
 
                                         {% if tipo == 'amonestacion' %}
                                             <td>{{ contar }}</td>
+                                            <td>{{ contarhist }}</td>
                                             {% if h.Profesor %}
                                                 <td>{{ horas|slice:h.Hora|last }}</td>
                                             {% else %}
@@ -169,17 +176,17 @@
                                         {% endif %}
 
                                         {% if tipo == 'amonestacion' %}
-
-                                        {% if h.DerivadoConvivencia %}
-                                            <td>SÍ</td>
-                                        {% else %}
-                                            <td>NO</td>
-                                        {% endif %}
-                                        <td> {{ h.FamiliarComunicado }}</td>
-                                        <td> {{ h.FechaComunicado|date:"d/m/Y" }} {{ h.HoraComunicado }}</td>
-                                        <td> {{ h.get_Medio_display }}</td>
-                                        <td> {{ h.TelefonoComunicado }}</td>
-                                        <td> {{ h.ObservacionComunicado }}</td>
+                                            <td>{{ h.Tipo }}</td>
+                                            {% if h.DerivadoConvivencia %}
+                                                <td>SÍ</td>
+                                            {% else %}
+                                                <td>NO</td>
+                                            {% endif %}
+                                            <td> {{ h.FamiliarComunicado }}</td>
+                                            <td> {{ h.FechaComunicado|date:"d/m/Y" }} {{ h.HoraComunicado }}</td>
+                                            <td> {{ h.get_Medio_display }}</td>
+                                            <td> {{ h.TelefonoComunicado }}</td>
+                                            <td> {{ h.ObservacionComunicado }}</td>
                                         {% endif %}
                                         {% if tipo == 'sancion' %}
                                             <td><a href="/pdf/carta_sancion/{{ h.id }}"><span

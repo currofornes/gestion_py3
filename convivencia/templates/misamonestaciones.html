@@ -29,6 +29,7 @@
                                     <th>Tipo</th>
                                     <th>Fecha</th>
                                     <th data-hide="all">Comentario</th>
+                                    <th data-hide="all">Tipo</th>
 
                                     <th data-hide="phone">Tramo horario</th>
                                     <th data-hide="all">Derivado a Convivencia</th>
@@ -50,7 +51,11 @@
                                         <td>{{ h.IdAlumno.Unidad }}</td>
                                         <td>
                                             {% if t == 'Amonestación' %}
-                                                <span class="label label-warning">{{ t }}</span>
+                                                {% if h.Tipo.TipoFalta == 'G' %}
+                                                <span class="label label-warning-warning">Amonestación Grave</span>
+                                                    {% else %}
+                                                    <span class="label label-warning">Amonestación Leve</span>
+                                                    {% endif %}
                                             {% elif t == 'Sanción' %}
                                                 <span class="label label-danger">{{ t }}</span>
                                             {% endif %}
@@ -72,6 +77,8 @@
                                         {% else %}
                                             <td> {{ h.Comentario }}</td>
                                         {% endif %}
+
+                                        <td>{{ h.Tipo }}</td>
 
                                         {% if h.Profesor %}
                                             <td>{{ horas|slice:h.Hora|last }}</td>
