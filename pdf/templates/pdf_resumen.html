@@ -63,7 +63,7 @@
  
     {% if amonestacion%}
      <table width="50%" border="0.2" cellspacing="0" cellpadding="4">
-      <tr><td width="10%">N.</td><td>Nombre</td><td width="15%">A/S</td></tr>
+      <tr><td width="10%">N.</td><td>Nombre</td><td>Unidad</td><td>Tipo</td><td width="15%">A/S</td><td width="15%">A/S Hist.</td></tr>
     {%else%}  
     
       <table border="0.2" cellspacing="0" cellpadding="4">
@@ -71,12 +71,15 @@
     {%endif%}
 
 
-    {%for cont,dato,acum in datos%}
-    {% if amonestacion%}
+    {%for cont,dato,acum,acumhist in datos%}
+    {% if amonestacion %}
     <tr>
       <td width="10%">{{cont}}</td>
-      <td>{{dato.IdAlumno.Nombre}}</td>
+      <td width="30%">{{dato.IdAlumno.Nombre}}</td>
+        <td width="20%">{{dato.IdAlumno.Unidad}}</td>
+        <td width="10%">{{ dato.Tipo.TipoFalta }}</td>
       <td width="15%">{{acum}}</td>
+    <td width="15%">{{acumhist}}</td>
       
       
     </tr>
@@ -85,7 +88,7 @@
     <tr>
       <td width="10%">{{cont}}</td>
       <td>{{dato.IdAlumno.Nombre}}</td>
-      <td width="15%">{{dato.IdAlumno.Unidad.Curso}}</td>
+      <td width="15%">{{dato.IdAlumno.Unidad}}</td>
       {% if dato.NoExpulsion %}
         <td>{{dato.Sancion}}<br/><strong>No expulsión</strong></td>
       {%else%}
