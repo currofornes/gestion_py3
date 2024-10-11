@@ -527,8 +527,9 @@ def profesores(request):
     newlist = sorted(listAmon, key=itemgetter('Profesor__count'), reverse=True)
     suma = 0
     for l in newlist:
-        l["Profesor"] = Profesores.objects.get(id=l["Profesor"]).Apellidos + ", " + Profesores.objects.get(
-            id=l["Profesor"]).Nombre
+        profesor = Profesores.objects.get(id=l["Profesor"])
+        l["Profesor"] = profesor.Apellidos + ", " + profesor.Nombre
+        l["Profesor_id"] = profesor.id  # Aquí añades el ID del profesor al diccionario
         suma += l["Profesor__count"]
     form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(
         curso_academico=curso_seleccionado)
@@ -920,3 +921,39 @@ def misamonestaciones(request):
     }
 
     return render(request, 'misamonestaciones.html', context)
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def amonestacionesprofe(request, profe_id):
+
+
+    horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
+
+    profesor = Profesores.objects.get(pk=profe_id)
+
+    curso_academico_actual = get_current_academic_year()
+
+    # Filtrar las amonestaciones y sanciones del curso académico actual
+    amon_actual = Amonestaciones.objects.filter(Profesor=profesor, curso_academico=curso_academico_actual).order_by(
+        'Fecha')
+
+
+    historial_actual = list(amon_actual)
+    historial_actual = sorted(historial_actual, key=lambda x: x.Fecha, reverse=False)
+
+    tipo_actual = ["Amonestación" if isinstance(h, Amonestaciones) else "Sanción" for h in historial_actual]
+    hist_actual = zip(historial_actual, tipo_actual, range(1, len(historial_actual) + 1))
+
+
+    prof = True
+
+    context = {
+        'profesor' : profesor,
+        'prof': prof,
+        'historial_actual': hist_actual,
+        'menu_convivencia': True,
+        'horas': horas
+    }
+
+    return render(request, 'amonestacionesprofe.html', context)

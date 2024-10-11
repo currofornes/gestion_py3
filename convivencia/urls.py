@@ -26,6 +26,8 @@ urlpatterns = [
 
 	re_path(r'^misamonestaciones/', views.misamonestaciones, name='misamonestaciones'),
 
+	re_path(r'^amonestacionesprofe/(?P<profe_id>[0-9]+)', views.amonestacionesprofe, name='amonestacionesprofe'),
+
 
         	
 
