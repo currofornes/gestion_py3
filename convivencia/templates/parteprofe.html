@@ -221,6 +221,10 @@
 
         $(document).ready(function () {
 
+            $('form').on('submit', function() {
+                $('button[type="submit"]').prop('disabled', true).text('Procesando...');
+            });
+
             // Asegurar que el campo oculto 'ComunicadoFamilia' esté sincronizado con el estado del checkbox al cargar la página
             function updateComunicadoFamiliaField() {
                 $('#id_ComunicadoFamilia').val($('#familiaswitch').is(':checked') ? 'True' : 'False');
