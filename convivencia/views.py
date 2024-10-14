@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 
 from centro.utils import get_current_academic_year, get_previous_academic_years
 from convivencia.forms import AmonestacionForm, SancionForm, FechasForm, AmonestacionProfeForm, ResumenForm
@@ -769,10 +770,14 @@ def alumnos(request):
             unidad = alumno.Unidad
             if unidad:
                 l["IdAlumno"] = alumno.Nombre + " (" + unidad.Curso + ")"
+                l["IdAlumno_id"] = alumno.id
+
             else:
                 l["IdAlumno"] = alumno.Nombre + " (Sin Unidad asignada)"
+                l["IdAlumno_id"] = alumno.id
         except Alumnos.DoesNotExist:
             l["IdAlumno"] = "Alumno no encontrado"
+            l["IdAlumno_id"] = 0
 
     form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(
         curso_academico=curso_seleccionado)
@@ -976,3 +981,21 @@ def amonestacionesprofe(request, profe_id):
     }
 
     return render(request, 'amonestacionesprofe.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def sancionesactivas(request):
+    hoy = timezone.now().date()  # Obtener la fecha de hoy
+
+    # Filtrar las sanciones activas
+    sanciones_activas = Sanciones.objects.filter(Fecha__lte=hoy, Fecha_fin__gte=hoy)
+
+    datos = zip(range(1, len(sanciones_activas) + 1), sanciones_activas)
+
+    context = {
+        'sanciones_activas': datos,
+        'menu_sanciones': True,  # Si necesitas alguna opción de menú activa
+        'menu_convivencia': True,
+    }
+
+    return render(request, 'sancionesactivas.html', context)
