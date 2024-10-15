@@ -1975,6 +1975,14 @@ button.dim:active:before {
   background-color: #f8ac59;
   color: #ffffff;
 }
+
+.label-warning-warning,
+.badge-warning-warning {
+  background-color: #9a5c17;
+  color: #ffffff;
+}
+
+
 .label-danger,
 .badge-danger {
   background-color: #ED5565;
@@ -9867,4 +9875,25 @@ body.md-skin {
 
 tr.danger {
   background-color: #ddbcbc !important;
+}
+
+.tabs-container .tabs-left > .nav-tabs-guardias {
+    width: 20% !important;
+}
+
+.tabs-container .tabs-left .panel-body-guardias {
+    width: 80% !important;
+    margin-left: 20% !important;
+}
+
+.tabla-guardias > thead > tr > th,
+.tabla-guardias > tbody > tr > th,
+.tabla-guardias > tfoot > tr > th,
+.tabla-guardias > thead > tr > td,
+.tabla-guardias > tbody > tr > td,
+.tabla-guardias > tfoot > tr > td {
+  border-top: 1px solid #e7eaec;
+  line-height: 1.42857;
+  padding: 8px;
+  vertical-align: middle;
 }

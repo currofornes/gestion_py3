@@ -1,8 +1,10 @@
+import os
 from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.forms import PasswordChangeForm
+from django.http import HttpResponseForbidden, FileResponse
 from django.shortcuts import render,redirect
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -89,3 +91,13 @@ def login_view(request):
             context['error'] = True
 
     return render(request, 'login.html', context)
+
+
+def descargar_base_datos(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("No tienes permiso para descargar la base de datos.")
+
+    # Ruta al archivo de la base de datos
+    db_path = settings.DATABASES['default']['NAME']
+    response = FileResponse(open(db_path, 'rb'), as_attachment=True, filename=os.path.basename(db_path))
+    return response

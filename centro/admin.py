@@ -4,8 +4,11 @@ from django.contrib.admin import AdminSite
 from django.db import models
 from django.urls import path
 
+from centro.forms import AsignarProfesoresDepartamentoForm
 from centro.models import Cursos, Alumnos, Departamentos, Profesores, Areas, Aulas, Niveles
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.shortcuts import render, redirect
+from django.contrib import messages
 
 # Register your models here.
 class AlumnosAdmin(admin.ModelAdmin):
@@ -29,11 +32,45 @@ class ProfesoresAdmin(admin.ModelAdmin):
 
 
 class DepartamentosAdmin(admin.ModelAdmin):
+    icon_name = 'folder_shared'
+
+    change_list_template = "admin/departamentos_changelist.html"  # Usar una plantilla personalizada
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('asignar-profesores/', self.admin_site.admin_view(self.asignar_profesores_view), name="asignar_profesores"),
+        ]
+        return custom_urls + urls
+
+    def asignar_profesores_view(self, request):
+        if request.method == 'POST':
+            form = AsignarProfesoresDepartamentoForm(request.POST)
+            if form.is_valid():
+                departamento = form.cleaned_data['departamento']
+                profesores = form.cleaned_data['profesores']
+                for profesor in profesores:
+                    profesor.Departamento = departamento
+                    profesor.save()
+                messages.success(request, "Profesores asignados correctamente al departamento.")
+                return redirect('admin:index')
+        else:
+            form = AsignarProfesoresDepartamentoForm()
+
+        context = {
+            'form': form,
+            'title': "Asignar Profesores a un Departamento"
+        }
+        return render(request, 'admin/asignar_profesores.html', context)
+
+
+'''
+class DepartamentosAdmin(admin.ModelAdmin):
     actions_selection_counter = False
     list_display = ('Nombre',)
     search_fields = ('Nombre', 'Abr')
     icon_name = 'folder_shared'
-
+'''
 
 class CursosAdmin(admin.ModelAdmin):
     # date_hierarchy = 'Fecha_nacimiento'
@@ -85,7 +122,7 @@ class NivelesAdmin(admin.ModelAdmin):
 admin.site.site_header = "Gonzalo Nazareno"
 admin.site.index_title = "Gestión del Centro"
 admin.site.register(Cursos, CursosAdmin)
-admin.site.register(Departamentos)
+admin.site.register(Departamentos, DepartamentosAdmin)
 admin.site.register(Areas, AreasAdmin)
 admin.site.register(Alumnos, AlumnosAdmin)
 admin.site.register(Profesores, ProfesoresAdmin)

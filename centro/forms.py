@@ -1,5 +1,6 @@
 from django import forms
-from centro.models import Cursos,Departamentos,Areas
+from centro.models import Cursos, Departamentos, Areas, Profesores
+
 
 class UnidadForm(forms.Form):
 	Unidad = forms.ModelChoiceField(queryset=Cursos.objects.order_by('Curso'), empty_label=None,widget=forms.Select(attrs={'class': "form-control select2_unidad",'onchange': 'this.form.submit();'}))
@@ -70,3 +71,12 @@ class UnidadesProfeForm(forms.Form):
         self.fields['Unidad'].label_from_instance = label_from_instance
         self.fields['Unidad'].label = "Mis Unidades"
         self.fields['UnidadResto'].label = "Resto de Unidades"
+
+
+class AsignarProfesoresDepartamentoForm(forms.Form):
+    departamento = forms.ModelChoiceField(queryset=Departamentos.objects.all(), label="Selecciona un departamento")
+    profesores = forms.ModelMultipleChoiceField(
+        queryset=Profesores.objects.filter(Departamento__isnull=True, Baja=False),
+        widget=forms.CheckboxSelectMultiple,
+        label="Selecciona los profesores"
+    )

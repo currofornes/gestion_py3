@@ -49,6 +49,7 @@
                                 <th class="text-center">N.</th>
                                 <th>Alumno/a</th>
                                 <th class="text-center">A/S</th>
+                            <th class="text-center">A/S Hist.</th>
                                 <th class="text-center">Amonestación</th>
                                 {% if profesor.id == curso.Tutor.id %}
                                     <th class="text-center">Hist.</th>
@@ -57,7 +58,7 @@
                             </thead>
                             <tbody>
 
-                            {% for alum,acum,sanc in alumnos %}
+                            {% for alum,acum,acumhist, sanc in alumnos %}
 
                                 {% if sanc %}
                                     <tr class="danger">
@@ -70,6 +71,7 @@
                             <td>{{ alum.Nombre }}</td>
 
                             <td class="text-center">{{ acum }}</td>
+                                <td class="text-center">{{ acumhist }}</td>
                             <td class="text-center"><a style="color: inherit;"
                                                        href="/convivencia/profe/amonestacion/{{ alum.id }}">
                                     

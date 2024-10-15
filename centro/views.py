@@ -1,7 +1,9 @@
+import os
 import time
 
 import unicodedata
 from django.db.models import Q
+from django.http import HttpResponseForbidden, FileResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from centro.models import Alumnos, Cursos, Departamentos, Profesores
@@ -9,6 +11,8 @@ from centro.utils import get_current_academic_year
 from convivencia.models import Amonestaciones, Sanciones
 from centro.forms import UnidadForm, DepartamentosForm, UnidadProfeForm, UnidadesProfeForm
 from datetime import datetime
+
+from gestion import settings
 
 
 def group_check_je(user):
@@ -31,6 +35,11 @@ def group_check_prof_and_tutor(user):
 def group_check_prof_and_tutor_or_je(user):
     return group_check_prof_and_tutor(user) or group_check_je(user)
 
+def group_check_je_or_orientacion(user):
+    return user.groups.filter(name__in=['jefatura de estudios', 'orientacion']).exists()
+
+def group_check_prof_and_tutor_or_je_or_orientacion(user):
+    return group_check_prof_and_tutor(user) or group_check_je_or_orientacion(user)
 
 def is_tutor(user):
     # Comprueba si el usuario tiene un perfil de profesor asociado
@@ -62,7 +71,7 @@ def alumnos(request):
     ids = [{"id": elem.id} for elem in lista_alumnos]
 
     form = UnidadForm({'Unidad': primer_id})
-    lista = zip(lista_alumnos, ContarFaltas(ids), EstaSancionado(ids))
+    lista = zip(lista_alumnos, ContarFaltas(ids), ContarFaltasHistorico(ids), EstaSancionado(ids))
     try:
         context = {'alumnos': lista, 'form': form, 'curso': Cursos.objects.get(id=primer_id), 'menu_convivencia': True}
     except:
@@ -117,19 +126,6 @@ def profesores_change(request, codigo, operacion):
     return redirect("/centro/profesores")
 
 
-def ContarFaltas(lista_id):
-    curso_academico_actual = get_current_academic_year()
-
-    contar = []
-    for alum in lista_id:
-        alumno_id = list(alum.values())[0]
-
-        # Filtrar por el curso académico actual
-        am = str(len(Amonestaciones.objects.filter(IdAlumno_id=alumno_id, curso_academico=curso_academico_actual)))
-        sa = str(len(Sanciones.objects.filter(IdAlumno_id=alumno_id, curso_academico=curso_academico_actual)))
-
-        contar.append(am + "/" + sa)
-    return contar
 
 
 def Tutorias(lista_id):
@@ -196,7 +192,7 @@ def misalumnos(request):
 
     form = UnidadesProfeForm({'Unidad': request.POST.get("Unidad"), 'UnidadResto': request.POST.get("UnidadResto")},
                              profesor=profesor)
-    lista = zip(lista_alumnos, ContarFaltas(ids), EstaSancionado(ids))
+    lista = zip(lista_alumnos, ContarFaltas(ids), ContarFaltasHistorico(ids), EstaSancionado(ids))
     try:
         context = {'alumnos': lista, 'form': form, 'curso': Cursos.objects.get(id=primer_id), 'menu_convivencia': True,
                    'profesor': profesor}
@@ -252,3 +248,25 @@ def busqueda(request):
 def normalizar_texto(texto):
     texto = unicodedata.normalize('NFKD', texto).encode('ASCII', 'ignore').decode('ASCII')
     return texto.lower()
+
+
+def ContarFaltas(lista_id):
+    curso_academico_actual = get_current_academic_year()
+
+    contar = []
+    for alum in lista_id:
+        am = str(len(Amonestaciones.objects.filter(IdAlumno_id=list(alum.values())[0], curso_academico=curso_academico_actual)))
+        sa = str(len(Sanciones.objects.filter(IdAlumno_id=list(alum.values())[0], curso_academico=curso_academico_actual)))
+
+        contar.append(am + "/" + sa)
+    return contar
+
+def ContarFaltasHistorico(lista_id):
+
+    contar = []
+    for alum in lista_id:
+        am = str(len(Amonestaciones.objects.filter(IdAlumno_id=list(alum.values())[0])))
+        sa = str(len(Sanciones.objects.filter(IdAlumno_id=list(alum.values())[0])))
+
+        contar.append(am + "/" + sa)
+    return contar

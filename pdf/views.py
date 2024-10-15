@@ -10,7 +10,7 @@ from io import BytesIO
 from absentismo.models import ProtocoloAbs
 from centro.models import Alumnos,Cursos,Profesores
 from convivencia.models import Amonestaciones,Sanciones
-from centro.views import ContarFaltas, group_check_je, group_check_prof, is_tutor
+from centro.views import ContarFaltas, group_check_je, group_check_prof, is_tutor, ContarFaltasHistorico
 from datetime import datetime
 from django.core.mail import EmailMultiAlternatives
 
@@ -70,7 +70,7 @@ def imprimir_show(request,tipo,mes,ano,dia):
 		datos=Sanciones.objects.filter(Fecha=fecha)
 		titulo="Resumen de sanciones"
 	
-	datos=zip(range(1,len(datos)+1),datos,ContarFaltas(datos.values("IdAlumno")))
+	datos=zip(range(1,len(datos)+1),datos,ContarFaltas(datos.values("IdAlumno")), ContarFaltasHistorico(datos.values("IdAlumno")))
 	
 	data={'datos':datos,'tipo':tipo,'fecha':fecha,'titulo':titulo,tipo:True}
 	return imprimir("pdf_resumen.html",data,"resumen_"+tipo+".pdf")	

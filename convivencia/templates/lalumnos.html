@@ -93,7 +93,7 @@
                                 {% for l in lista %}
                                 <tr>
                                     <td class="text-center">{{forloop.counter}}</td>
-                                    <td>{{l.IdAlumno}}</td>
+                                    <td><a href="/convivencia/historial/{{ l.IdAlumno_id }}/"><strong>{{l.IdAlumno}}</strong></a></td>
                                     <td class="text-center">{{l.IdAlumno__count}} ({{l.Porcentajes.0}}%)</td>
                                     <td class="text-center">{{l.Sanciones}} ({{l.Porcentajes.1}}%)</td>
                                 </tr>

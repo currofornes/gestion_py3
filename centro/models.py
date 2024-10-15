@@ -62,6 +62,7 @@ class Profesores(models.Model):
     Departamento = models.ForeignKey(Departamentos, blank=True, null=True, on_delete=models.SET_NULL)
     Baja = models.BooleanField(default=False)
     password_changed = models.BooleanField(default=False)  # Nuevo campo
+    NombreHorarios = models.CharField(max_length=200, blank=True, null=True)
 
     # Curro Jul 24: Anado la coma entre los apellidos y el nombre
     def __str__(self):
@@ -92,6 +93,7 @@ class Cursos(models.Model):
     Abe = models.CharField(max_length=10, blank=True, null=True)
     Nivel = models.ForeignKey(Niveles, related_name='Nivel', blank=True, null=True, on_delete=models.SET_NULL)
     Aula = models.ForeignKey(Aulas, related_name='Curso', blank=True, null=True, on_delete=models.SET_NULL)
+    CursoHorarios = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.Curso
@@ -120,7 +122,8 @@ class Alumnos(models.Model):
     Obs = models.TextField(blank=True, verbose_name="Observaciones")
 
     def __str__(self):
-        return self.DNI + " - " + self.Nombre
+        dni = self.DNI if self.DNI else "Sin DNI"
+        return dni + " - " + self.Nombre
 
     class Meta:
         verbose_name = "Alumno"

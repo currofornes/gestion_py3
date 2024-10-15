@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load grupo_tags %}
+{% load custom_tags %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h2>Sanciones Activas</h2>
+                    </div>
+                    <div class="ibox-content">
+                        {% if sanciones_activas %}
+                            <div class="table-responsive">
+
+                                <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
+                                    <thead>
+                                    <tr>
+                                        <th data-toggle="true">N.</th>
+                                        <th>Alumno/a</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha</th>
+                                        <th>Unidad</th>
+                                        <th>Sanción</th>
+                                        <th data-hide="all">Comentario</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for n, sancion in sanciones_activas %}
+                                        <tr>
+                                            <td>
+                                                {{ n }}
+                                            </td>
+                                            <td>
+                                                <a href="/convivencia/historial/{{ sancion.IdAlumno.id }}/"><strong>{{ sancion.IdAlumno.Nombre }}</strong></a>
+                                            </td>
+                                            <td>
+                                                    <span class="label label-danger">Sanción</span>
+                                            </td>
+                                            {% if sancion.Fecha_fin %}
+                                                <td>{{ sancion.Fecha|date:"d/m/Y" }} - {{ sancion.Fecha_fin|date:"d/m/Y" }}</td>
+                                            {% else %}
+                                                <td>{{ sancion.Fecha|date:"d/m/Y" }}</td>
+                                            {% endif %}
+
+                                            <td>{{ sancion.IdAlumno.Unidad }}</td>
+
+
+                                                {% if sancion.NoExpulsion %}
+                                                    <td>{{ sancion.Sancion }}<br/><strong>No expulsión</strong></td>
+                                                {% else %}
+                                                    <td>{{ sancion.Sancion }}</td>
+
+                                                {% endif %}
+
+
+
+
+                                            {% if sancion.Profesor %}
+                                                <td><strong>{{ sancion.Profesor }}
+                                                    ({{ horas|slice:sancion.Hora|last }})</strong><br/>{{ sancion.Comentario }}
+                                                </td>
+
+                                            {% else %}
+                                                <td> {{ sancion.Comentario }}</td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+
+                                    </tbody>
+                                    <tfoot>
+                                    <tr>
+                                        <td colspan="6">
+                                            <ul class="pagination float-right"></ul>
+                                        </td>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+
+
+                            </div>
+                        {% else %}
+                            <p>No hay sanciones activas en este momento.</p>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        $(document).ready(function () {
+            $('.footable').footable();
+        });
+
+    </script>
+{% endblock %}

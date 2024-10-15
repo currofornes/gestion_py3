@@ -137,8 +137,11 @@ def importar_alumnos(csv_file_path, borrar_alumnos=False):
     alumnos_existentes_nombre = {alumno.Nombre: alumno for alumno in Alumnos.objects.all()}
 
     # Mapa para procesar y evitar duplicados
-    procesados = set()
+    procesados_dni = set()
+    procesados_nie = set()
+    procesados_nombre = set()
     nuevos_alumnos = 0
+    alumnos_actualizados = 0
     alumnos_baja = 0
 
     def parse_date(date_str):
@@ -147,7 +150,6 @@ def importar_alumnos(csv_file_path, borrar_alumnos=False):
     with open(csv_file_path, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            nombre_completo = row['Alumno/a'].strip()
             nombre_completo = row['Alumno/a'].strip()
             nie = row['Nº Id. Escolar'] or None  # Puede ser None si está vacío
             dni = row['DNI/Pasaporte'] or None  # Puede ser None si está vacío
@@ -166,11 +168,16 @@ def importar_alumnos(csv_file_path, borrar_alumnos=False):
             observaciones = row['Observaciones de la matrícula']
 
             # Saltar duplicados en el archivo CSV
-            if dni in procesados or nie in procesados or nombre_completo in procesados:
+            if (dni and dni in procesados_dni) or (
+                    nie and nie in procesados_nie) or nombre_completo in procesados_nombre:
+                print(f"Saltamos a {nombre_completo} por ya procesado")
                 continue
-            procesados.add(dni)
-            procesados.add(nie)
-            procesados.add(nombre_completo)
+
+            if dni:
+                procesados_dni.add(dni)
+            if nie:
+                procesados_nie.add(nie)
+            procesados_nombre.add(nombre_completo)
 
             # Buscar el curso
             curso_obj = Cursos.objects.filter(Curso=unidad).first()
@@ -201,6 +208,7 @@ def importar_alumnos(csv_file_path, borrar_alumnos=False):
                 alumno.Nomtutor = nom_tutor
                 alumno.Obs = observaciones
                 alumno.save()
+                alumnos_actualizados += 1
             else:
                 # Crear nuevo alumno
                 alumno = Alumnos(
@@ -223,20 +231,27 @@ def importar_alumnos(csv_file_path, borrar_alumnos=False):
                 )
                 alumno.save()
                 nuevos_alumnos += 1
-
+    '''
     if borrar_alumnos:
         # Lógica de borrado opcional
         for alumno in Alumnos.objects.all():
-            if alumno.DNI not in procesados and alumno.NIE not in procesados and alumno.Nombre not in procesados:
+            if alumno.DNI not in procesados_dni and alumno.NIE not in procesados_nie and alumno.Nombre not in procesados_nombre:
                 alumno.delete()
                 alumnos_baja += 1
     else:
         for alumno in Alumnos.objects.all():
-            if alumno.DNI not in procesados and alumno.NIE not in procesados and alumno.Nombre not in procesados:
+            if alumno.DNI not in procesados_dni and alumno.NIE not in procesados_nie and alumno.Nombre not in procesados_nombre:
                 alumno.Unidad = None  # Vaciar la unidad
                 alumno.save()
                 alumnos_baja += 1
+    '''
+    for alumno in Alumnos.objects.all():
+        if alumno.DNI not in procesados_dni and alumno.NIE not in procesados_nie and alumno.Nombre not in procesados_nombre:
+            alumno.Unidad = None  # Vaciar la unidad
+            alumno.save()
+            alumnos_baja += 1
 
+    print(f"Alumnos actualizados: {alumnos_actualizados}")
     print(f"Alumnos nuevos añadidos: {nuevos_alumnos}")
     print(f"Alumnos marcados como baja: {alumnos_baja}")
 
@@ -320,7 +335,9 @@ def importar_cursos(csv_file_path, csv_file_path2):
             print(f"- {curso}")
 
     # Asignar Equipo Educativo
-    asignar_equipo_educativo(csv_file_path2)
+    #asignar_equipo_educativo_seneca(csv_file_path2)
+
+    asignar_equipo_educativo_calculohoras(csv_file_path2)
 
 
 
@@ -352,12 +369,48 @@ def split_full_name(tutor_name):
         raise ValueError(f"Nombre completo no está en el formato esperado: {tutor_name}")
 
 
-def asignar_equipo_educativo(csv_file_path):
+def asignar_equipo_educativo_seneca(csv_file_path):
     with open(csv_file_path, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             curso_nombre = row['Unidad']
             profesor_info = row['Profesor/a']
+
+            # Dividir el nombre completo en apellidos y nombre
+            try:
+                apellidos, nombre = split_full_name(profesor_info)
+            except ValueError as e:
+                print(f"Error al procesar el nombre del profesor: {e}")
+                continue
+
+            # Buscar el curso y el profesor
+            curso = Cursos.objects.filter(Curso=curso_nombre).first()
+            profesor = Profesores.objects.filter(Nombre=nombre, Apellidos=apellidos).first()
+
+            if curso and profesor:
+                # Verificar si el profesor ya está asignado al equipo educativo
+                if not curso.EquipoEducativo.filter(id=profesor.id).exists():
+                    curso.EquipoEducativo.add(profesor)
+                    curso.save()
+                else:
+                    print(f"El profesor '{profesor_info}' ya está asignado al curso '{curso_nombre}'.")
+            else:
+                if not curso:
+                    print(f"Error: No se encontró el curso '{curso_nombre}'")
+                if not profesor:
+                    print(f"Error: No se encontró el profesor '{profesor_info}'")
+
+    print("Asignación de Equipo Educativo completada.")
+
+
+def asignar_equipo_educativo_calculohoras(csv_file_path):
+    with open(csv_file_path, newline='') as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=';')
+        for row in reader:
+            curso_nivel = row['Curso']
+            unidad_letra = row['Grupo']
+            curso_nombre = curso_nivel + " " + unidad_letra
+            profesor_info = row['Asignado a']
 
             # Dividir el nombre completo en apellidos y nombre
             try:

@@ -12,14 +12,14 @@ from absentismo.forms import ActuacionProtocoloForm
 from absentismo.models import ProtocoloAbs
 from centro.models import Cursos, Alumnos, Profesores
 from centro.views import group_check_prof, is_tutor, group_check_je, group_check_prof_and_tutor_or_je, \
-    group_check_prof_and_tutor
+    group_check_prof_and_tutor, group_check_je_or_orientacion, group_check_prof_and_tutor_or_je_or_orientacion
 
 
 # Create your views here.
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof_and_tutor_or_je, login_url='/')
+@user_passes_test(group_check_prof_and_tutor_or_je_or_orientacion, login_url='/')
 def verprotocolo(request, alum_id):
     alum = Alumnos.objects.get(pk=alum_id)
     protocolo = alum.protocolos.filter(abierto=True).last()
@@ -195,7 +195,7 @@ def abrirprotocolo(request, alum_id):
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof_and_tutor_or_je, login_url='/')
+@user_passes_test(group_check_prof_and_tutor_or_je_or_orientacion, login_url='/')
 def verprotocolocerrado(request, proto_id):
     protocolo = ProtocoloAbs.objects.get(pk=proto_id)
     alumno = protocolo.alumno
@@ -206,7 +206,7 @@ def verprotocolocerrado(request, proto_id):
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_je, login_url='/')
+@user_passes_test(group_check_je_or_orientacion, login_url='/')
 def alumnos(request):
     # Obtener todos los protocolos abiertos
     protocolos_abiertos = ProtocoloAbs.objects.filter(abierto=True)

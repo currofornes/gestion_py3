@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 
 from centro.utils import get_current_academic_year, get_previous_academic_years
 from convivencia.forms import AmonestacionForm, SancionForm, FechasForm, AmonestacionProfeForm, ResumenForm
@@ -38,49 +39,58 @@ def parte(request, tipo, alum_id):
             return redirect("/")
 
         if form.is_valid():
-            form.save()
 
-            if tipo == "amonestacion":
-                amon = form.instance
-                destinatarios = [amon.Profesor, amon.IdAlumno.Unidad.Tutor]
+            # Comprobar si ya existe una amonestación similar para evitar duplicados
+            if not Amonestaciones.objects.filter(IdAlumno=form.cleaned_data['IdAlumno'],
+                                                 Fecha=form.cleaned_data['Fecha'],
+                                                 Profesor=form.cleaned_data['Profesor'],
+                                                 Hora=form.cleaned_data['Hora'],
+                                                 Tipo=form.cleaned_data['Tipo'],
+                                                 Comentario=form.cleaned_data['Comentario']).exists():
 
-                template = get_template("correo_amonestacion.html")
-                contenido = template.render({'amon': amon})
 
-                # Comunica la amonestación a la familia
-                correo_familia = amon.IdAlumno.email
-                if correo_familia:
+                form.save()
+
+                if tipo == "amonestacion":
+                    amon = form.instance
+                    destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
+                    destinatarios.append(amon.IdAlumno.Unidad.Tutor)
                     template = get_template("correo_amonestacion.html")
                     contenido = template.render({'amon': amon})
 
-            # send_mail(
-            #	'Nueva amonestación',
-            #	contenido,
-            #	'41011038.jestudios.edu@juntadeandalucia.es',
-            #	(correo_familia,),
-            #	fail_silently=False
-            # )
+                    correos = []
+                    for prof in destinatarios:
+                        correo = Profesores.objects.get(id=prof.id).Email
+                        if correo != "":
+                            correos.append(correo)
+                    send_mail(
+                        'Nueva amonestación',
+                        contenido,
+                        '41011038.jestudios.edu@juntadeandalucia.es',
+                        correos,
+                        fail_silently=False,
+                    )
 
-            if tipo == "sancion":
-                sanc = form.instance
-                destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
-                destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
-                template = get_template("correo_sancion.html")
-                contenido = template.render({'sanc': sanc})
+                if tipo == "sancion":
+                    sanc = form.instance
+                    destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
+                    destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
+                    template = get_template("correo_sancion.html")
+                    contenido = template.render({'sanc': sanc})
 
-            correos = []
-            for prof in destinatarios:
-                correo = Profesores.objects.get(id=prof.id).Email
-                if correo != "":
-                    correos.append(correo)
-            # send_mail(
-            #    new_correo.Asunto,
-            #    new_correo.Contenido,
-            #    '41011038.jestudios.edu@juntadeandalucia.es',
-            #    correos,
-            #    fail_silently=False,
-            #   )
-            return redirect('/centro/alumnos')
+                    correos = []
+                    for prof in destinatarios:
+                        correo = Profesores.objects.get(id=prof.id).Email
+                        if correo != "":
+                            correos.append(correo)
+                    send_mail(
+                        'Nueva sanción',
+                        contenido,
+                        '41011038.jestudios.edu@juntadeandalucia.es',
+                        correos,
+                        fail_silently=False,
+                    )
+                return redirect('/centro/alumnos')
     else:
         if tipo == "amonestacion":
             form = AmonestacionForm({'IdAlumno': alum.id, 'Fecha': time.strftime("%d/%m/%Y"), 'Hora': 1, 'Profesor': 1})
@@ -147,6 +157,7 @@ def historial(request, alum_id, prof):
         'menu_convivencia': True,
         'horas': horas
     }
+
     return render(request, 'historial.html', context)
 
 
@@ -225,10 +236,13 @@ def AddMonths(d, x):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def show(request, tipo=None, mes=None, ano=None, dia=None):
+    horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
+
     if request.method == 'POST':
         fecha = request.POST.get('fecha')
         tipo = request.POST.get('tipo')
         dia, mes, ano = fecha.split('/')
+        print("ENTRA EN EL POST")
         return redirect('show', tipo=tipo, mes=mes, ano=ano, dia=dia)
 
     if tipo is None or mes is None or ano is None or dia is None:
@@ -246,12 +260,15 @@ def show(request, tipo=None, mes=None, ano=None, dia=None):
         datos = Amonestaciones.objects.filter(Fecha=fecha)
         titulo = "Resumen de amonestaciones"
     if tipo == "sancion":
+
         datos = Sanciones.objects.filter(Fecha=fecha)
         titulo = "Resumen de sanciones"
 
     form = ResumenForm(initial={'fecha': fecha, 'tipo': tipo})
 
-    datos = zip(range(1, len(datos) + 1), datos, ContarFaltas(datos.values("IdAlumno")))
+
+
+    datos = zip(range(1, len(datos) + 1), datos, ContarFaltas(datos.values("IdAlumno")), ContarFaltasHistorico(datos.values("IdAlumno")))
     context = {
         'form': form,
         'datos': datos,
@@ -260,11 +277,15 @@ def show(request, tipo=None, mes=None, ano=None, dia=None):
         'ano': ano,
         'dia': dia,
         'titulo': titulo,
+        'horas' : horas,
         f'menu_{tipo}': True,
         'menu_convivencia': True,
 
     }
     context[tipo] = True
+
+
+
     return render(request, 'show.html', context)
 
 
@@ -517,8 +538,9 @@ def profesores(request):
     newlist = sorted(listAmon, key=itemgetter('Profesor__count'), reverse=True)
     suma = 0
     for l in newlist:
-        l["Profesor"] = Profesores.objects.get(id=l["Profesor"]).Apellidos + ", " + Profesores.objects.get(
-            id=l["Profesor"]).Nombre
+        profesor = Profesores.objects.get(id=l["Profesor"])
+        l["Profesor"] = profesor.Apellidos + ", " + profesor.Nombre
+        l["Profesor_id"] = profesor.id  # Aquí añades el ID del profesor al diccionario
         suma += l["Profesor__count"]
     form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(
         curso_academico=curso_seleccionado)
@@ -748,10 +770,14 @@ def alumnos(request):
             unidad = alumno.Unidad
             if unidad:
                 l["IdAlumno"] = alumno.Nombre + " (" + unidad.Curso + ")"
+                l["IdAlumno_id"] = alumno.id
+
             else:
                 l["IdAlumno"] = alumno.Nombre + " (Sin Unidad asignada)"
+                l["IdAlumno_id"] = alumno.id
         except Alumnos.DoesNotExist:
             l["IdAlumno"] = "Alumno no encontrado"
+            l["IdAlumno_id"] = 0
 
     form = FechasForm(request.POST, curso_academico=curso_seleccionado) if request.method == "POST" else FechasForm(
         curso_academico=curso_seleccionado)
@@ -762,6 +788,18 @@ def alumnos(request):
 
 
 def ContarFaltas(lista_id):
+    curso_academico_actual = get_current_academic_year()
+
+    contar = []
+    for alum in lista_id:
+        am = str(len(Amonestaciones.objects.filter(IdAlumno_id=list(alum.values())[0], curso_academico=curso_academico_actual)))
+        sa = str(len(Sanciones.objects.filter(IdAlumno_id=list(alum.values())[0], curso_academico=curso_academico_actual)))
+
+        contar.append(am + "/" + sa)
+    return contar
+
+def ContarFaltasHistorico(lista_id):
+
     contar = []
     for alum in lista_id:
         am = str(len(Amonestaciones.objects.filter(IdAlumno_id=list(alum.values())[0])))
@@ -769,7 +807,6 @@ def ContarFaltas(lista_id):
 
         contar.append(am + "/" + sa)
     return contar
-
 
 # Curro Jul 24: Anado view para que un profesor pueda poner un parte
 @login_required(login_url='/')
@@ -786,30 +823,57 @@ def parteprofe(request, tipo, alum_id):
             return redirect("/")
 
         if form.is_valid():
-            form.save()
 
-            if tipo == "amonestacion":
-                amon = form.instance
-                destinatarios = [amon.Profesor, amon.IdAlumno.Unidad.Tutor]
+            # Comprobar si ya existe una amonestación similar para evitar duplicados
+            if not Amonestaciones.objects.filter(IdAlumno=form.cleaned_data['IdAlumno'],
+                                             Fecha=form.cleaned_data['Fecha'],
+                                             Profesor=form.cleaned_data['Profesor'],
+                                             Hora=form.cleaned_data['Hora'],
+                                             Tipo=form.cleaned_data['Tipo'],
+                                             Comentario=form.cleaned_data['Comentario']).exists():
+                form.save()
 
-                template = get_template("correo_amonestacion.html")
-                contenido = template.render({'amon': amon})
 
-                # Comunica la amonestación a la familia
-                correo_familia = amon.IdAlumno.email
-                if correo_familia:
+                if tipo == "amonestacion":
+                    amon = form.instance
+                    destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
+                    destinatarios.append(amon.IdAlumno.Unidad.Tutor)
                     template = get_template("correo_amonestacion.html")
                     contenido = template.render({'amon': amon})
 
-            # send_mail(
-            #	'Nueva amonestación',
-            #	contenido,
-            #	'41011038.jestudios.edu@juntadeandalucia.es',
-            #	(correo_familia,),
-            #	fail_silently=False
-            # )
+                    correos = []
+                    for prof in destinatarios:
+                        correo = Profesores.objects.get(id=prof.id).Email
+                        if correo != "":
+                            correos.append(correo)
+                    send_mail(
+                        'Nueva amonestación',
+                        contenido,
+                        '41011038.jestudios.edu@juntadeandalucia.es',
+                        correos,
+                        fail_silently=False,
+                    )
 
-            return redirect('/centro/misalumnos')
+                if tipo == "sancion":
+                    sanc = form.instance
+                    destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
+                    destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
+                    template = get_template("correo_sancion.html")
+                    contenido = template.render({'sanc': sanc})
+
+                    correos = []
+                    for prof in destinatarios:
+                        correo = Profesores.objects.get(id=prof.id).Email
+                        if correo != "":
+                            correos.append(correo)
+                    send_mail(
+                        'Nueva sanción',
+                        contenido,
+                        '41011038.jestudios.edu@juntadeandalucia.es',
+                        correos,
+                        fail_silently=False,
+                    )
+                return redirect('/centro/misalumnos')
     else:
         if tipo == "amonestacion":
             form = AmonestacionProfeForm(
@@ -843,20 +907,95 @@ def aulaconvivencia(request):
 
     return render(request, 'aulaconvivencia.html', context)
 
+
 @login_required(login_url='/')
-@user_passes_test(group_check_je, login_url='/')
-def alumnadosancionable(request):
+@user_passes_test(group_check_prof, login_url='/')
+def misamonestaciones(request):
+
+    if not hasattr(request.user, 'profesor'):
+        return render(request, 'error.html', {'message': 'No tiene un perfil de profesor asociado.'})
+
+
     horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
+
+    profesor = request.user.profesor
 
     curso_academico_actual = get_current_academic_year()
 
-    amonestaciones = Amonestaciones.objects.filter(curso_academico=curso_academico_actual, DerivadoConvivencia=True)
+    # Filtrar las amonestaciones y sanciones del curso académico actual
+    amon_actual = Amonestaciones.objects.filter(Profesor=profesor, curso_academico=curso_academico_actual).order_by(
+        'Fecha')
+
+
+    historial_actual = list(amon_actual)
+    historial_actual = sorted(historial_actual, key=lambda x: x.Fecha, reverse=False)
+
+    tipo_actual = ["Amonestación" if isinstance(h, Amonestaciones) else "Sanción" for h in historial_actual]
+    hist_actual = zip(historial_actual, tipo_actual, range(1, len(historial_actual) + 1))
+
+
+    prof = True
 
     context = {
-        'amonestaciones': amonestaciones,
-        'num_resultados': amonestaciones.count(),
+        'profesor' : profesor,
+        'prof': prof,
+        'historial_actual': hist_actual,
         'menu_convivencia': True,
-        'horas': horas,
+        'horas': horas
     }
 
-    return render(request, 'aulaconvivencia.html', context)
+    return render(request, 'misamonestaciones.html', context)
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def amonestacionesprofe(request, profe_id):
+
+
+    horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
+
+    profesor = Profesores.objects.get(pk=profe_id)
+
+    curso_academico_actual = get_current_academic_year()
+
+    # Filtrar las amonestaciones y sanciones del curso académico actual
+    amon_actual = Amonestaciones.objects.filter(Profesor=profesor, curso_academico=curso_academico_actual).order_by(
+        'Fecha')
+
+
+    historial_actual = list(amon_actual)
+    historial_actual = sorted(historial_actual, key=lambda x: x.Fecha, reverse=False)
+
+    tipo_actual = ["Amonestación" if isinstance(h, Amonestaciones) else "Sanción" for h in historial_actual]
+    hist_actual = zip(historial_actual, tipo_actual, range(1, len(historial_actual) + 1))
+
+
+    prof = True
+
+    context = {
+        'profesor' : profesor,
+        'prof': prof,
+        'historial_actual': hist_actual,
+        'menu_convivencia': True,
+        'horas': horas
+    }
+
+    return render(request, 'amonestacionesprofe.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def sancionesactivas(request):
+    hoy = timezone.now().date()  # Obtener la fecha de hoy
+
+    # Filtrar las sanciones activas
+    sanciones_activas = Sanciones.objects.filter(Fecha__lte=hoy, Fecha_fin__gte=hoy)
+
+    datos = zip(range(1, len(sanciones_activas) + 1), sanciones_activas)
+
+    context = {
+        'sanciones_activas': datos,
+        'menu_sanciones': True,  # Si necesitas alguna opción de menú activa
+        'menu_convivencia': True,
+    }
+
+    return render(request, 'sancionesactivas.html', context)

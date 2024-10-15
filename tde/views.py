@@ -4,6 +4,7 @@ import time,calendar
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -11,6 +12,7 @@ from centro.utils import get_current_academic_year, get_previous_academic_years
 from centro.views import group_check_prof, group_check_tde
 from tde.forms import IncidenciaTicProfeForm
 from tde.models import IncidenciasTic
+from django.core.mail import send_mail
 
 
 # Create your views here.
@@ -121,7 +123,24 @@ def actualizar_incidencia(request):
         incidencia = IncidenciasTic.objects.get(id=id)
         incidencia.solucion = solucion
         incidencia.resuelta = True
+
         incidencia.save()
+
+        # Mandamos correo al profesor/a
+        destinatarios = []
+        if incidencia.profesor.Email != "":
+            destinatarios.append(incidencia.profesor.Email)
+
+        template = get_template("correo_tde.html")
+        contenido = template.render({'inc': incidencia})
+
+        send_mail(
+            'Incidencia TIC Resuelta',
+            contenido,
+            '41011038.jestudios.edu@juntadeandalucia.es',
+            destinatarios,
+            fail_silently=False,
+        )
 
         return JsonResponse({'success': True})
     except IncidenciasTic.DoesNotExist:

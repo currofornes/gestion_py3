@@ -43,10 +43,11 @@
                             <li><a href="/centro/alumnos">Todos los Grupos</a></li>
                             <li><a href="/convivencia/show">Resumen</a></li>
                             <li><a href="/convivencia/aulaconvivencia">Aula de Convivencia</a></li>
-                            <li><a href="/convivencia/alumnadosancionable">Alumnado Sancionable</a></li>
+                            <li><a href="/convivencia/sancionesactivas">Sanciones Activas</a></li>
                         {% endif %}
                         {% if user|has_group:"profesor" %}
                             <li><a href="/centro/misalumnos">Mis alumnos</a></li>
+                            <li><a href="/convivencia/misamonestaciones">Mis amonestaciones</a></li>
                         {% endif %}
 
 
@@ -81,7 +82,7 @@
                         </a>
                     </li>
                 {% endif %}
-                {% if user|has_group:"jefatura de estudios" %}
+                {% if user|has_group:"jefatura de estudios" or user|has_group:"orientacion" %}
                     <li>
                         <a href="/absentismo/alumnos"><i class="fa fa-university"></i> <span class="nav-label">Absentismo (Todos)</span>
                         </a>
@@ -129,6 +130,10 @@
                     <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i> <span class="nav-label">Incidencias TIC</span></a>
                     </li>
                 {% endif %}
+
+
+                <!--<li><a href="/guardias/parteguardias"><span class="nav-label">Test Guardias</span></a></li>-->
+
 
 
 
