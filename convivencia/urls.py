@@ -14,6 +14,7 @@ urlpatterns = [
 	path('show/<str:tipo>/<int:mes>/<int:ano>/<int:dia>/', views.show, name='show'),
 	#re_path(r'^show/(?P<tipo>[a-z]+)/(?P<mes>[0-9]+)/(?P<ano>[0-9]+)/(?P<dia>[0-9]+)$', views.show),
 	re_path(r'^estadistica$', views.estadisticas),
+	re_path(r'^alumnadosancionable$', views.alumnadosancionable),
 	re_path(r'^estadistica/curso/(?P<curso>[0-9]+)$', views.estadisticas2),
 	re_path(r'^grupos', views.grupos),
 	re_path(r'^niveles', views.niveles),

@@ -842,3 +842,21 @@ def aulaconvivencia(request):
     }
 
     return render(request, 'aulaconvivencia.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def alumnadosancionable(request):
+    horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
+
+    curso_academico_actual = get_current_academic_year()
+
+    amonestaciones = Amonestaciones.objects.filter(curso_academico=curso_academico_actual, DerivadoConvivencia=True)
+
+    context = {
+        'amonestaciones': amonestaciones,
+        'num_resultados': amonestaciones.count(),
+        'menu_convivencia': True,
+        'horas': horas,
+    }
+
+    return render(request, 'aulaconvivencia.html', context)
