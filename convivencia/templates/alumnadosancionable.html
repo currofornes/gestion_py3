@@ -16,9 +16,10 @@
                         <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
                             <thead>
                             <tr>
-                                <th data-toggle="true">Alumno/a</th>
-                                <th>Total amonestaciones leves vigentes</th>
-                                <th>Total amonestaciones graves vigentes</th>
+                                <th>Alumno/a</th>
+                                <th>Unidad</th>
+                                <th class="text-center">Amonestaciones leves vigentes</th>
+                                <th class="text-center">Amonestaciones graves vigentes</th>
 {#                                <th>Profesor/a</th>#}
 {#                                <th data-hide="all">Comentario</th>#}
 {#                                <th data-hide="all">Tipo</th>#}
@@ -35,20 +36,14 @@
                             {% for a, leves, graves in alumnado %}
                                 <tr>
                                     <td>
-                                        {{ a.Nombre }} ({{ a.Unidad }}) (<a style="color: inherit;"
-                                                           href="/convivencia/historial/{{ a.id }}/">
-
-                                        <span style="color: dodgerblue;">
-                                          <i class="fa fa-list"></i>
-                                        </span>
-
-                                </a>)
+                                        <a href="/convivencia/historial/{{ a.id }}/"><strong>{{ a.Nombre }}</strong></a>
                                     </td>
-                                    <td>
+                                    <td><a href="/centro/alumnos/{{ a.Unidad.id }}">{{ a.Unidad }}</a></td>
+                                    <td class="text-center">
                                         {{ leves }}
                                     </td>
 
-                                    <td>{{ graves }}</td>
+                                    <td class="text-center">{{ graves }}</td>
 
 {#                                    <td>{{ a.Profesor }}</td>#}
 {#                                    <td>{{ a.Comentario }}</td>#}
