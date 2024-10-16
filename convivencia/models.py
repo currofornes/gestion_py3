@@ -1,3 +1,4 @@
+from datetime import datetime, date
 from django.db import models
 
 # Create your models here.
@@ -60,7 +61,36 @@ class Amonestaciones(models.Model):
 
 
 	def __str__(self):
-		return self.IdAlumno.Nombre 
+		return self.IdAlumno.Nombre
+
+	@property
+	def caducada(self):
+		hoy = datetime.now().date()  # Obtener la fecha de hoy
+
+		diferencia = self.Fecha - hoy
+		tipo = self.Tipo.TipoAmonestacion[1] == "L" if "Leve" else "Grave"
+
+		if tipo == "Leve":
+			return diferencia.days > 30
+		elif tipo == "Grave":
+			return diferencia.days > 60
+		else:
+			return False
+
+	@property
+	def sancionada(self):
+		ultima_sancion = Sanciones.objects.filter(IdAlumno=self.IdAlumno).order_by("Fecha").last()
+		if ultima_sancion:
+			return self.Fecha <= ultima_sancion.Fecha
+		else:
+			return False
+
+	@property
+	def gravedad(self):
+		if self.Tipo.TipoFalta == "L":
+			return "Leve"
+		if self.Tipo.TipoFalta == "G":
+			return "Grave"
 
 	class Meta:
 		verbose_name="Amonestación"

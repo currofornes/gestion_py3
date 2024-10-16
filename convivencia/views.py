@@ -999,3 +999,48 @@ def sancionesactivas(request):
     }
 
     return render(request, 'sancionesactivas.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def alumnadosancionable(request):
+    curso_academico_actual = get_current_academic_year()
+
+    # Obtener lista de amonestaciones "vivas": aquellas que no han sido sancionadas y no están caducadas.
+    # Y agruparlas por alumno.
+    amonestaciones_vivas = {}
+    for amonestacion in Amonestaciones.objects.filter(curso_academico=curso_academico_actual):
+        if not (amonestacion.caducada or amonestacion.sancionada):
+            if amonestacion.IdAlumno not in amonestaciones_vivas:
+                amonestaciones_vivas[amonestacion.IdAlumno] = [amonestacion]
+            else:
+                amonestaciones_vivas[amonestacion.IdAlumno].append(amonestacion)
+
+   # Contar cuantas amonestaciones leves y graves tiene cada alumno
+    recuento_amonestaciones = {}
+    for alumno in amonestaciones_vivas:
+        leves = 0
+        graves = 0
+        for amonestacion in amonestaciones_vivas[alumno]:
+            if amonestacion.gravedad == "Leve":
+                leves += 1
+            if amonestacion.gravedad == "Grave":
+                graves += 1
+        recuento_amonestaciones[alumno] = (leves, graves)
+
+    # Generar el listado de alumnos pendientes de ser sancionados.
+    # Criterio: (leves >= 5) | (graves >= 2) | (2 * graves + leves >= 5)
+    alumnado_sancionable = []
+    for alumno in recuento_amonestaciones:
+        leves, graves = recuento_amonestaciones[alumno]
+        if (leves >= 5) or (graves >= 2) or (2 * graves + leves >= 5):
+            print(f"{alumno.Nombre} con {leves} amonestaciones leves y {graves} amonestaciones graves listo para ser empapelado.")
+            alumnado_sancionable.append((alumno, leves, graves))
+
+    alumnado_sancionable.sort(key=lambda x: x[1] + 2 * x[2], reverse=True)
+    context = {
+        'alumnado': alumnado_sancionable,
+        'num_resultados': len(alumnado_sancionable),
+        'menu_convivencia': True,
+    }
+
+    return render(request, 'alumnadosancionable.html', context)

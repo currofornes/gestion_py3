@@ -13,7 +13,11 @@
                         <h2>Historial Alumno</h2>
                     </div>
                     <div class="ibox-content">
-                        <h4>{{ alum.Nombre }} ({{ alum.Unidad }})</h4>
+                        <h4>{{ alum.Nombre }} ({{ alum.Unidad }})
+                            <a href="/convivencia/sancion/{{ alum.id }}">
+                                <span class="label label-danger">Sancionar</span>
+                            </a>
+                        </h4>
                         {% if historial_actual %}
                             {% if prof %}
                                 <a href="/convivencia/historial/{{ alum.id }}/n">Mostrar historial sin datos de
