@@ -30,6 +30,7 @@ def parte(request, tipo, alum_id):
     #	return redirect("/")
     if request.method == 'POST':
         if tipo == "amonestacion":
+            print(request.POST)
             form = AmonestacionForm(request.POST)
             titulo = "Amonestaciones"
         elif tipo == "sancion":
@@ -93,7 +94,8 @@ def parte(request, tipo, alum_id):
                 return redirect('/centro/alumnos')
     else:
         if tipo == "amonestacion":
-            form = AmonestacionForm({'IdAlumno': alum.id, 'Fecha': time.strftime("%d/%m/%Y"), 'Hora': 1, 'Profesor': 1})
+            profe = Profesores.objects.filter(user=request.user).first()
+            form = AmonestacionForm({'IdAlumno': alum.id, 'Fecha': time.strftime("%d/%m/%Y"), 'Hora': 1, 'Profesor': profe.id})
 
             titulo = "Amonestaciones"
         elif tipo == "sancion":
