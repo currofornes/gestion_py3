@@ -22,7 +22,8 @@
                                         <th data-toggle="true">N.</th>
                                         <th>Alumno/a</th>
                                         <th>Tipo</th>
-                                        <th>Fecha</th>
+                                        <th>Fecha Inicio</th>
+                                        <th>Fecha Fin</th>
                                         <th>Unidad</th>
                                         <th>Sanción</th>
                                         <th data-hide="all">Comentario</th>
@@ -40,13 +41,14 @@
                                             <td>
                                                     <span class="label label-danger">Sanción</span>
                                             </td>
+                                            <td data-value="{{ sancion.Fecha }}">{{ sancion.Fecha|date:"d/m/Y" }}</td>
                                             {% if sancion.Fecha_fin %}
-                                                <td>{{ sancion.Fecha|date:"d/m/Y" }} - {{ sancion.Fecha_fin|date:"d/m/Y" }}</td>
+                                                <td data-value="{{ sancion.Fecha_fin }}">{{ sancion.Fecha_fin|date:"d/m/Y" }}</td>
                                             {% else %}
-                                                <td>{{ sancion.Fecha|date:"d/m/Y" }}</td>
+                                                <td></td>
                                             {% endif %}
 
-                                            <td>{{ sancion.IdAlumno.Unidad }}</td>
+                                            <td><a href="/centro/alumnos/{{ sancion.IdAlumno.Unidad.id }}">{{ sancion.IdAlumno.Unidad }}</a></td>
 
 
                                                 {% if sancion.NoExpulsion %}
