@@ -145,7 +145,7 @@
                                             <td>{{ h.Fecha|date:"d/m/Y" }}</td>
                                         {% endif %}
 
-                                        <td>{{ h.IdAlumno.Unidad }}</td>
+                                        <td><a href="/centro/alumnos/{{ h.IdAlumno.Unidad.id }}">{{ h.IdAlumno.Unidad }}</a></td>
 
                                         {% if tipo == 'amonestacion' %}
                                             <td>{{ contar }}</td>
