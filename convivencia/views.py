@@ -898,7 +898,7 @@ def aulaconvivencia(request):
 
     curso_academico_actual = get_current_academic_year()
 
-    amonestaciones = Amonestaciones.objects.filter(curso_academico=curso_academico_actual, DerivadoConvivencia=True)
+    amonestaciones = Amonestaciones.objects.filter(curso_academico=curso_academico_actual, DerivadoConvivencia=True).order_by('-Fecha')
 
     context = {
         'amonestaciones': amonestaciones,

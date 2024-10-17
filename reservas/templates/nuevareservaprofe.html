@@ -304,7 +304,7 @@
             $('.i-checks').iCheck({
                 checkboxClass: 'icheckbox_square-green',
                 radioClass: 'iradio_square-green',
-            }).on('ifChanged', function (event) {
+            }).on('ifChecked', function (event) {
                 var tipo_id = $(this).val();
                 cargarReservables(tipo_id);
             });
@@ -313,7 +313,7 @@
             $('.i-checks2').iCheck({
                 checkboxClass: 'icheckbox_square-green',
                 radioClass: 'iradio_square-green',
-            }).on('ifChanged', function () {
+            }).on('ifChecked', function () {
                 var periodicidad = $(this).val();
                 if (periodicidad === 'semanal') {
                     $('#label-semanas').show();

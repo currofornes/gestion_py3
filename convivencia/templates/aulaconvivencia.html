@@ -20,6 +20,7 @@
                                 <th>Tipo</th>
                                 <th>Fecha</th>
                                 <th>Profesor/a</th>
+                                <th>Unidad</th>
                                 <th data-hide="all">Comentario</th>
                                 <th data-hide="all">Tipo</th>
                                 <th data-hide="phone">Tramo horario</th>
@@ -35,14 +36,7 @@
                             {% for a in amonestaciones %}
                                 <tr>
                                     <td>
-                                        {{ a.IdAlumno.Nombre }} (<a style="color: inherit;"
-                                                           href="/convivencia/historial/{{ a.IdAlumno.id }}/">
-
-                                        <span style="color: dodgerblue;">
-                                          <i class="fa fa-list"></i>
-                                        </span>
-
-                                </a>)
+                                        <a href="/convivencia/historial/{{ a.IdAlumno.id }}/"><strong>{{ a.IdAlumno.Nombre }}</strong></a>
                                     </td>
                                     <td>
                                         {% if a.Tipo.TipoFalta == 'G' %}
@@ -53,9 +47,10 @@
 
                                     </td>
 
-                                    <td>{{ a.Fecha|date:"d/m/Y" }}</td>
+                                    <td data-value="{{ a.Fecha }}">{{ a.Fecha|date:"d/m/Y" }}</td>
 
                                     <td>{{ a.Profesor }}</td>
+                                    <td><a href="/centro/alumnos/{{ a.IdAlumno.Unidad.id }}"> {{ a.IdAlumno.Unidad }}</a>Mej</td>
                                     <td>{{ a.Comentario }}</td>
                                     <td>{{ a.Tipo }}</td>
                                     <td>{{ horas|slice:a.Hora|last }}</td>
