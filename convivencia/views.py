@@ -26,6 +26,9 @@ from django.core.mail import send_mail
 @user_passes_test(group_check_je, login_url='/')
 def parte(request, tipo, alum_id):
     alum = Alumnos.objects.get(pk=alum_id)
+
+    print(alum.id)
+
     # if request.user.username[:5]=="tutor" and alum.Unidad.Abe!=request.user.username[5:]:
     #	return redirect("/")
     if request.method == 'POST':
@@ -41,38 +44,41 @@ def parte(request, tipo, alum_id):
 
         if form.is_valid():
 
-            # Comprobar si ya existe una amonestación similar para evitar duplicados
-            if not Amonestaciones.objects.filter(IdAlumno=form.cleaned_data['IdAlumno'],
-                                                 Fecha=form.cleaned_data['Fecha'],
-                                                 Profesor=form.cleaned_data['Profesor'],
-                                                 Hora=form.cleaned_data['Hora'],
-                                                 Tipo=form.cleaned_data['Tipo'],
-                                                 Comentario=form.cleaned_data['Comentario']).exists():
-
-
-                form.save()
-
                 if tipo == "amonestacion":
-                    amon = form.instance
-                    destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
-                    destinatarios.append(amon.IdAlumno.Unidad.Tutor)
-                    template = get_template("correo_amonestacion.html")
-                    contenido = template.render({'amon': amon})
 
-                    correos = []
-                    for prof in destinatarios:
-                        correo = Profesores.objects.get(id=prof.id).Email
-                        if correo != "":
-                            correos.append(correo)
-                    send_mail(
-                        'Nueva amonestación',
-                        contenido,
-                        '41011038.jestudios.edu@juntadeandalucia.es',
-                        correos,
-                        fail_silently=False,
-                    )
+                    # Comprobar si ya existe una amonestación similar para evitar duplicados
+                    if not Amonestaciones.objects.filter(IdAlumno=form.cleaned_data['IdAlumno'],
+                                                         Fecha=form.cleaned_data['Fecha'],
+                                                         Profesor=form.cleaned_data['Profesor'],
+                                                         Hora=form.cleaned_data['Hora'],
+                                                         Tipo=form.cleaned_data['Tipo'],
+                                                         Comentario=form.cleaned_data['Comentario']).exists():
+
+                        form.save()
+
+                        amon = form.instance
+                        destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
+                        destinatarios.append(amon.IdAlumno.Unidad.Tutor)
+                        template = get_template("correo_amonestacion.html")
+                        contenido = template.render({'amon': amon})
+
+                        correos = []
+                        for prof in destinatarios:
+                            correo = Profesores.objects.get(id=prof.id).Email
+                            if correo != "":
+                                correos.append(correo)
+                        send_mail(
+                            'Nueva amonestación',
+                            contenido,
+                            '41011038.jestudios.edu@juntadeandalucia.es',
+                            correos,
+                            fail_silently=False,
+                        )
 
                 if tipo == "sancion":
+
+                    form.save()
+
                     sanc = form.instance
                     destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
                     destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
@@ -84,6 +90,8 @@ def parte(request, tipo, alum_id):
                         correo = Profesores.objects.get(id=prof.id).Email
                         if correo != "":
                             correos.append(correo)
+
+
                     send_mail(
                         'Nueva sanción',
                         contenido,
@@ -91,6 +99,8 @@ def parte(request, tipo, alum_id):
                         correos,
                         fail_silently=False,
                     )
+
+
                 return redirect('/centro/alumnos')
     else:
         if tipo == "amonestacion":
@@ -826,37 +836,44 @@ def parteprofe(request, tipo, alum_id):
 
         if form.is_valid():
 
-            # Comprobar si ya existe una amonestación similar para evitar duplicados
-            if not Amonestaciones.objects.filter(IdAlumno=form.cleaned_data['IdAlumno'],
-                                             Fecha=form.cleaned_data['Fecha'],
-                                             Profesor=form.cleaned_data['Profesor'],
-                                             Hora=form.cleaned_data['Hora'],
-                                             Tipo=form.cleaned_data['Tipo'],
-                                             Comentario=form.cleaned_data['Comentario']).exists():
-                form.save()
+
 
 
                 if tipo == "amonestacion":
-                    amon = form.instance
-                    destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
-                    destinatarios.append(amon.IdAlumno.Unidad.Tutor)
-                    template = get_template("correo_amonestacion.html")
-                    contenido = template.render({'amon': amon})
 
-                    correos = []
-                    for prof in destinatarios:
-                        correo = Profesores.objects.get(id=prof.id).Email
-                        if correo != "":
-                            correos.append(correo)
-                    send_mail(
-                        'Nueva amonestación',
-                        contenido,
-                        '41011038.jestudios.edu@juntadeandalucia.es',
-                        correos,
-                        fail_silently=False,
-                    )
+                    # Comprobar si ya existe una amonestación similar para evitar duplicados
+                    if not Amonestaciones.objects.filter(IdAlumno=form.cleaned_data['IdAlumno'],
+                                                         Fecha=form.cleaned_data['Fecha'],
+                                                         Profesor=form.cleaned_data['Profesor'],
+                                                         Hora=form.cleaned_data['Hora'],
+                                                         Tipo=form.cleaned_data['Tipo'],
+                                                         Comentario=form.cleaned_data['Comentario']).exists():
+                        form.save()
+
+
+                        amon = form.instance
+                        destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
+                        destinatarios.append(amon.IdAlumno.Unidad.Tutor)
+                        template = get_template("correo_amonestacion.html")
+                        contenido = template.render({'amon': amon})
+
+                        correos = []
+                        for prof in destinatarios:
+                            correo = Profesores.objects.get(id=prof.id).Email
+                            if correo != "":
+                                correos.append(correo)
+                        send_mail(
+                            'Nueva amonestación',
+                            contenido,
+                            '41011038.jestudios.edu@juntadeandalucia.es',
+                            correos,
+                            fail_silently=False,
+                        )
 
                 if tipo == "sancion":
+
+                    form.save()
+
                     sanc = form.instance
                     destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
                     destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
