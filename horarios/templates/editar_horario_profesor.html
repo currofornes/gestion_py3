@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <style>
+        .modal .form-control {
+            width: 100% !important;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}Editar Horario de {{ profesor }}{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <div class="float-right">
+                            <a href="{% url 'horario_profesor_view' %}?profesor={{ profesor.id }}" class="btn btn-sm btn-secondary">
+                                <i class="fa fa-arrow-left"></i> Volver al Horario
+                            </a>
+                            <a id="boton-nuevo-item" href="#modal" class="btn btn-sm btn-warning" data-toggle="modal"
+                               data-target="#modalitemhorario"><i
+                                    class="fa fa-plus"></i> Añadir ítem</a>
+                        </div>
+                        <h5>Editar Horario de {{ profesor }}</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Tramo</th>
+                                    <th>Día</th>
+                                    <th>Materia</th>
+                                    <th>Aula</th>
+                                    <th>Acciones</th>
+                                </tr>
+                                </thead>
+                                <tbody id="item-horario-list">
+                                {% for item in items_horario %}
+                                    <tr>
+                                        <td>{{ item.get_tramo_display }}</td>
+                                        <td>{{ item.get_dia_display }}</td>
+                                        <td>{{ item.materia }}</td>
+                                        <td>{{ item.aula }}</td>
+                                        <td>
+                                            <!-- Botón de Editar -->
+                                            <a href="{% url 'editar_item_horario' item.pk %}"
+                                               class="btn btn-xs btn-warning">
+                                                <i class="fa fa-pencil"></i> Editar
+                                            </a>
+
+                                            <!-- Botón de Eliminar -->
+                                            <a href="{% url 'eliminar_item_horario' item.pk %}"
+                                               class="btn btn-xs btn-danger">
+                                                <i class="fa fa-trash"></i> Eliminar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Modal para añadir nuevo ItemHorario -->
+                        <div class="modal fade" id="modalitemhorario" tabindex="-1" role="dialog"
+                             aria-labelledby="modalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 class="modal-title" id="modalLabel">Añadir nuevo ítem</h3>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="formNuevoItemHorario" method="POST">
+                                            {% csrf_token %}
+                                            <div class="form-group row">
+                                                <div class="col-lg-12">
+                                                    {{ form.as_p }}
+                                                </div>
+                                            </div>
+
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar
+                                        </button>
+                                        <button type="button" class="btn btn-primary" id="submitNuevoItemHorario">
+                                            Añadir ítem
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+{% block js %}
+
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+
+
+    <script>
+        $(document).ready(function () {
+
+            $(".select2_Tramo").select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+            $(".select2_Dia").select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+            $(".select2_Unidad").select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+            $(".select2_Aula").select2({
+                theme: 'bootstrap4',
+                width: '100%'
+            });
+
+            // Enviar el formulario de nuevo ítem con AJAX
+            $('#submitNuevoItemHorario').click(function () {
+                var form = $('#formNuevoItemHorario');
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'crear_item_horario' profesor.id %}", // Asegúrate de que esta URL corresponde a la vista de creación
+                    data: form.serialize(),
+                    success: function (response) {
+                        // Si el ítem se ha creado correctamente, actualizamos la tabla
+                        $('#item-horario-list').append(
+                            '<tr id="item-horario-' + response.id + '">' +
+                            '<td>' + response.tramo + '</td>' +
+                            '<td>' + response.dia + '</td>' +
+                            '<td>' + response.materia + '</td>' +
+                            '<td>' + response.aula + '</td>' +
+                            '<td>' +
+                            '<a href="/editar_item_horario/' + response.id + '" class="btn btn-xs btn-warning"><i class="fa fa-pencil"></i> Editar</a>' +
+                            '<a href="/eliminar_item_horario/' + response.id + '" class="btn btn-xs btn-danger" onclick="return confirm(\'¿Estás seguro de que deseas eliminar este horario?\');"><i class="fa fa-trash"></i> Eliminar</a>' +
+                            '</td>' +
+                            '</tr>'
+                        );
+                        // Cerrar el modal y resetear el formulario
+                        $('#modalitemhorario').modal('hide');
+                        form.trigger('reset');
+                    },
+                    error: function (response) {
+                        // Manejo de errores
+                        alert('Ocurrió un error al intentar añadir el ítem.');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -11,5 +11,6 @@ urlpatterns = [
         re_path(r'^protocolo/(?P<alum_id>[0-9]+)/abrirprotocolo$', views.abrirprotocolo),
         re_path(r'^protocolo/(?P<proto_id>[0-9]+)/ver$', views.verprotocolocerrado),
         path('cerrar_protocolo/', cerrar_protocolo, name='cerrar_protocolo'),
+        re_path(r'^todoalumnado$', views.todoalumnado),
 
 ]

@@ -1,0 +1,193 @@
+{% load static %}
+{% block css %}
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% if item_guardias %}
+
+<div class="table-responsive">
+
+    <table id="tabla_tramo_{{ tramo }}" class="table table-striped tabla-guardias tabla-tramo">
+        <thead>
+        <tr>
+            <th>Ausencia</th>
+            <th>Grupo</th>
+            <th>Aula</th>
+            <th class="text-center">Tarea</th>
+            <th>Prof. Guardia</th>
+            <th class="text-center"><i class="fa fa-handshake-o"
+                                       aria-hidden="true"></i></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for guardia in item_guardias %}
+            <tr>
+                <td style="width: 30%;">{{ guardia.ProfesorAusente }} ({{ guardia.Materia }})</td>
+                <td>{{ guardia.Unidad }}</td>
+                <td>{{ guardia.Aula }}</td>
+
+                {% if guardia.Unidad.Curso == 'GUARDIA' or guardia.Unidad.Curso == 'GUARDIA RECREO' %}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                {% else %}
+                    <td class="text-center"><i class="fa fa-eye" style="cursor: pointer;" aria-hidden="true" data-toggle="popover" data-placement="right" data-content="{{ guardia.Tarea }}"></i></td>
+                    <td style="width: 30%;">
+
+                        {% if guardia.ProfesorConfirma %}
+                            <!-- Si la guardia está confirmada, mostrar labels en lugar del select -->
+                            {% for profesor in guardia.ProfesoresGuardia.all %}
+                                <span class="label label-primary">{{ profesor.Apellidos }}, {{ profesor.Nombre }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <select id="select-profesores-{{ guardia.id }}" style="width: 100% !important;" class="select2 form-control" multiple="multiple">
+                                {% for profesor in profesores_guardia %}
+                                    <option value="{{ profesor.id }}">{{ profesor.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if guardia.ProfesorConfirma %}
+                            <span class="label label-info">Confirmada</span>
+                        {% else %}
+                            <button type="button" class="btn btn-warning btn-xs confirmar-btn"
+                    data-item-guardia-id="{{ guardia.id }}"
+                    data-profesor-confirma-id="{{ profesor_confirma.id }}">Confirmar</button>
+                        {% endif %}
+
+                    </td>
+                {% endif %}
+
+
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<div class="ibox text-center">
+                                    <div class="ibox-content">
+                                        <i class="fa fa-thumbs-o-up fa-3x" aria-hidden="true"></i>
+                                        <h2>No hay guardias registradas a esta hora.</h2>
+
+                                        <h3>No olvides dar una vuelta por el edificio para asegurarte.</h3>
+
+                                    </div>
+                                </div>
+
+{% endif %}
+
+
+{% block js %}
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            $('[data-toggle="popover"]').popover()
+
+            // Obtener el token CSRF desde las cookies
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            const csrftoken = getCookie('csrftoken');
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            $(".select2").select2({
+                theme: 'bootstrap4',
+            });
+
+            $('.confirmar-btn').on('click', function() {
+                // Obtener el ID del ItemGuardia de la fila
+                let item_guardia_id = $(this).attr('data-item-guardia-id');  // Asegúrate de que esto obtenga correctamente el valor
+
+                // Obtener el ID del profesor que ha pulsado "Confirmar"
+                let profesor_confirma_id = $(this).attr('data-profesor-confirma-id');  // Asegúrate de que esto obtenga correctamente el valor
+
+                // Obtener los valores seleccionados en el select (IDs de los profesores)
+                let select = $(`#select-profesores-${item_guardia_id}`);
+                let profesores_guardia_ids = select.val();  // .val() obtiene un array de los valores seleccionados
+                console.log("PROFES GUARDIA")
+                console.log(profesores_guardia_ids)
+
+                Swal.fire({
+                    title: "¿Estás seguro?",
+                    text: "La guardia quedará registrada y confirmada.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#1ab394",
+                    confirmButtonText: "Sí, confirmar.",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        // Enviar los datos mediante AJAX usando jQuery
+                        $.ajax({
+                            url: '{% url "confirmar_guardia_ajax" %}',  // Ruta a la vista confirmar_guardia_ajax
+                            type: 'POST',
+                            headers: { "X-CSRFToken": csrftoken },  // Enviar el token CSRF en los headers
+                            data: {
+                                'item_guardia_id': item_guardia_id,
+                                'profesores_guardia_ids': profesores_guardia_ids,
+                                'profesor_confirma_id': profesor_confirma_id,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}' // CSRF token
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: "¡Confirmada!",
+                                        text: "La guardia ha sido confirmada.",
+                                        icon: "success"
+                                    });
+
+                                    // Emitir un evento personalizado con la fecha actual
+                                    const fechaSeleccionada = $('#fecha-parte-guardia').val();
+                                    const tramoSeleccionado = $('.tab-pane.active').data('tramo');  // Suponiendo que los tabs tengan un data-tramo
+                                    $(document).trigger('guardiaConfirmada', [fechaSeleccionada, tramoSeleccionado]);
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: "Ocurrió un error al intentar confirmar la guardia.",
+                                        icon: "error"
+                                    });
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error:', error);
+                                Swal.fire({
+                                    title: "Error",
+                                    text: "Ocurrió un error inesperado al intentar confirmar la guardia.",
+                                    icon: "error"
+                                });
+                            }
+                        });
+
+                    }
+                });
+
+            });
+
+        });
+
+    </script>
+{% endblock %}
+

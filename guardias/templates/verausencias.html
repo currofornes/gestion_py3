@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>Listado de Ausencias</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered dataTables-ausencias"
+                                   style="border-collapse: separate !important;">
+                                <thead>
+                                <tr>
+                                    <td class="text-center"><strong>Fecha</strong></td>
+                                    <td class="text-center"><strong>Día semana</strong></td>
+                                    <td class="text-center"><strong>Profesor</strong></td>
+                                    <td class="text-center"><strong>Tramos ausente</strong></td>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for a in datos_agrupados %}
+                                    <tr class="text-center">
+                                        <td style="vertical-align: middle;">{{ a.fecha }}</td>
+                                        <td style="vertical-align: middle;">{{ a.diasemana }}</td>
+                                        <td style="vertical-align: middle;">{{ a.profesor }}</td>
+                                        <!-- Añadimos el profesor -->
+                                        <td style="vertical-align: middle;">
+                                            <button class="btn btn-info"
+                                                    onclick="mostrarDetalles('{{ a.fecha }}', '{{ a.profesor_id }}', '{{ a.profesor }}')">{{ a.tramos_ausente }}
+                                                tramos
+                                            </button>
+                                        </td>
+                                        <td>
+
+                                            <button class="btn btn-danger eliminar-itemguardia"
+                                                    data-fecha="{{ a.fecha }}"
+                                                    data-profesor="{{ a.profesor }}"
+                                                    data-profesorid="{{ a.profesor_id }}">Borrar
+                                            </button>
+
+
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal para mostrar los detalles -->
+    <div id="detallesModal" class="modal inmodal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h5 class="modal-title">Detalles de las Ausencias</h5>
+                    <h3>Fecha: <span id="fecha-modal"></span></h3>
+                    <h3>Profesor: <span id="profesor-modal"></span></h3> <!-- Añadimos el profesor al modal -->
+                </div>
+                <div class="modal-body">
+                    <div id="detallesContenido"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
+    <script>
+        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
+
+        $(document).ready(function () {
+
+            $('.eliminar-itemguardia').on('click', function () {
+                const fecha = $(this).data('fecha');
+                const profesorId = $(this).data('profesorid');
+                const profesor = $(this).data('profesor');
+
+                // Usar SweetAlert para la confirmación
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    html: `¿Deseas eliminar las ausencias del <strong>${fecha}</strong> para el profesor <strong>${profesor}</strong>?`,
+                    footer: '<small>Si la ausencia ya ha sido cubierta, se eliminarán los tiempos acumulados por los profesores de guardia asignados a esta ausencia.</small>',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{% url 'eliminar_itemguardia_por_fecha_y_profe' %}",  // La URL de la vista que maneja la eliminación
+                            type: 'POST',
+                            data: {
+                                'fecha': fecha,
+                                'profesor_id': profesorId,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'  // Token CSRF
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: '¡Eliminado!',
+                                        text: 'Las ausencias han sido eliminadas con éxito.',
+                                        icon: 'success'
+                                    }).then(() => {
+                                        location.reload();  // Recargar la página para actualizar la tabla
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: 'Error al eliminar las ausencias.',
+                                        icon: 'error'
+                                    });
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: 'Error al intentar eliminar las ausencias.',
+                                    icon: 'error'
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+
+
+
+
+
+
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            $('.dataTables-ausencias').DataTable({
+                language: {
+                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
+                },
+                pageLength: 50,
+                order: [[0, 'desc']], // Ordenar por la primera columna (Fecha)
+                scrollX: false,
+                scrollCollapse: true,
+                responsive: true,
+                dom: '<"html5buttons"B>lTfgitp',
+                columnDefs: [
+                    {
+                        targets: 0, // Índice de la columna de fecha
+                        type: 'date', // Define el tipo de la columna como fecha
+                        render: function (data, type, row) {
+                            if (type === 'sort') {
+                                // Convertir dd/mm/YYYY a YYYY-MM-DD para ordenación
+                                let parts = data.split('/');
+                                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                            }
+                            return data; // Retornar el dato original para visualización
+                        }
+                    }
+                ],
+                buttons: [
+                    {extend: 'copy'},
+                    {extend: 'csv'},
+                    {extend: 'excel', title: 'Ausencias'},
+                    {extend: 'pdf', title: 'Ausencias'},
+
+                    {
+                        extend: 'print',
+                        customize: function (win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ]
+            });
+
+        });
+
+        function mostrarDetalles(fecha, profesor_id, profesor) {
+            const fechaFormato = fecha.split('-').reverse().join('/');
+            const profesorId = profesor_id;
+            const profesorFormato = profesor;
+
+            $.ajax({
+                url: "{% url 'obtener_itemguardia_por_fecha_y_profe' %}",
+                data: {
+                    'fecha': fecha,
+                    'profesor': profesorId
+                },
+                success: function (data) {
+                    let detallesHtml = `<div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th>Tramo</th>
+                                                <th>Materia</th>
+                                                <th>Unidad</th>
+                                                <th>Aula</th>
+                                                <th>Profesores Guardia</th>
+                                                <th>Notificada por</th>
+                                                <th>Confirmada por</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>`;
+
+                    data.forEach(function (item) {
+
+                        // Procesar la lista de profesores guardia
+                        let profesoresGuardia = '';
+                        console.log(item);
+                        item.profesores_guardia.forEach(function (profesor) {
+                            profesoresGuardia += `<span class="label label-primary">${profesor}</span><br>`;
+                        });
+
+
+                        detallesHtml += `<tr>
+                                <td style="vertical-align: middle;">${item.tramo}</td>
+                                <td style="vertical-align: middle;">${item.materia}</td>
+                                <td style="vertical-align: middle;">${item.unidad}</td>
+                                <td style="vertical-align: middle;">${item.aula}</td>
+                                <td style="vertical-align: middle;">${profesoresGuardia}</td>
+                                <td style="vertical-align: middle;">${item.profesor_notifica}</td>
+                                <td style="vertical-align: middle;">${item.profesor_confirma}</td>
+                            </tr>`;
+                    });
+
+                    detallesHtml += `</tbody></table></div>`;
+
+                    $('#detallesContenido').html(detallesHtml);
+                    $('#fecha-modal').html(fechaFormato);
+                    $('#profesor-modal').html(profesorFormato);
+
+                    $('#detallesModal').modal('show');
+                },
+                error: function () {
+                    alert('Error al obtener los detalles.');
+                }
+            });
+        }
+    </script>
+{% endblock %}

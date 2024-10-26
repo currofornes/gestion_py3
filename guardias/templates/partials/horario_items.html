@@ -1,0 +1,76 @@
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% if items_horario %}
+
+    <h4>Día seleccionado: <span>{{ fecha }}</span></h4><br>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th></th>
+                <th>Tramo</th>
+                <th>Materia</th>
+                <th>Unidad</th>
+                <th>Aula</th>
+                <th>Tarea</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for item in items_horario %}
+                <tr data-tramo="{{ item.tramo_num }}" data-materia="{{ item.materia }}" data-unidad="{{ item.unidad }}" data-aula="{{ item.aula }}"
+                class="{% if item.guardia_exists %}disabled{% endif %}"
+                    {% if item.guardia_exists %}data-toggle="tooltip" data-placement="top" title="Este tramo ya está registrado en el parte de guardia"{% endif %}>
+                    <td style="vertical-align: middle;">
+                        <input type="checkbox" class="i-checks seleccion" name="input[]" data-tramo="{{ item.tramo }}">
+                    </td>
+                    <td style="vertical-align: middle;">{{ item.tramo }}</td>
+                    <td style="vertical-align: middle;">{{ item.materia }}</td>
+                    <td style="vertical-align: middle;">{{ item.unidad }}</td>
+                    <td style="vertical-align: middle;">{{ item.aula }}</td>
+                    <td>
+                        <input type="text" class="form-control tarea-input" name="tarea[]" placeholder="Escribe tarea"
+                               {% if not item.tarea or item.guardia_exists %}disabled{% endif %}>
+                    </td> <!-- Campo de texto para la tarea -->
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <h3>No tienes clases asignadas en esa fecha.</h3>
+{% endif %}
+
+{% block js %}
+
+    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            }).on('ifChecked', function (event) {
+                // Cuando el checkbox se marca
+                var row = $(this).closest('tr'); // Encuentra la fila actual
+                var tareaInput = row.find('.tarea-input'); // Encuentra el campo de tarea en esa fila
+                tareaInput.prop('disabled', false); // Habilita el campo de texto
+            }).on('ifUnchecked', function (event) {
+                // Cuando el checkbox se desmarca
+                var row = $(this).closest('tr'); // Encuentra la fila actual
+                var tareaInput = row.find('.tarea-input'); // Encuentra el campo de tarea en esa fila
+                tareaInput.prop('disabled', true); // Deshabilita el campo de texto
+            });
+        });
+
+    </script>
+{% endblock %}

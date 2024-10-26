@@ -44,6 +44,7 @@
                                     <td class="text-center"><strong>Tramo Horario</strong></td>
                                     <td class="text-center"><strong>Espacio/Recurso</strong></td>
                                     <td class="text-center"><strong>Localización</strong></td>
+                                    <td class="text-center"><strong>Aula/Curso</strong></td>
                                     <td class="text-center"><strong>Profesor/a</strong></td>
                                     <td class="text-center"><strong>Acciones</strong></td>
                                 </tr>
@@ -51,27 +52,32 @@
 
                                 </thead>
                                 <tbody>
-                                {% for r in reservas %}
+                                {% for item in reservas_info %}
                                     <tr>
                                         <td class="text-center">
-                                            {% if r.Reservable.TiposReserva.TipoReserva == 'Espacio' %}
-                                                <span class="label label-info">{{ r.Reservable.TiposReserva.TipoReserva }}</span>
+                                            {% if item.r.Reservable.TiposReserva.TipoReserva == 'Espacio' %}
+                                                <span class="label label-info">{{ item.r.Reservable.TiposReserva.TipoReserva }}</span>
                                             {% else %}
-                                                <span class="label label-success">{{ r.Reservable.TiposReserva.TipoReserva }}</span>
+                                                <span class="label label-success">{{ item.r.Reservable.TiposReserva.TipoReserva }}</span>
                                             {% endif %}
 
 
                                         </td>
-                                        <td>{{ r.Fecha|date:"d/m/Y" }}</td>
-                                        <td><strong>{{ r.get_Hora_display }}</strong></td>
-                                        <td><strong>{{ r }}</strong></td>
-                                        <td>{{ r.Reservable.Descripcion }}</td>
-                                        <td><strong>{{ r.Profesor }}</strong></td>
+                                        <td>{{ item.r.Fecha|date:"d/m/Y" }}</td>
+                                        <td><strong>{{ item.r.get_Hora_display }}</strong></td>
+                                        <td><strong>{{ item.r }}</strong></td>
+                                        <td>{{ item.r.Reservable.Descripcion }}</td>
+                                        {% if item.aula or item.curso %}
+                                        <td>{{ item.aula }} / {{ item.curso }}</td>
+                                        {% else %}
+                                        <td>Desconocido</td>
+                                        {% endif %}
+                                        <td><strong>{{ item.r.Profesor }}</strong></td>
                                         <td style="text-align: center; vertical-align: middle;">
 
                                             <a class="btn btn-sm btn-danger btn-bitbucket borrar-reserva"
                                                style="color: white" data-toggle="tooltip"
-                                               data-placement="top" title="Borrar" data-id="{{ r.id }}">
+                                               data-placement="top" title="Borrar" data-id="{{ item.r.id }}">
                                                 <i class="fa fa-trash"></i>
                                             </a>
                                         </td>

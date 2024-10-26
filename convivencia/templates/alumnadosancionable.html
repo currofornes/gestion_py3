@@ -36,7 +36,7 @@
                             {% for a, leves, graves in alumnado %}
                                 <tr>
                                     <td>
-                                        <a href="/convivencia/historial/{{ a.id }}/"><strong>{{ a.Nombre }}</strong></a>
+                                        <a href="/convivencia/historial/{{ a.id }}/"><strong>{{ a.Nombre }}</strong> {% if a.PDC %} (PDC){% endif %} {% if a.NEAE %} (NEAE){% endif %}</a>
                                     </td>
                                     <td><a href="/centro/alumnos/{{ a.Unidad.id }}">{{ a.Unidad }}</a></td>
                                     <td class="text-center">

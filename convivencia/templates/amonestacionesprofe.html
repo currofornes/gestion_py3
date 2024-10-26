@@ -46,7 +46,7 @@
                                         <td>
                                             {{ n }}
                                         </td>
-                                        <td>{{ h.IdAlumno.Nombre }}</td>
+                                        <td>{{ h.IdAlumno.Nombre }} {% if h.IdAlumno.PDC %} (PDC){% endif %} {% if h.IdAlumno.NEAE %} (NEAE){% endif %}</td>
                                         <td>{{ h.IdAlumno.Unidad }}</td>
                                         <td>
                                             {% if t == 'Amonestación' %}

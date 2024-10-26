@@ -34,6 +34,10 @@ urlpatterns = [
 
     re_path(r'^reservas/', include('reservas.urls')),
 
+    re_path(r'^guardias/', include('guardias.urls')),
+
+    re_path(r'^horarios/', include('horarios.urls')),
+
     path('cambiar-password/', cambiar_password, name='cambiar_password'),
     path('cambiar-password-custom/', cambiar_password_custom, name='cambiar_password_custom'),
 

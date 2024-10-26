@@ -1,0 +1,9 @@
+<h1>Editar Item de Guardia</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-success">Guardar cambios</button>
+    <a href="{% url 'listar_item_guardia' %}" class="btn btn-secondary">Cancelar</a>
+</form>

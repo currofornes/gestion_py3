@@ -1,4 +1,6 @@
 import datetime
+import locale
+
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
@@ -10,7 +12,8 @@ from io import BytesIO
 from absentismo.models import ProtocoloAbs
 from centro.models import Alumnos,Cursos,Profesores
 from convivencia.models import Amonestaciones,Sanciones
-from centro.views import ContarFaltas, group_check_je, group_check_prof, is_tutor, ContarFaltasHistorico
+from centro.views import ContarFaltas, group_check_je, group_check_prof, is_tutor, ContarFaltasHistorico, \
+	group_check_prof_and_tutor_or_je_or_orientacion
 from datetime import datetime
 from django.core.mail import EmailMultiAlternatives
 
@@ -209,27 +212,65 @@ def imprimir(temp,data,title):
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof, login_url='/')
-@user_passes_test(is_tutor, login_url='/')
+@user_passes_test(group_check_prof_and_tutor_or_je_or_orientacion, login_url='/')
 def carta_abs_tutor_familia(request,proto_id):
-	info2={}
+	locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
 	protocolo = ProtocoloAbs.objects.get(id=proto_id)
-	info2["protocolo"]= protocolo
-	info2["destinatarios"] = protocolo.alumno.Nombre.split(", ")[0]
-	info={}
+
+	info2 = {
+		"protocolo": protocolo,
+		"destinatarios": protocolo.alumno.Nombre.split(", ")[0]
+	}
+
+	# Captura fecha y hora de los parámetros GET
+	fecha = request.GET.get("fecha")
+	hora = request.GET.get("hora")
+	if fecha and hora:
+		# Convierte la fecha y hora en el formato deseado
+		fecha_obj = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
+		dia = fecha_obj.strftime("%d")
+		mes = fecha_obj.strftime("%B")  # Mes en español
+		hora_formateada = fecha_obj.strftime("%H:%M")
+
+		info2["dia_reunion"] = f"{dia}"
+		info2["mes_reunion"] = f"{mes}"
+		info2["hora_reunion"] = f"{hora_formateada}"
+	else:
+		info2["dia_reunion"] = f"____"
+		info2["mes_reunion"] = f"____________________"
+		info2["hora_reunion"] = f"__________"
+
 	template = get_template("pdf_contenido_carta_abs_tutor_familia.html")
-	info["contenido"]=template.render(Context(info2).flatten())
-	return imprimir("pdf_carta.html",info,"carta_abs_tutor_familias.pdf")
+	info = {"contenido": template.render(Context(info2).flatten())}
+	return imprimir("pdf_carta.html", info, "carta_abs_tutor_familias.pdf")
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof, login_url='/')
-@user_passes_test(is_tutor, login_url='/')
+@user_passes_test(group_check_prof_and_tutor_or_je_or_orientacion, login_url='/')
 def carta_abs_tutor_ED(request,proto_id):
-	info2={}
+	locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
 	protocolo = ProtocoloAbs.objects.get(id=proto_id)
-	info2["protocolo"]= protocolo
-	info={}
+
+	info2 = {
+		"protocolo": protocolo
+	}
+
+	# Captura fecha de los parámetros GET
+	fecha = request.GET.get("fecha")
+
+	if fecha:
+		# Convierte la fecha y hora en el formato deseado
+		fecha_obj = datetime.strptime(f"{fecha}", "%Y-%m-%d")
+		dia = fecha_obj.strftime("%d")
+		mes = fecha_obj.strftime("%B")  # Mes en español
+
+		info2["fecha_convocado"] = f"{dia} de {mes}"
+
+	else:
+		info2["fecha_convocado"] = f"_________________________"
+
 	template = get_template("pdf_contenido_carta_abs_tutor_ED.html")
-	info["contenido"]=template.render(Context(info2).flatten())
-	return imprimir("pdf_carta.html",info,"carta_abs_tutor_ED.pdf")
+	info = {"contenido": template.render(Context(info2).flatten())}
+	return imprimir("pdf_carta.html", info, "carta_abs_tutor_ED.pdf")

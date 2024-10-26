@@ -5,7 +5,7 @@ from datetime import date
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import When, Case
 from django.http import JsonResponse
-from django.shortcuts import render, get_list_or_404, redirect
+from django.shortcuts import render, get_list_or_404, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
 from absentismo.forms import ActuacionProtocoloForm
@@ -174,15 +174,23 @@ def cerrar_protocolo(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_prof_and_tutor_or_je, login_url='/')
 def abrirprotocolo(request, alum_id):
-    alumno = Alumnos.objects.get(id=alum_id)
+    alumno = get_object_or_404(Alumnos, id=alum_id)  # Obtiene el alumno o lanza 404 si no existe
     tutor = Profesores.objects.get(user=request.user)
-    nuevo_protocolo = ProtocoloAbs.objects.create(
-        alumno=alumno,
-        tutor=tutor,
-        fecha_apertura=datetime.date.today().strftime('%Y-%m-%d'),  # Asigna la fecha actual
-        fecha_cierre=None,
-        abierto=True
-    )
+
+    # Verificar si ya existe un ProtocoloAbs abierto para ese alumno
+    protocolo_existente = ProtocoloAbs.objects.filter(alumno=alumno, tutor=tutor, abierto=True).first()
+
+    if protocolo_existente:
+        # Si ya existe un protocolo abierto, lo utilizamos
+        nuevo_protocolo = protocolo_existente
+    else:
+        nuevo_protocolo = ProtocoloAbs.objects.create(
+            alumno=alumno,
+            tutor=tutor,
+            fecha_apertura=datetime.date.today().strftime('%Y-%m-%d'),  # Asigna la fecha actual
+            fecha_cierre=None,
+            abierto=True
+        )
 
     form = ActuacionProtocoloForm(
         initial={'Fecha': time.strftime("%d/%m/%Y"), 'Protocolo': nuevo_protocolo}
@@ -227,6 +235,48 @@ def alumnos(request):
             lista_alumnos.append((alumno, tutor, edad, protocolo_info))
 
         # Pasar la lista de tuplas al contexto
-        context = {'alumnos': lista_alumnos}
+        context = {'alumnos': lista_alumnos, 'menu_absentismo': True}
 
     return render(request, 'alumnosabs.html', context)
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def todoalumnado(request):
+    if not hasattr(request.user, 'profesor'):
+        return render(request, 'error.html', {'message': 'No tiene un perfil de profesor asociado.'})
+
+    profesor = request.user.profesor
+    cursos = Cursos.objects.all()
+
+    # Obtener el curso seleccionado desde el formulario (POST)
+    curso_id = request.POST.get('curso', None)
+
+    if curso_id:
+        lista_alumnos = Alumnos.objects.filter(Unidad_id=curso_id)
+        lista_alumnos = sorted(lista_alumnos, key=lambda d: d.Nombre)
+
+        # Obtener los IDs de los alumnos
+        ids = [elem.id for elem in lista_alumnos]
+
+        # Obtener edades y protocolos
+        edades = obtener_edades_alumnos(ids)
+        protocolos = obtener_protocolos(ids)
+
+        # Combinar alumnos con edades y protocolos
+        lista_combinada = list(zip(lista_alumnos, edades, protocolos))
+
+        curso_seleccionado = Cursos.objects.get(id=curso_id)
+    else:
+        # Si no se ha seleccionado ningún curso, inicializamos una lista vacía
+        lista_combinada = []
+        curso_seleccionado = None
+
+    context = {
+        'cursos': cursos,
+        'alumnos': lista_combinada,
+        'curso_seleccionado': curso_seleccionado,
+        'profesor': profesor
+    }
+
+    return render(request, 'todoalumnado.html', context)

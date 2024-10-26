@@ -5080,6 +5080,11 @@ table.table-mail tr td {
 .bg-muted {
   background-color: #f3f3f4;
 }
+
+.bg-light-warning {
+  background-color: #ffedda !important;
+}
+
 .white-bg {
   background-color: #ffffff;
 }
@@ -5108,6 +5113,10 @@ table.table-mail tr td {
   background-color: #ED5565 !important;
   color: #ffffff;
 }
+
+
+
+
 .black-bg {
   background-color: #262626;
 }
@@ -9896,4 +9905,10 @@ tr.danger {
   line-height: 1.42857;
   padding: 8px;
   vertical-align: middle;
+}
+
+tr.disabled {
+    background-color: #f6ccba !important;  /* Cambia esto según tu diseño */
+    pointer-events: none;  /* Evita que se pueda seleccionar */
+    cursor: not-allowed;  /* Cambia el cursor */
 }

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load grupo_tags %}
+{% load static %}
+{% load horario_tags %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        {% if user|has_group:"jefatura de estudios" %}
+                            {% if request.GET.profesor %}
+                                <div class="float-right">
+                                    <a href="/horarios/profesor/{{ request.GET.profesor }}/editar"
+                                       class="btn btn-warning"><i class="fa fa-pencil-square-o"></i> Editar
+                                        Horario </a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+
+
+                        <h2>Horario Profesorado </h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-12">
+                                <form method="GET">
+                                    <label for="profesor">Seleccionar Profesor:</label>
+                                    <select name="profesor" id="profesor" onchange="this.form.submit()"
+                                            class="form-control">
+                                        <option value="">-- Selecciona un profesor --</option>
+                                        {% for profesor in profesores %}
+                                            <option value="{{ profesor.id }}"
+                                                    {% if profesor.id|stringformat:"s" == request.GET.profesor %}selected{% endif %}>{{ profesor }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-12">
+
+                                {% if horario %}
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr class="text-center" style="border: 3px solid #EBEBEB;">
+                                            <th class="bg-success">TRAMO</th>
+                                            <th class="bg-success">LUNES</th>
+                                            <th class="bg-success">MARTES</th>
+                                            <th class="bg-success">MIÉRCOLES</th>
+                                            <th class="bg-success">JUEVES</th>
+                                            <th class="bg-success">VIERNES</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for tramo in tramos %}
+                                            {% if tramo == "RECREO" %}
+                                                <tr class="bg-light-warning">
+                                                    {% else %}
+                                                <tr>
+                                            {% endif %}
+
+                                        <td class="bg-info text-center" style="vertical-align: middle;">
+                                            <strong>{{ tramo }}</strong></td>
+                                        {% for dia in dias %}
+                                            <td class="text-center" style="vertical-align: middle; border: 1px solid #000000;">
+                                                {% if horario %}
+                                                    {% if horario|get_item:forloop.parentloop.counter %}
+                                                        {% if horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                            {% for item in horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                                <strong><span
+                                                                        class="simple_tag">{{ item.materia }}</span></strong>
+                                                                {% if item.materia != "GUARDIAS" and item.materia != "GUARDIAS DE RECREO" %}
+                                                                    <br><br>
+                                                                    <small>
+                                                                        <span class="text-success">{{ item.unidades_combinadas }}</span>
+                                                                        - <span
+                                                                            class="text-danger">{{ item.aula }}</span>
+                                                                    </small><br>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% else %}
+                                    <p>Selecciona un profesor para ver su horario.</p>
+                                {% endif %}
+
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+
+
+            $("#profesor").select2({
+                theme: 'bootstrap4',
+            });
+
+        });
+    </script>
+{% endblock %}

@@ -1,4 +1,5 @@
 from django import forms
+from django.db import transaction, IntegrityError
 from django.forms import ModelForm, ModelChoiceField
 
 from absentismo.models import Actuaciones
@@ -38,11 +39,34 @@ class ActuacionProtocoloForm(forms.ModelForm):
         else:
             self.fields['Fecha'].initial = datetime.date.today()  # Establecer la fecha de hoy como valor inicial
 
+
     def save(self, commit=True):
         instance = super(ActuacionProtocoloForm, self).save(commit=False)
-        if instance.Medio != '1':  # Si el Medio no es 'Teléfono'
-            instance.Telefono = ''  # Vaciar el campo Teléfono
-        if commit:
-            instance.save()
+
+        # Lógica para evitar duplicados
+        try:
+            with transaction.atomic():
+                # Verifica si existe ya una actuación con los mismos campos clave
+                existing = Actuaciones.objects.filter(
+                    Protocolo=instance.Protocolo,
+                    Fecha=instance.Fecha,
+                    Tipo=instance.Tipo,
+                    Medio=instance.Medio,
+                    Comentario=instance.Comentario
+                ).exists()
+
+                if not existing:
+                    if instance.Medio != '1':  # Si el Medio no es 'Teléfono'
+                        instance.Telefono = ''  # Vaciar el campo Teléfono
+
+                    if commit:
+                        instance.save()
+
+
+
+        except IntegrityError:
+            # Manejar el error de duplicado según sea necesario
+            print("Ya existe una actuación con estos datos.")
+
         return instance
 

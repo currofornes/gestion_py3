@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Listado de ausencias{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>Listado de ausencias</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <table class="table table-bordered dataTables-ausencias">
+                            <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Dia semana</th>
+                                <th>Tramo</th>
+                                <th>Profesor ausente</th>
+                                <th>Materia</th>
+                                <th>Curso</th>
+                                <th>Aula</th>
+                                <th>Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item_agrupado in items_agrupados %}
+                                <tr>
+                                    <!-- Mostrar la fecha solo si cambia y aplicar rowspan -->
+                                    {% if item_agrupado.mostrar_fecha %}
+                                        <td style="vertical-align: middle;"
+                                            rowspan="{{ item_agrupado.rowspan_fecha }}">{{ item_agrupado.item.Fecha|date:"d/m/Y" }}</td>
+                                        <td style="vertical-align: middle;"
+                                            rowspan="{{ item_agrupado.rowspan_fecha }}">{{ item_agrupado.item.Fecha|date:"l"|upper }}</td>
+                                    {% endif %}
+
+                                    <td>{{ item_agrupado.item.get_Tramo_display }}</td>
+
+                                    <!-- Mostrar el profesor solo si cambia y aplicar rowspan -->
+                                    {% if item_agrupado.mostrar_profesor %}
+                                        <td style="vertical-align: middle;"
+                                            rowspan="{{ item_agrupado.rowspan_profesor }}">{{ item_agrupado.item.ProfesorAusente }}</td>
+                                    {% endif %}
+                                    <td>{{ item_agrupado.item.Materia }}</td>
+                                    <td>{{ item_agrupado.item.Unidad }}</td>
+                                    <td>{{ item_agrupado.item.Aula }}</td>
+                                    <td>
+                                        <a href="{% url 'editar_item_guardia' item_agrupado.item.pk %}">Editar</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+
+    <script>
+
+        // Upgrade button class name
+        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
+
+        $(document).ready(function () {
+
+
+            $('.dataTables-ausencias').DataTable({
+                language: {
+                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
+                },
+                pageLength: 50,
+                scrollX: false,
+                scrollCollapse: true,
+                responsive: true,
+                dom: '<"html5buttons"B>lTfgitp',
+                buttons: [
+                    {extend: 'copy'},
+                    {extend: 'csv'},
+                    {extend: 'excel', title: 'Ausencias'},
+                    {extend: 'pdf', title: 'Ausencias'},
+
+                    {
+                        extend: 'print',
+                        customize: function (win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ]
+            });
+
+        });
+
+    </script>
+{% endblock %}
+
+
+
+
+

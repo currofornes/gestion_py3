@@ -7,7 +7,6 @@
 
 {% block content %}
 
-
     <div class="row animated fadeInRight">
         <div class="col-lg-12">
             <div class="ibox ">
@@ -37,7 +36,7 @@
 
                             {% for alum,edad,info in alumnos %}
                                 <tr>
-                                    <td>{{ alum.Nombre }}</td>
+                                    <td>{{ alum.Nombre }} {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</td>
                                     <td class="text-center">{{ alum.Fecha_nacimiento|date:"d/m/Y" }}</td>
                                     <td class="text-center">{{ edad }}</td>
                                     {% if info.tiene_protocolo and info.protocolo_abierto %}

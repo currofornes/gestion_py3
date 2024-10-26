@@ -117,7 +117,7 @@
                                             {{ n }}
                                         </td>
                                         <td>
-                                            <a href="/convivencia/historial/{{ h.IdAlumno.id }}/"><strong>{{ h.IdAlumno.Nombre }}</strong></a>
+                                            <a href="/convivencia/historial/{{ h.IdAlumno.id }}/"><strong>{{ h.IdAlumno.Nombre }}</strong> {% if h.IdAlumno.PDC %} (PDC){% endif %} {% if h.IdAlumno.NEAE %} (NEAE){% endif %}</a>
                                             {% if tipo == 'amonestacion' %}
                                                 {% if h.IdAlumno.email %}
                                                     ({{ h.IdAlumno.email }})

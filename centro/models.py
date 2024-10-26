@@ -17,6 +17,7 @@ class CursoAcademico(models.Model):
 
 class Aulas(models.Model):
     Aula = models.CharField(max_length=30)
+    AulaHorarios = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.Aula
@@ -73,6 +74,10 @@ class Profesores(models.Model):
         verbose_name_plural = "Profesores"
         ordering = ("Apellidos",)
 
+    @property
+    def nombre_completo(self):
+        return self.Apellidos + ", " + self.Nombre
+
 
 class Niveles(models.Model):
     Nombre = models.CharField(max_length=255)
@@ -94,6 +99,7 @@ class Cursos(models.Model):
     Nivel = models.ForeignKey(Niveles, related_name='Nivel', blank=True, null=True, on_delete=models.SET_NULL)
     Aula = models.ForeignKey(Aulas, related_name='Curso', blank=True, null=True, on_delete=models.SET_NULL)
     CursoHorarios = models.CharField(max_length=100, blank=True, null=True)
+    Dificultad = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.Curso
@@ -120,6 +126,8 @@ class Alumnos(models.Model):
     Telefono2 = models.CharField(max_length=12, blank=True)
     email = models.EmailField(max_length=70, blank=True)
     Obs = models.TextField(blank=True, verbose_name="Observaciones")
+    PDC = models.BooleanField(default=False)
+    NEAE = models.BooleanField(default=False)
 
     def __str__(self):
         dni = self.DNI if self.DNI else "Sin DNI"

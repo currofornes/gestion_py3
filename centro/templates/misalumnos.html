@@ -68,7 +68,7 @@
                             <td class="text-center">{{ forloop.counter }}</td>
 
 
-                            <td>{{ alum.Nombre }}</td>
+                            <td>{{ alum.Nombre }} {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</td>
 
                             <td class="text-center">{{ acum }}</td>
                                 <td class="text-center">{{ acumhist }}</td>

@@ -66,6 +66,7 @@
                             <li><a href="/convivencia/grupos">Grupos</a></li>
                             <li><a href="/convivencia/niveles">Niveles</a></li>
                             <li><a href="/convivencia/alumnos">Alumnos</a></li>
+                            <li><a href="/guardias/estadisticas"><span class="nav-label">Ausencias</span></a></li>
                         </ul>
                     </li>
                     <li>
@@ -82,22 +83,62 @@
                         <a href="/absentismo/misalumnos"><i class="fa fa-university"></i> <span class="nav-label">Absentismo (Tutoría)</span>
                         </a>
                     </li>
-                {% endif %}
-                {% if user|has_group:"jefatura de estudios" or user|has_group:"orientacion" %}
-                    <li>
-                        <a href="/absentismo/alumnos"><i class="fa fa-university"></i> <span class="nav-label">Absentismo (Todos)</span>
-                        </a>
+                {% elif user|has_group:"jefatura de estudios" or user|has_group:"orientacion" %}
+                    <li class="{% if menu_absentismo %} active{% endif %}">
+                        <a href="#"><i class="fa fa-university"></i> <span class="nav-label">Absentismo</span><span
+                                class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level collapse">
+                            <li><a href="/absentismo/alumnos">Protocolos abiertos</a></li>
+                            <li><a href="/absentismo/todoalumnado">Alumnado completo</a></li>
+                        </ul>
                     </li>
                 {% endif %}
-                <li>
-                    <a href="https://docs.google.com/spreadsheets/d/1GO2xxRh2DcAs8T8g98t9EwKXLUjSbdgYMXpsZBzpWIU/edit?usp=sharing"><i class="fa fa-users"></i> <span class="nav-label">Guardias</span> </a>
+                <li class="{% if menu_horarios %} active{% endif %}">
+                    <a href="#"><i class="fa fa-calendar-o"></i> <span class="nav-label">Horarios</span><span
+                            class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+                        {% if user|has_group:"profesor" %}
+                            <li><a href="/horarios/mihorario"><span class="nav-label">Mi Horario</span></a></li>
+                        {% endif %}
+                        <li><a href="/horarios/horarioprofe"><span class="nav-label">Horario Profesorado</span></a></li>
+                        <li><a href="/horarios/horariogrupo"><span class="nav-label">Horario Grupos</span></a></li>
+                    </ul>
                 </li>
+
+                <li class="{% if menu_guardias %} active{% endif %}">
+                    <a href="#"><i class="fa fa-users"></i> <span class="nav-label">Guardias</span><span
+                            class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+
+                        {% if user|has_group:"profesor" %}
+
+                            <li><a href="/guardias/misausencias"><span class="nav-label">Mis ausencias</span></a>
+                            </li>
+
+                        {% endif %}
+
+                        <li><a href="/guardias/parteguardias"><span class="nav-label">Parte de Guardias</span></a></li>
+                        {% if user|has_group:"jefatura de estudios" %}
+
+                            <li><a href="/guardias/ver-guardias"><span
+                                    class="nav-label">Ausencias Profesorado</span></a></li>
+
+                        {% endif %}
+                    </ul>
+                </li>
+
+
+
+
+
+
+
                 <!--
                 <li>
                     <a href="#"><i class="fa fa-address-book-o"></i> <span class="nav-label">Horarios</span> </a>
                 </li>
                 -->
-                {% if user|has_group:"jefatura de estudios" or user|has_group:"tde"%}
+                {% if user|has_group:"jefatura de estudios" or user|has_group:"tde" %}
 
                     <li class="{% if menu_reservas %} active{% endif %}">
                         <a href="#"><i class="fa fa-calendar"></i> <span class="nav-label">Reservas</span><span
@@ -133,8 +174,10 @@
                 {% endif %}
 
 
-                <!--<li><a href="/guardias/parteguardias"><span class="nav-label">Test Guardias</span></a></li>-->
-
+                <li>
+                    <a href="https://docs.google.com/spreadsheets/d/1GO2xxRh2DcAs8T8g98t9EwKXLUjSbdgYMXpsZBzpWIU/edit?usp=sharing"><i
+                            class="fa fa-users"></i> <span class="nav-label">Hoja cálculo Guardias</span> </a>
+                </li>
 
 
 

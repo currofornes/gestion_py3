@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     "tde.apps.TdeConfig",
     "absentismo.apps.AbsentismoConfig",
     "reservas.apps.ReservasConfig",
-    "horarios.apps.HorariosConfig"
+    "horarios.apps.HorariosConfig",
+    "guardias.apps.GuardiasConfig"
 ]
 
 MIDDLEWARE = [

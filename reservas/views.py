@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
 from centro.views import group_check_prof, group_check_je, group_check_tde
+from horarios.models import ItemHorario
 from reservas.forms import ReservaForm, ReservaProfeForm
 from reservas.models import Reservas, Reservables
 
@@ -154,14 +155,30 @@ def misreservas(request):
 @user_passes_test(group_check_tde, login_url='/')
 def reservas(request):
 
+    lista_reservas = Reservas.objects.all().order_by('-Fecha')  # Ordenar directamente en la consulta
+    reservas_info = []  # Lista para almacenar la información de cada reserva junto con el curso y aula
 
-    lista_reservas = Reservas.objects.all()
-    lista_reservas = sorted(lista_reservas, key=lambda d: d.Fecha, reverse=True)
+    for reserva in lista_reservas:
+        # Buscar el item del horario correspondiente a la fecha y tramo de la reserva
+        item_horario = ItemHorario.objects.filter(
+            profesor=reserva.Profesor,
+            dia=reserva.Fecha.weekday() + 1,  # weekday() da 0 para Lunes, entonces +1 para que coincida
+            tramo=int(reserva.Hora)
+        ).first()
 
-    context = {'reservas': lista_reservas, 'menu_reservas': True}
+        # Añadir la información de la reserva junto con curso y aula (si existen en el horario)
+        reservas_info.append({
+            'r': reserva,
+            'curso': item_horario.unidad if item_horario else None,
+            'aula': item_horario.aula if item_horario else None,
+        })
+
+    context = {
+        'reservas_info': reservas_info,
+        'menu_reservas': True
+    }
 
     return render(request, 'reservas.html', context)
-
 
 @login_required(login_url='/')
 @user_passes_test(group_check_tde, login_url='/')

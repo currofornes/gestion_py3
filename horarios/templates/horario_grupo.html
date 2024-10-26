@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+{% load horario_tags %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h2>Horario Grupos </h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-12">
+                                <form method="GET">
+                                    <label for="curso">Seleccionar Curso:</label>
+                                    <select name="curso" id="curso" onchange="this.form.submit()" class="form-control">
+                                        <option value="">-- Selecciona un curso --</option>
+                                        {% for curso in cursos %}
+                                            <option value="{{ curso.id }}"
+                                                    {% if curso.id|stringformat:"s" == request.GET.curso %}selected{% endif %}>{{ curso }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-12">
+                                {% if horario %}
+
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr class="text-center">
+                                            <th class="bg-success">TRAMO</th>
+                                            <th class="bg-success">LUNES</th>
+                                            <th class="bg-success">MARTES</th>
+                                            <th class="bg-success">MIÉRCOLES</th>
+                                            <th class="bg-success">JUEVES</th>
+                                            <th class="bg-success">VIERNES</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for tramo in tramos %}
+                                            {% if tramo == "RECREO" %}
+                                            <tr class="bg-light-warning">
+                                            {% else %}
+                                            <tr>
+                                            {% endif %}
+                                                <td class="bg-info text-center" style="vertical-align: middle;"><strong>{{ tramo }}</strong></td>
+                                                {% for dia in dias %}
+                                                    <td class="text-center" style="vertical-align: middle; border: 1px solid #000000;"">
+                                                        {% if horario %}
+                                                            {% if horario|get_item:forloop.parentloop.counter %}
+                                                                {% if horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                                    {% for item in horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                                        <strong><span class="simple_tag">{{ item.materia }}</span></strong>
+                                                                        <br><br>
+                                                                        <small>
+                                                                            <span class="text-success">{{ item.profesor.NombreHorarios }}</span>
+                                                                            - <span
+                                                                                class="text-danger">{{ item.aula }}</span>
+                                                                        </small><br>
+                                                                    {% endfor %}
+                                                                {% else %}
+                                                                    -
+                                                                {% endif %}
+                                                            {% else %}
+                                                                -
+                                                            {% endif %}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+
+                                {% else %}
+                                    <h3>Selecciona un curso para ver su horario.</h3>
+                                {% endif %}
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+
+
+            $("#curso").select2({
+                theme: 'bootstrap4',
+            });
+
+        });
+    </script>
+{% endblock %}

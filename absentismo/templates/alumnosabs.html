@@ -34,7 +34,7 @@
 
                             {% for alum,tutor,edad,info in alumnos %}
                                 <tr>
-                                    <td>{{ alum.Nombre }}</td>
+                                    <td>{{ alum.Nombre }} {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</td>
                                     <td class="text-center">{{ alum.Unidad }}</td>
                                     <td class="text-center">{{ alum.Fecha_nacimiento|date:"d/m/Y" }}</td>
                                     <td class="text-center">{{ edad }}</td>

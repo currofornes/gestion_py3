@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <div class="float-right">
+                            <a id="boton-nueva-ausencia" href="#modal" class="btn btn-warning" data-toggle="modal"
+                               data-target="#modalausenciaprofe"><i
+                                    class="fa fa-plus"></i> Registrar ausencia detectada </a>
+                        </div>
+                        <h2>Parte de guardias</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-group" id="data_1">
+                            <label class="font-normal">Selecciona una fecha:</label>
+                            <div class="input-group date">
+                                                <span class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </span>
+                                <input type="text" class="form-control" id="fecha-parte-guardia">
+                            </div>
+                        </div>
+                        <div class="panel panel-primary" style="overflow: hidden;">
+                            <div class="panel-heading text-center">
+                                PARTE DE GUARDIAS - <strong>VIERNES 27 SEPTIEMBRE 2024</strong>
+                            </div>
+                            <div class="panel-body">
+
+                                <div class="tabs-container">
+
+                                    <div class="">
+                                        <ul class="nav nav-tabs nav-tabs-guardias">
+                                            <li><a class="nav-link active tramo-tab" data-tramo="1" data-toggle="tab"
+                                                   href="#tab-1h"><span class="label label-info">1ª Hora</span></a></li>
+                                            <li><a class="nav-link tramo-tab" data-tramo="2" data-toggle="tab"
+                                                   href="#tab-2h"><span class="label label-info">2ª Hora</span></a></li>
+                                            <li><a class="nav-link tramo-tab" data-tramo="3" data-toggle="tab"
+                                                   href="#tab-3h"><span class="label label-info">3ª Hora</span></a></li>
+                                            <li><a class="nav-link tramo-tab" data-tramo="4" data-toggle="tab"
+                                                   href="#tab-rec"><span class="label">RECREO</span></a></li>
+                                            <li><a class="nav-link tramo-tab" data-tramo="5" data-toggle="tab"
+                                                   href="#tab-4h"><span class="label label-success">4ª Hora</span></a>
+                                            </li>
+                                            <li><a class="nav-link tramo-tab" data-tramo="6" data-toggle="tab"
+                                                   href="#tab-5h"><span class="label label-success">5ª Hora</span></a>
+                                            </li>
+                                            <li><a class="nav-link tramo-tab" data-tramo="7" data-toggle="tab"
+                                                   href="#tab-6h"><span class="label label-success">6ª Hora</span></a>
+                                            </li>
+                                        </ul>
+                                        <div class="tab-content ">
+                                            <div id="tab-1h" class="tab-pane active" data-tramo="1">
+                                                <div class="panel-body panel-body-guardias">
+
+                                                </div>
+                                            </div>
+                                            <div id="tab-2h" class="tab-pane" data-tramo="2">
+                                                <div class="panel-body panel-body-guardias">
+
+                                                </div>
+                                            </div>
+                                            <div id="tab-3h" class="tab-pane" data-tramo="3">
+                                                <div class="panel-body panel-body-guardias">
+
+                                                </div>
+                                            </div>
+                                            <div id="tab-rec" class="tab-pane" data-tramo="4">
+                                                <div class="panel-body panel-body-guardias">
+
+                                                </div>
+                                            </div>
+                                            <div id="tab-4h" class="tab-pane" data-tramo="5">
+                                                <div class="panel-body panel-body-guardias">
+
+                                                </div>
+                                            </div>
+                                            <div id="tab-5h" class="tab-pane" data-tramo="6">
+                                                <div class="panel-body panel-body-guardias">
+
+                                                </div>
+                                            </div>
+                                            <div id="tab-6h" class="tab-pane" data-tramo="7">
+                                                <div class="panel-body panel-body-guardias">
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+                        </div>
+
+
+                        <div class="modal inmodal fade" id="modalausenciaprofe" tabindex="-1" role="dialog"
+                             aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"><span
+                                                aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                                        </button>
+                                        <h4 class="modal-title">Notificación Nueva ausencia profesorado</h4>
+                                        <p class="font-bold">Esta ausencia quedará registrada en el parte de
+                                            guardias.</p>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <h4><label for="profesor-ausente">Selecciona el profesor/a ausente:</label>
+                                            </h4>
+                                            <select id="profesor-ausente" class="form-control" style="width: 100%;">
+                                                <!-- Opciones de profesores se cargarán aquí -->
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group" id="data_2">
+                                            <h4><label>Selecciona una fecha:</label></h4>
+                                            <div class="input-group date">
+                                                <span class="input-group-addon">
+                                                    <i class="fa fa-calendar"></i>
+                                                </span>
+                                                <input type="text" class="form-control" id="fecha-ausencia">
+                                            </div>
+                                        </div>
+
+                                        <div id="horario-items">
+                                            <!-- Aquí se mostrarán los items de horario devueltos por AJAX -->
+                                        </div>
+
+                                        <hr>
+                                        <p>Selecciona una fecha y <strong>MARCA</strong> los tramos en los que te vas a
+                                            ausentar. Una vez marcado, se habilita el campo para describir la tarea que
+                                            deben realizar los alumnos.</p>
+                                        <p>Si la fila del tramo aparece sombreada en <strong
+                                                style="background-color: #f6ccba;">ROJO</strong>, es porque la ausencia
+                                            ese día y en ese tramo ya fue registrada anteriormente.</p>
+
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-white" data-dismiss="modal">Cancelar
+                                        </button>
+                                        <button id="guardar-ausencias" type="button" class="btn btn-primary">Guardar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+        <div id="ibox-container">
+
+        </div>
+
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+
+
+
+    <script>
+        $(document).ready(function () {
+            // Upgrade button class name
+            $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
+
+            // Llamada AJAX al pulsar el botón para abrir el modal
+            $('#boton-nueva-ausencia').on('click', function () {
+                // Limpiamos las opciones previas del select
+                $('#profesor-ausente').empty();
+
+                $('#profesor-ausente').append(new Option('', '', true, true)).trigger('change');
+
+                // Cargar opciones de profesores al abrir el modal
+                $.ajax({
+                    url: "{% url 'obtener_profesores' %}",  // Ruta que devuelve la lista de profesores en formato JSON
+                    method: 'GET',
+                    success: function (response) {
+                        // Suponiendo que response es una lista de objetos { id, nombre }
+                        response.forEach(function (profesor) {
+                            let option = new Option(profesor.nombre, profesor.id, false, false);
+                            $('#profesor-ausente').append(option);
+                        });
+
+                        // Forzar actualización de select2 después de añadir opciones
+                        $('#profesor-ausente').trigger('change');
+                    }
+                });
+            });
+
+            // Inicializar select2 solo cuando el modal esté completamente mostrado
+            $('#modalausenciaprofe').on('shown.bs.modal', function () {
+
+
+
+                //$('#profesor-ausente').empty().trigger('change');  // Limpiar el select y reiniciar
+
+                $('#profesor-ausente').select2({
+                    placeholder: 'Selecciona un profesor',
+                    allowClear: true,
+                    theme: 'bootstrap4',
+                    width: 'resolve',  // Se adapta al contenedor
+                    dropdownParent: $('#modalausenciaprofe')
+                }).trigger('change'); // Actualizamos select2
+
+
+            });
+
+            // Evitar que el evento de abrir el modal se dispare al interactuar con el datepicker
+            $('#data_2 .input-group.date').on('show.bs.datepicker', function (e) {
+                e.stopPropagation(); // Evita la propagación del evento
+            });
+
+            $('#modalausenciaprofe').on('show.bs.modal', function () {
+                $('#data_2 .input-group.date').datepicker('setDate', new Date());
+                $('#horario-items').html('');
+            });
+
+            function convertirFechaTitulo(fechaSeleccionada) {
+                // Convertir la fecha seleccionada de 'dd/mm/yyyy' a 'yyyy-mm-dd'
+                var partesFecha = fechaSeleccionada.split('/');
+                var fechaFormateadaISO = `${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}`;
+
+                // Crear un objeto Date a partir de la fecha formateada
+                var fechaObj = new Date(fechaFormateadaISO);
+
+                // Formatear la fecha para el encabezado
+                var opcionesFormato = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
+                var fechaFormateada = fechaObj.toLocaleDateString('es-ES', opcionesFormato);
+
+                return fechaFormateada;
+            }
+
+            $(document).on('guardiaConfirmada', function (event, fechaSeleccionada, tramoSeleccionado) {
+                // Llamar a la función para actualizar las tablas
+                actualizarGuardias(fechaSeleccionada, tramoSeleccionado);
+            });
+
+
+            function actualizarGuardias(fechaSeleccionada, tramoSeleccionado) {
+                // Realizar la petición AJAX
+                $.ajax({
+                    url: "{% url 'parteguardias_ajax' %}",
+                    type: "GET",
+                    data: {
+                        'fecha': fechaSeleccionada,
+                    },
+                    success: function (response) {
+                        // Actualizar las pestañas con la respuesta
+                        $('#tab-1h').html(response.tablas.tabla_1h);
+                        $('#tab-2h').html(response.tablas.tabla_2h);
+                        $('#tab-3h').html(response.tablas.tabla_3h);
+                        $('#tab-rec').html(response.tablas.tabla_rec);
+                        $('#tab-4h').html(response.tablas.tabla_4h);
+                        $('#tab-5h').html(response.tablas.tabla_5h);
+                        $('#tab-6h').html(response.tablas.tabla_6h);
+
+                        // Actualizar los iboxes
+                        $('#ibox-container').html(response.ibox_guardias);
+
+                        // Una vez que se actualicen las tablas, asegurarse de mostrar el tramo seleccionado
+                        mostrarTramo(tramoSeleccionado)
+                    },
+                    error: function (xhr, errmsg, err) {
+                        console.log("Error al cargar los datos: " + errmsg);
+                    }
+                });
+            }
+
+
+            function cargarGuardias(fechaSeleccionada) {
+                // Realizar la petición AJAX
+                $.ajax({
+                    url: "{% url 'parteguardias_ajax' %}",
+                    type: "GET",
+                    data: {
+                        'fecha': fechaSeleccionada,
+                    },
+                    success: function (response) {
+                        // Actualizar las pestañas con la respuesta
+                        $('#tab-1h').html(response.tablas.tabla_1h);
+                        $('#tab-2h').html(response.tablas.tabla_2h);
+                        $('#tab-3h').html(response.tablas.tabla_3h);
+                        $('#tab-rec').html(response.tablas.tabla_rec);
+                        $('#tab-4h').html(response.tablas.tabla_4h);
+                        $('#tab-5h').html(response.tablas.tabla_5h);
+                        $('#tab-6h').html(response.tablas.tabla_6h);
+
+                        // Actualizar los iboxes
+                        $('#ibox-container').html(response.ibox_guardias);
+
+                        activarPrimeraPestana();
+                        mostrarTramo(1);  // Mostrar el primer tramo por defecto
+                    },
+                    error: function (xhr, errmsg, err) {
+                        console.log("Error al cargar los datos: " + errmsg);
+                    }
+                });
+            }
+
+            function activarPrimeraPestana() {
+                // Quitar la clase 'active' de todas las pestañas
+                $('.tramo-tab').removeClass('active');
+
+                // Hacer activa la primera pestaña
+                $('.tramo-tab[data-tramo="1"]').addClass('active');
+
+                // Mostrar solo el contenido del primer tramo (tramo 1)
+                mostrarTramo(1);
+            }
+
+            // Función para mostrar solo los iboxes y la tabla del tramo seleccionado
+            function mostrarTramo(tramo) {
+                $('.tab-pane').hide();
+                switch (tramo) {
+                    case 1:
+                        $('#tab-1h').show();
+                        break;
+                    case 2:
+                        $('#tab-2h').show();
+                        break;
+                    case 3:
+                        $('#tab-3h').show();
+                        break;
+                    case 4:
+                        $('#tab-rec').show();
+                        break;
+                    case 5:
+                        $('#tab-4h').show();
+                        break;
+                    case 6:
+                        $('#tab-5h').show();
+                        break;
+                    case 7:
+                        $('#tab-6h').show();
+                        break;
+                    default:
+                        $('#tab-1h').show();
+                }
+
+                // Ocultar todos los iboxes de los demás tramos
+                $('.ibox-tramo').hide();
+
+                // Mostrar solo los iboxes del tramo seleccionado
+                $('#ibox-tramo-' + tramo).show();
+
+
+            }
+
+            // Capturar el evento cuando se cambia de pestaña
+            $(document).on('click', '.tramo-tab', function () {
+                const tramoSeleccionado = $(this).data('tramo');
+                mostrarTramo(tramoSeleccionado);
+            });
+
+
+            $('#data_1 .input-group.date').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', new Date())
+                .trigger('changeDate')
+                .on('changeDate', function (e) {
+                    const fechaSeleccionada = $('#fecha-parte-guardia').val();
+
+                    let fechaFormateada = convertirFechaTitulo(fechaSeleccionada);
+
+                    // Actualizar el panel heading con la nueva fecha
+                    $('.panel-heading strong').text(fechaFormateada.toUpperCase());
+
+
+                    cargarGuardias(fechaSeleccionada); // Llama a la función cuando cambie la fecha
+
+
+                }); // Establecer la fecha de hoy;
+
+            // Cargar las guardias para la fecha de hoy al cargar la página
+            const fechaHoy = $('#fecha-parte-guardia').val(); // Asegúrate de que el campo tiene el valor correcto
+            let fechaFormateada = convertirFechaTitulo(fechaHoy);
+
+            // Actualizar el panel heading con la nueva fecha
+            $('.panel-heading strong').text(fechaFormateada.toUpperCase());
+            cargarGuardias(fechaHoy);
+
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+            $(".select2").select2({
+                theme: 'bootstrap4',
+            });
+
+            $(".select2_demo_2").select2({
+                theme: 'bootstrap4',
+            });
+
+            $(".select2_demo_3").select2({
+                theme: 'bootstrap4',
+            });
+
+
+            $('#data_2 .input-group.date').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', new Date()).on('changeDate', function (e) {
+                // Cada vez que cambie la fecha, lanzamos la petición AJAX
+                const fechaSeleccionada = $('#fecha-ausencia').val();
+                const profesorAusente = $('#profesor-ausente').val();
+                if (fechaSeleccionada && profesorAusente)
+                    obtenerHorario(fechaSeleccionada, profesorAusente);
+            }); // Establecer la fecha de hoy;
+
+            function obtenerHorario(fecha, profesorid) {
+                $.ajax({
+                    url: '{% url "horario_profesor_ajax" %}',  // El URL de la vista Django
+                    method: 'GET',
+                    data: {
+                        'fecha': fecha,
+                        'profesor_id': profesorid  // El ID del profesor está en el contexto
+                    },
+                    success: function (response) {
+                        // Actualizar el div con los items del horario
+                        $('#horario-items').html(response);
+                    },
+                    error: function (error) {
+                        console.error("Error al obtener el horario", error);
+                    }
+                });
+            }
+
+
+            $('#profesor-ausente').off('select2:select').on('select2:select', function (e) {
+                e.stopPropagation();
+                const fechaSeleccionada = $('#fecha-ausencia').val();
+                const profesorAusente = $('#profesor-ausente').val();
+                if (fechaSeleccionada && profesorAusente)
+                    obtenerHorario(fechaSeleccionada, profesorAusente);
+            });
+
+            $('#modalausenciaprofe').on('hide.bs.modal', function (e) {
+                if ($('.select2-container--open').length) {
+                    e.preventDefault(); // Evita que el modal se cierre cuando el select2 está abierto
+                }
+            });
+
+            $('#profesor-ausente').on('select2:open', function (e) {
+                // Previene que el campo pierda el foco de forma inesperada
+                setTimeout(() => {
+                    $(this).focus();
+                }, 200);  // Agregar un pequeño retraso
+            });
+
+
+            // Manejar el evento de guardar los datos
+            $('#guardar-ausencias').click(function () {
+                // Recopilar las filas seleccionadas
+                var seleccionados = [];
+                $('input.seleccion:checked').each(function () {
+                    var row = $(this).closest('tr'); // Obtén la fila completa
+                    var item = {
+                        tramo: row.data('tramo'), // Tramo de la fila
+                        materia: row.data('materia'), // Materia de la fila
+                        unidad: row.data('unidad'), // Unidad de la fila
+                        aula: row.data('aula'), // Aula de la fila
+                        tarea: row.find('.tarea-input').val(), // Tarea de la fila
+                        fecha: $('#fecha-ausencia').val() // Fecha seleccionada
+                    };
+                    seleccionados.push(item); // Agregar el objeto al array
+                });
+
+                if (seleccionados.length > 0) {
+
+                    // Obtener la fecha seleccionada
+                    var fechaSeleccionada = $('#fecha-ausencia').val();
+                    var profesorAusente = $('#profesor-ausente').val();
+
+                    if (fechaSeleccionada && profesorAusente) {
+                        // Enviar los datos por AJAX
+                        $.ajax({
+                            url: '{% url "guardar_guardias_ajax" %}',  // La vista de Django que manejará la solicitud
+                            method: 'POST',
+                            data: {
+                                'fecha': fechaSeleccionada,
+                                'profesor_ausente': profesorAusente,  // El ID del profesor está en el contexto
+                                'seleccionados': JSON.stringify(seleccionados),  // Los datos de las filas seleccionadas
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            },
+                            success: function (response) {
+                                Swal.fire({
+                                    title: "¡Gracias!",
+                                    text: "Tu ausencia ha sido anotada.",
+                                    icon: "success"
+                                }).then(() => {
+
+                                    // Recarga la página
+                                    //location.reload();
+                                });
+
+                                // Cierra el modal
+                                $('#modalausenciaprofe').modal('hide');
+
+                            },
+                            error: function (error) {
+                                console.error("Error al guardar los datos", error);
+                                Swal.fire({
+                                    title: "Error",
+                                    text: "No se pudo anotar tu ausencia. Inténtalo más tarde.",
+                                    icon: "error"
+                                });
+
+                                $('#modalausenciaprofe').modal('hide');
+                            }
+                        });
+                    }
+                } else {
+                    alert('Selecciona al menos una fila.');
+                }
+            });
+        });
+
+    </script>
+{% endblock %}

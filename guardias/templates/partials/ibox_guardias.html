@@ -1,0 +1,42 @@
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox">
+            <div class="ibox-title">
+                <h2>Profesorado de guardia en este tramo</h2>
+            </div>
+            {% for tramo, profesores in profesores_guardia_info.items %}
+                <div class="ibox-content ibox-tramo" id="ibox-tramo-{{ tramo }}">
+                    <div class="row">
+                        {% for profesor_guardia in profesores %}
+                            <div class="col-lg-3">
+                                <div class="ibox">
+                                    <div class="ibox-content {% if profesor_guardia.es_guardia_convivencia %}bg-light-warning{% endif %}">
+                                        {% if profesor_guardia.es_guardia_convivencia %}
+                                            <!-- Badge en la esquina superior derecha -->
+                                            <span class="badge badge-danger" style="position: absolute; top: 5px; right: 10px;">
+                                                CONVIVENCIA
+                                            </span>
+                                        {% endif %}
+                                        <h3><strong>{{ profesor_guardia.nombre }}</strong></h3>
+                                        <div class="m-t-sm small">{{ profesor_guardia.materia }}</div>
+                                        <h2>{{ profesor_guardia.tiempo }}</h2>
+                                        <div class="progress progress-small">
+                                            <div style="width: {{ profesor_guardia.porcentaje }}%;"
+                                                 class="progress-bar"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            {% endfor %}
+
+            <div class="ibox-footer">
+                <p>Los profesores de guardia están organizados de acuerdo con el número de guardias realizadas, de menor a mayor. Si hay empate en la cantidad de horas, se prioriza según la dificultad de las guardias (grupos conflictivos, entre otros). Ese dato es el que se muestra en la barra de progreso. El orden justo para asignar las próximas guardias es el que se muestra en este listado: El profesor que ocupa la primera posición debe ser asignado antes que los siguientes. Si es un profesor sustituto, tenga en cuenta que los datos reflejados corresponden al profesor titular, ya que se utiliza su horario de guardia.</p>
+            </div>
+
+        </div>
+    </div>
+</div>

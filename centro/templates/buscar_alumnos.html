@@ -50,7 +50,7 @@
                                     <div class="forum-item active">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <a href="/convivencia/historial/{{ alumno.id }}/" class="forum-item-title">{{ alumno.Nombre }}</a>
+                                                <a href="/convivencia/historial/{{ alumno.id }}/" class="forum-item-title">{{ alumno.Nombre }} {% if alumno.PDC %} (PDC){% endif %} {% if alumno.NEAE %} (NEAE){% endif %}</a>
                                                 <div class="forum-sub-title">Fecha de
                                                     nacimiento: {{ alumno.Fecha_nacimiento|date:"d/m/Y" }}
                                                 </div>

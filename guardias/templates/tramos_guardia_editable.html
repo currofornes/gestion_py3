@@ -1,0 +1,22 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>Tramo</th>
+            <th>Materia</th>
+            <th>Aula</th>
+            <th>Marcar</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in itemguardias %}
+        <tr>
+            <td>{{ item.Tramo }}</td>
+            <td>{{ item.Materia }}</td>
+            <td>{{ item.Aula }}</td>
+            <td>
+                <input type="checkbox" name="tramos[]" value="{{ item.id }}" checked>  <!-- Checkbox marcado -->
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

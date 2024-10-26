@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar Ítem del Horario{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h5>Editar ítem del horario</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="POST">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-check"></i> Guardar cambios
+                                </button>
+                                <a href="{% url 'editar_horario_profesor' form.instance.profesor.id %}" class="btn btn-secondary">
+                                    <i class="fa fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".select2_Tramo").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona tramo horario",
+                allowClear: false
+            });
+
+            $(".select2_Dia").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona día",
+                allowClear: true
+            });
+
+            $(".select2_Unidad").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona unidad",
+                allowClear: true
+            });
+
+            $(".select2_Aula").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona aula",
+                allowClear: true
+            });
+
+        });
+
+    </script>
+{% endblock %}

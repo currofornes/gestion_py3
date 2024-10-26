@@ -17,17 +17,13 @@ from django.shortcuts import render
 from django.template import Context
 from django.core.mail import send_mail
 
-
 # Create your views here.
-
 
 # Curro Jul 24: Modifico para que solo pueda usarse por JE
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def parte(request, tipo, alum_id):
     alum = Alumnos.objects.get(pk=alum_id)
-
-    print(alum.id)
 
     # if request.user.username[:5]=="tutor" and alum.Unidad.Abe!=request.user.username[5:]:
     #	return redirect("/")
@@ -1052,7 +1048,6 @@ def alumnadosancionable(request):
     for alumno in recuento_amonestaciones:
         leves, graves = recuento_amonestaciones[alumno]
         if (leves >= 5) or (graves >= 2) or (2 * graves + leves >= 5):
-            print(f"{alumno.Nombre} con {leves} amonestaciones leves y {graves} amonestaciones graves listo para ser empapelado.")
             alumnado_sancionable.append((alumno, leves, graves))
 
     alumnado_sancionable.sort(key=lambda x: x[1] + 2 * x[2], reverse=True)

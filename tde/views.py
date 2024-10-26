@@ -8,6 +8,7 @@ from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from centro.models import Profesores
 from centro.utils import get_current_academic_year, get_previous_academic_years
 from centro.views import group_check_prof, group_check_tde
 from tde.forms import IncidenciaTicProfeForm
@@ -25,9 +26,35 @@ def incidenciaticprofe(request):
 
     if request.method == 'POST':
         form = IncidenciaTicProfeForm(request.POST)
-        print(form.is_valid())
         if form.is_valid():
-            form.save()
+            incidencia = form.save()
+
+            aula = incidencia.aula
+            profesores_en_aula = Profesores.objects.filter(itemhorario__aula=aula).distinct()
+
+            template = get_template("correo_nueva_incidencia.html")
+            contenido = template.render({'inc': incidencia})
+            correos = []
+            for prof in profesores_en_aula:
+                correo = Profesores.objects.get(id=prof.id).Email
+                if correo != "":
+                    correos.append(correo)
+
+
+            send_mail(
+                'Nueva Incidencia TIC',
+                contenido,
+                '41011038.jestudios.edu@juntadeandalucia.es',
+                correos,
+                fail_silently=False,
+            )
+
+            # Imprimir los nombres de los profesores en la consola
+            print("Profesores que imparten clase en el aula", aula, ":")
+            for profesor in profesores_en_aula:
+                print(profesor)
+
+            # Enviar correo a todo el profesorado que de clase en ese aula o al equipo educativo
 
             return redirect('/tde/misincidenciastic')
         else:

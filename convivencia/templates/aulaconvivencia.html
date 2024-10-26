@@ -36,7 +36,7 @@
                             {% for a in amonestaciones %}
                                 <tr>
                                     <td>
-                                        <a href="/convivencia/historial/{{ a.IdAlumno.id }}/"><strong>{{ a.IdAlumno.Nombre }}</strong></a>
+                                        <a href="/convivencia/historial/{{ a.IdAlumno.id }}/"><strong>{{ a.IdAlumno.Nombre }}</strong> {% if a.IdAlumno.PDC %} (PDC){% endif %} {% if a.IdAlumno.NEAE %} (NEAE){% endif %}</a>
                                     </td>
                                     <td>
                                         {% if a.Tipo.TipoFalta == 'G' %}
@@ -50,7 +50,7 @@
                                     <td data-value="{{ a.Fecha }}">{{ a.Fecha|date:"d/m/Y" }}</td>
 
                                     <td>{{ a.Profesor }}</td>
-                                    <td><a href="/centro/alumnos/{{ a.IdAlumno.Unidad.id }}"> {{ a.IdAlumno.Unidad }}</a>Mej</td>
+                                    <td><a href="/centro/alumnos/{{ a.IdAlumno.Unidad.id }}"> {{ a.IdAlumno.Unidad }}</a></td>
                                     <td>{{ a.Comentario }}</td>
                                     <td>{{ a.Tipo }}</td>
                                     <td>{{ horas|slice:a.Hora|last }}</td>
