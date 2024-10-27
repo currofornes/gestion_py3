@@ -34,7 +34,11 @@
                         </div>
                         <div class="panel panel-primary" style="overflow: hidden;">
                             <div class="panel-heading text-center">
-                                PARTE DE GUARDIAS - <strong>VIERNES 27 SEPTIEMBRE 2024</strong>
+                                <button id="btn-prev-day" class="btn btn-sm btn-primary"><i
+                                        class="fa fa-arrow-left"></i></button>
+                                PARTE DE GUARDIAS - <strong>FECHA</strong>
+                                <button id="btn-next-day" class="btn btn-sm btn-primary"><i
+                                        class="fa fa-arrow-right"></i></button>
                             </div>
                             <div class="panel-body">
 
@@ -188,8 +192,31 @@
 
     <script>
         $(document).ready(function () {
+
+            // Variable global para almacenar el tramo activo
+            let tramoSeleccionado = 1;  // Comienza en el primer tramo
+
             // Upgrade button class name
             $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
+
+            function ajustarFecha(dias) {
+                const fechaActual = $('#data_1 .input-group.date').datepicker('getDate');
+
+                if (fechaActual) {
+                    fechaActual.setDate(fechaActual.getDate() + dias); // Ajustar solo el día
+                    $('#data_1 .input-group.date').datepicker('setDate', fechaActual); // Actualizar el datepicker
+                }
+            }
+
+// Evento para el botón de día anterior
+            $('#btn-prev-day').click(function () {
+                ajustarFecha(-1); // Resta un día
+            });
+
+            // Evento para el botón de día siguiente
+            $('#btn-next-day').click(function () {
+                ajustarFecha(1); // Suma un día
+            });
 
             // Llamada AJAX al pulsar el botón para abrir el modal
             $('#boton-nueva-ausencia').on('click', function () {
@@ -217,7 +244,6 @@
 
             // Inicializar select2 solo cuando el modal esté completamente mostrado
             $('#modalausenciaprofe').on('shown.bs.modal', function () {
-
 
 
                 //$('#profesor-ausente').empty().trigger('change');  // Limpiar el select y reiniciar
@@ -258,13 +284,14 @@
                 return fechaFormateada;
             }
 
-            $(document).on('guardiaConfirmada', function (event, fechaSeleccionada, tramoSeleccionado) {
+            $(document).on('guardiaConfirmada', function (event, fechaSeleccionada) {
                 // Llamar a la función para actualizar las tablas
-                actualizarGuardias(fechaSeleccionada, tramoSeleccionado);
+
+                actualizarGuardias(fechaSeleccionada);
             });
 
 
-            function actualizarGuardias(fechaSeleccionada, tramoSeleccionado) {
+            function actualizarGuardias(fechaSeleccionada) {
                 // Realizar la petición AJAX
                 $.ajax({
                     url: "{% url 'parteguardias_ajax' %}",
@@ -286,6 +313,7 @@
                         $('#ibox-container').html(response.ibox_guardias);
 
                         // Una vez que se actualicen las tablas, asegurarse de mostrar el tramo seleccionado
+
                         mostrarTramo(tramoSeleccionado)
                     },
                     error: function (xhr, errmsg, err) {
@@ -296,6 +324,7 @@
 
 
             function cargarGuardias(fechaSeleccionada) {
+
                 // Realizar la petición AJAX
                 $.ajax({
                     url: "{% url 'parteguardias_ajax' %}",
@@ -317,7 +346,6 @@
                         $('#ibox-container').html(response.ibox_guardias);
 
                         activarPrimeraPestana();
-                        mostrarTramo(1);  // Mostrar el primer tramo por defecto
                     },
                     error: function (xhr, errmsg, err) {
                         console.log("Error al cargar los datos: " + errmsg);
@@ -326,19 +354,24 @@
             }
 
             function activarPrimeraPestana() {
+
                 // Quitar la clase 'active' de todas las pestañas
                 $('.tramo-tab').removeClass('active');
 
                 // Hacer activa la primera pestaña
                 $('.tramo-tab[data-tramo="1"]').addClass('active');
 
+                tramoSeleccionado = 1;
+
                 // Mostrar solo el contenido del primer tramo (tramo 1)
-                mostrarTramo(1);
+                mostrarTramo(tramoSeleccionado);
             }
 
             // Función para mostrar solo los iboxes y la tabla del tramo seleccionado
             function mostrarTramo(tramo) {
+
                 $('.tab-pane').hide();
+
                 switch (tramo) {
                     case 1:
                         $('#tab-1h').show();
@@ -376,7 +409,7 @@
 
             // Capturar el evento cuando se cambia de pestaña
             $(document).on('click', '.tramo-tab', function () {
-                const tramoSeleccionado = $(this).data('tramo');
+                tramoSeleccionado = $(this).data('tramo');
                 mostrarTramo(tramoSeleccionado);
             });
 

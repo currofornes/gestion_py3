@@ -127,8 +127,7 @@
                 // Obtener los valores seleccionados en el select (IDs de los profesores)
                 let select = $(`#select-profesores-${item_guardia_id}`);
                 let profesores_guardia_ids = select.val();  // .val() obtiene un array de los valores seleccionados
-                console.log("PROFES GUARDIA")
-                console.log(profesores_guardia_ids)
+
 
                 Swal.fire({
                     title: "¿Estás seguro?",
@@ -161,8 +160,8 @@
 
                                     // Emitir un evento personalizado con la fecha actual
                                     const fechaSeleccionada = $('#fecha-parte-guardia').val();
-                                    const tramoSeleccionado = $('.tab-pane.active').data('tramo');  // Suponiendo que los tabs tengan un data-tramo
-                                    $(document).trigger('guardiaConfirmada', [fechaSeleccionada, tramoSeleccionado]);
+                        
+                                    $(document).trigger('guardiaConfirmada', [fechaSeleccionada]);
                                 } else {
                                     Swal.fire({
                                         title: "Error",

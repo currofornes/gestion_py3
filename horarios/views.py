@@ -16,6 +16,11 @@ def horario_profesor_view(request):
 
     items_horario = None
     if profesor_id:
+        profesor = Profesores.objects.get(id=profesor_id)
+        if profesor.SustitutoDe:
+            profesor_id = profesor.SustitutoDe.id
+
+
         # Filtrar los horarios por el profesor seleccionado y ordenar por día y tramo
         items_horario = ItemHorario.objects.filter(profesor_id=profesor_id).order_by('dia', 'tramo')
 
@@ -58,6 +63,10 @@ def mihorario(request):
 
     items_horario = None
     if profesor:
+
+        if profesor.SustitutoDe:
+            profesor = profesor.SustitutoDe
+
         # Filtrar los horarios por el profesor seleccionado y ordenar por día y tramo
         items_horario = ItemHorario.objects.filter(profesor=profesor).order_by('dia', 'tramo')
 

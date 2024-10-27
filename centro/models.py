@@ -64,6 +64,8 @@ class Profesores(models.Model):
     Baja = models.BooleanField(default=False)
     password_changed = models.BooleanField(default=False)  # Nuevo campo
     NombreHorarios = models.CharField(max_length=200, blank=True, null=True)
+    SustitutoDe = models.ForeignKey('self',on_delete=models.SET_NULL,null=True,blank=True,related_name='sustitutos',verbose_name="Sustituto de")
+
 
     # Curro Jul 24: Anado la coma entre los apellidos y el nombre
     def __str__(self):

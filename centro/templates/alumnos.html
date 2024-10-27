@@ -56,7 +56,6 @@
                                     <th class="text-center">A/S Hist.</th>
                                     <th class="text-center">Amonestación</th>
                                     <th class="text-center">Sanción</th>
-                                    <th class="text-center">Hist.</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -71,34 +70,19 @@
                                 <td class="text-center">{{ forloop.counter }}</td>
 
 
-                                <td>{{ alum.Nombre }} {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</td>
+                                <td><a href="/convivencia/historial/{{ alum.id }}/">{{ alum.Nombre }}</a> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</td>
 
                                 <td class="text-center">{{ acum }}</td>
                                     <td class="text-center">{{ acumhist }}</td>
                                 <td class="text-center">
-                                    <a style="color: inherit;" href="/convivencia/amonestacion/{{ alum.id }}">
-                                    <span style="color: orange;">
-                                      <i class="fa fa-thumbs-down"></i>
-                                    </span>
+                                    <a class="btn btn-xs btn-warning" href="/convivencia/amonestacion/{{ alum.id }}">Amonestar
                                     </a>
                                 </td>
 
                                 <td class="text-center">
-                                    <a style="color: inherit;" href="/convivencia/sancion/{{ alum.id }}">
-                                <span style="color: red;">
-                                      <i class="fa fa-exclamation-triangle"></i>
-                                    </span>
+                                    <a class="btn btn-xs btn-danger" href="/convivencia/sancion/{{ alum.id }}">Sancionar
                                     </a>
                                 </td>
-
-                                <td class="text-center">
-                                    <a style="color: inherit;" href="/convivencia/historial/{{ alum.id }}/">
-                                    <span style="color: dodgerblue;">
-                                      <i class="fa fa-list"></i>
-                                    </span>
-                                    </a>
-                                </td>
-
 
                                 </tr>
                                 {% endfor %}

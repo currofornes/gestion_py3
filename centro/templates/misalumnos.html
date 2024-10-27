@@ -72,14 +72,8 @@
 
                             <td class="text-center">{{ acum }}</td>
                                 <td class="text-center">{{ acumhist }}</td>
-                            <td class="text-center"><a style="color: inherit;"
-                                                       href="/convivencia/profe/amonestacion/{{ alum.id }}">
-                                    
-                                    <span style="color: orange;">
-                                      <i class="fa fa-thumbs-down"></i>
-                                    </span>
-
-
+                            <td class="text-center"><a class="btn btn-xs btn-warning"
+                                                       href="/convivencia/profe/amonestacion/{{ alum.id }}">Amonestar
                             </a></td>
                             {% if profesor.id == curso.Tutor.id %}
                                 <td class="text-center"><a style="color: inherit;"

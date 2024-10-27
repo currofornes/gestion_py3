@@ -121,6 +121,10 @@ def horario_profesor_ajax(request):
         # Obtener el día de la semana (1=Lunes, 2=Martes,...)
         dia_semana = fecha.isoweekday()
 
+        profesor = Profesores.objects.get(id=profesor_id)
+        if profesor.SustitutoDe:
+            profesor_id = profesor.SustitutoDe.id
+
         # Filtrar los items del horario según el profesor y el día de la semana
         items_horario = ItemHorario.objects.filter(profesor_id=profesor_id, dia=dia_semana).order_by('tramo')
 
