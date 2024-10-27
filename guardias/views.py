@@ -88,7 +88,7 @@ def misausencias(request):
             ausencias_agrupadas[fecha] = []
         ausencias_agrupadas[fecha].append(ausencia)
 
-    locale.setlocale(locale.LC_TIME, 'es_ES')
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
     # Formatear los datos para la tabla
     datos_agrupados = []
@@ -168,7 +168,7 @@ def horario_profesor_ajax(request):
                 'guardia_exists': datos['guardia_exists']
             })
 
-        locale.setlocale(locale.LC_TIME, 'es_ES')
+        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
         fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
 
         # Renderizar una plantilla parcial con los items del horario
@@ -546,7 +546,7 @@ def verausencias(request):
         key = (ausencia.Fecha, ausencia.ProfesorAusente)  # Agrupamos por fecha y profesor
         ausencias_agrupadas[key].append(ausencia)
 
-    locale.setlocale(locale.LC_TIME, 'es_ES')
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
     # Formatear los datos para la tabla
     datos_agrupados = []
@@ -637,7 +637,7 @@ def horario_guardia_ajax(request):
             })
 
         # Formatear la fecha
-        locale.setlocale(locale.LC_TIME, 'es_ES')
+        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
         fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
 
         html = render_to_string('partials/ausencia_items.html',
