@@ -24,6 +24,7 @@
                             <div class="col-12">
 
                                 {% if horario %}
+                                    <div class="table-responsive">
                                     <table class="table table-bordered">
                                         <thead>
                                         <tr class="text-center">
@@ -75,6 +76,7 @@
                                         {% endfor %}
                                         </tbody>
                                     </table>
+                                    </div>
                                 {% else %}
                                     <p>Selecciona un profesor para ver su horario.</p>
                                 {% endif %}

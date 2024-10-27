@@ -66,7 +66,7 @@
                             <li><a href="/convivencia/grupos">Grupos</a></li>
                             <li><a href="/convivencia/niveles">Niveles</a></li>
                             <li><a href="/convivencia/alumnos">Alumnos</a></li>
-                            <li><a href="/guardias/estadisticas"><span class="nav-label">Ausencias</span></a></li>
+                            <li><a href="/guardias/estadisticas">Ausencias</a></li>
                         </ul>
                     </li>
                     <li>
@@ -98,10 +98,10 @@
                             class="fa arrow"></span></a>
                     <ul class="nav nav-second-level collapse">
                         {% if user|has_group:"profesor" %}
-                            <li><a href="/horarios/mihorario"><span class="nav-label">Mi Horario</span></a></li>
+                            <li><a href="/horarios/mihorario">Mi Horario</a></li>
                         {% endif %}
-                        <li><a href="/horarios/horarioprofe"><span class="nav-label">Horario Profesorado</span></a></li>
-                        <li><a href="/horarios/horariogrupo"><span class="nav-label">Horario Grupos</span></a></li>
+                        <li><a href="/horarios/horarioprofe">Horario Profesorado</a></li>
+                        <li><a href="/horarios/horariogrupo">Horario Grupos</a></li>
                     </ul>
                 </li>
 
@@ -112,16 +112,15 @@
 
                         {% if user|has_group:"profesor" %}
 
-                            <li><a href="/guardias/misausencias"><span class="nav-label">Mis ausencias</span></a>
+                            <li><a href="/guardias/misausencias">Mis ausencias</a>
                             </li>
 
                         {% endif %}
 
-                        <li><a href="/guardias/parteguardias"><span class="nav-label">Parte de Guardias</span></a></li>
+                        <li><a href="/guardias/parteguardias">Parte de Guardias</a></li>
                         {% if user|has_group:"jefatura de estudios" %}
 
-                            <li><a href="/guardias/ver-guardias"><span
-                                    class="nav-label">Ausencias Profesorado</span></a></li>
+                            <li><a href="/guardias/ver-guardias">Ausencias Profesorado</a></li>
 
                         {% endif %}
                     </ul>
@@ -162,14 +161,13 @@
                         <a href="#"><i class="fa fa-laptop"></i> <span class="nav-label">TDE</span><span
                                 class="fa arrow"></span></a>
                         <ul class="nav nav-second-level collapse">
-                            <li><a href="/tde/incidenciastic"><i class="fa fa-tasks"></i> <span class="nav-label">Incidencias TIC</span></a>
+                            <li><a href="/tde/incidenciastic"><i class="fa fa-tasks"></i>Incidencias TIC</a>
                             </li>
-                            <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i> <span
-                                    class="nav-label">Mis Incidencias TIC</span></a></li>
+                            <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i>Mis Incidencias TIC</a></li>
                         </ul>
                     </li>
                 {% else %}
-                    <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i> <span class="nav-label">Incidencias TIC</span></a>
+                    <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i>Incidencias TIC</a>
                     </li>
                 {% endif %}
 

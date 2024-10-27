@@ -21,6 +21,21 @@ from django.core.mail import EmailMultiAlternatives
 
 # Create your views here.
 
+meses_es = {
+        'January': 'enero',
+        'February': 'febrero',
+        'March': 'marzo',
+        'April': 'abril',
+        'May': 'mayo',
+        'June': 'junio',
+        'July': 'julio',
+        'August': 'agosto',
+        'September': 'septiembre',
+        'October': 'octubre',
+        'November': 'noviembre',
+        'December': 'diciembre'
+    }
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je,login_url='/')
@@ -230,7 +245,8 @@ def carta_abs_tutor_familia(request,proto_id):
 		# Convierte la fecha y hora en el formato deseado
 		fecha_obj = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
 		dia = fecha_obj.strftime("%d")
-		mes = fecha_obj.strftime("%B")  # Mes en español
+		mes_en_ingles = fecha_obj.strftime("%B")  # Mes en inglés
+		mes = meses_es[mes_en_ingles]  # Traducir al español
 		hora_formateada = fecha_obj.strftime("%H:%M")
 
 		info2["dia_reunion"] = f"{dia}"
@@ -264,7 +280,8 @@ def carta_abs_tutor_ED(request,proto_id):
 		# Convierte la fecha y hora en el formato deseado
 		fecha_obj = datetime.strptime(f"{fecha}", "%Y-%m-%d")
 		dia = fecha_obj.strftime("%d")
-		mes = fecha_obj.strftime("%B")  # Mes en español
+		mes_en_ingles = fecha_obj.strftime("%B")  # Mes en inglés
+		mes = meses_es[mes_en_ingles]  # Traducir al español
 
 		info2["fecha_convocado"] = f"{dia} de {mes}"
 
