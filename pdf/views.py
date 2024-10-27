@@ -214,7 +214,7 @@ def imprimir(temp,data,title):
 @login_required(login_url='/')
 @user_passes_test(group_check_prof_and_tutor_or_je_or_orientacion, login_url='/')
 def carta_abs_tutor_familia(request,proto_id):
-	locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+	#locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
 	protocolo = ProtocoloAbs.objects.get(id=proto_id)
 
@@ -249,7 +249,7 @@ def carta_abs_tutor_familia(request,proto_id):
 @login_required(login_url='/')
 @user_passes_test(group_check_prof_and_tutor_or_je_or_orientacion, login_url='/')
 def carta_abs_tutor_ED(request,proto_id):
-	locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+	#locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
 	protocolo = ProtocoloAbs.objects.get(id=proto_id)
 

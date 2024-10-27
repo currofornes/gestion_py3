@@ -26,6 +26,31 @@ from operator import itemgetter
 
 # Create your views here.
 
+# Diccionario para traducir días de la semana
+dias_semana_es = {
+    'Monday': 'LUNES',
+    'Tuesday': 'MARTES',
+    'Wednesday': 'MIÉRCOLES',
+    'Thursday': 'JUEVES',
+    'Friday': 'VIERNES',
+    'Saturday': 'SÁBADO',
+    'Sunday': 'DOMINGO'
+}
+
+meses_es = {
+    'January': 'enero',
+    'February': 'febrero',
+    'March': 'marzo',
+    'April': 'abril',
+    'May': 'mayo',
+    'June': 'junio',
+    'July': 'julio',
+    'August': 'agosto',
+    'September': 'septiembre',
+    'October': 'octubre',
+    'November': 'noviembre',
+    'December': 'diciembre'
+}
 
 # Diccionario de correspondencia de tramos
 TRAMOS_NOMBRES = {
@@ -37,6 +62,13 @@ TRAMOS_NOMBRES = {
     6: "5ª hora",
     7: "6ª hora",
 }
+
+# Formatear la fecha
+def formatear_fecha(fecha):
+    dia_semana = dias_semana_es[fecha.strftime('%A')]
+    mes = meses_es[fecha.strftime('%B')]
+    return f"{dia_semana}, {fecha.strftime('%d')} de {mes} de {fecha.strftime('%Y')}".capitalize()
+
 
 
 def itemguardia_to_dict(item):
@@ -70,6 +102,8 @@ def misausencias(request):
     if not hasattr(request.user, 'profesor'):
         return render(request, 'error.html', {'message': 'No tiene un perfil de profesor asociado.'})
 
+
+
     profesor = request.user.profesor
 
     # Buscar los ItemGuardia cuyo ProfesorAusente es el profesor actual
@@ -88,12 +122,13 @@ def misausencias(request):
             ausencias_agrupadas[fecha] = []
         ausencias_agrupadas[fecha].append(ausencia)
 
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
 
     # Formatear los datos para la tabla
     datos_agrupados = []
     for fecha, items in ausencias_agrupadas.items():
-        dia_semana = fecha.strftime('%A').upper()
+        dia_semana = dias_semana_es[fecha.strftime('%A')]  # Traducir día al español
+        #dia_semana = fecha.strftime('%A').upper()
         es_futuro = fecha > hoy  # Comprobar si la fecha es futura
         datos_agrupados.append({
             'fecha': fecha.strftime('%d/%m/%Y'),  # Fecha en formato ISO para facilitar la consulta AJAX
@@ -168,8 +203,9 @@ def horario_profesor_ajax(request):
                 'guardia_exists': datos['guardia_exists']
             })
 
-        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-        fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
+        #locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+        fecha_formateada = formatear_fecha(fecha)
+        #fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
 
         # Renderizar una plantilla parcial con los items del horario
         return render(request, 'partials/horario_items.html', {'items_horario': items_data, 'fecha': fecha_formateada})
@@ -546,12 +582,13 @@ def verausencias(request):
         key = (ausencia.Fecha, ausencia.ProfesorAusente)  # Agrupamos por fecha y profesor
         ausencias_agrupadas[key].append(ausencia)
 
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
 
     # Formatear los datos para la tabla
     datos_agrupados = []
     for (fecha, profesor), items in ausencias_agrupadas.items():
-        dia_semana = fecha.strftime('%A').upper()
+        dia_semana = dias_semana_es[fecha.strftime('%A')]  # Traducir día al español
+        #dia_semana = fecha.strftime('%A').upper()
         datos_agrupados.append({
             'fecha': fecha.strftime('%d/%m/%Y'),  # Fecha en formato ISO para facilitar la consulta AJAX
             'diasemana': dia_semana,
@@ -637,8 +674,9 @@ def horario_guardia_ajax(request):
             })
 
         # Formatear la fecha
-        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-        fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
+        #locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+        #fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
+        fecha_formateada = formatear_fecha(fecha)
 
         html = render_to_string('partials/ausencia_items.html',
                                 {'items_horario': items_data, 'fecha': fecha_formateada})
