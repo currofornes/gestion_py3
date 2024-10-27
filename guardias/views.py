@@ -58,7 +58,10 @@ def itemguardia_to_dict(item):
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def parteguardias(request):
-    return render(request, 'parteguardias.html')
+    context = {
+        'menu_guardias': True
+    }
+    return render(request, 'parteguardias.html', context)
 
 
 @login_required(login_url='/')
@@ -102,6 +105,7 @@ def misausencias(request):
     context = {
         'profesor': profesor,
         'datos_agrupados': datos_agrupados,  # Solo enviamos los datos básicos
+        'menu_guardias': True
     }
 
     return render(request, 'misausencias.html', context)
@@ -558,6 +562,7 @@ def verausencias(request):
 
     context = {
         'datos_agrupados': datos_agrupados,  # Enviamos los datos básicos de todas las ausencias
+        'menu_guardias': True
     }
 
     return render(request, 'verausencias.html', context)
