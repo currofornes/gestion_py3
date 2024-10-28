@@ -19,7 +19,9 @@
                          </span> <span class="text-muted text-xs block">{{ user.get_full_name }} <b
                                 class="caret"></b></span> </span> </a>
                     <ul class="dropdown-menu animated fadeInRight m-t-xs">
-                        <li><a href="/cambiar-password-custom">Cambiar contraseña</a></li>
+                        {% if user|not_in_group:"guardia" %}
+                            <li><a href="/cambiar-password-custom">Cambiar contraseña</a></li>
+                        {% endif %}
                         <li><a href="/logout">Desconectar</a></li>
                     </ul>
                 </div>
@@ -33,27 +35,29 @@
                         <a href="/admin"><i class="fa fa-cogs"></i> <span class="nav-label">Administración</span> </a>
                     </li>
                 {% endif %}
+                {% if user|not_in_group:"guardia" %}
+                    <li class="menu-convivencia {% if menu_convivencia %} active{% endif %}">
+                        <a href="#"><i class="fa fa-thumbs-down"></i> <span class="nav-label">Convivencia</span><span
+                                class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level collapse">
+                            {% if user|has_group:"jefatura de estudios" %}
+                                <li><a href="/convivencia/alumnadosancionable">Alumnado sancionable</a></li>
+                                <li><a href="/centro/busqueda">Búsqueda general</a></li>
+                                <li><a href="/centro/alumnos">Todos los Grupos</a></li>
+                                <li><a href="/convivencia/show">Resumen</a></li>
+                                <li><a href="/convivencia/aulaconvivencia">Aula de Convivencia</a></li>
+                                <li><a href="/convivencia/sancionesactivas">Sanciones Activas</a></li>
+                            {% endif %}
+                            {% if user|has_group:"profesor" %}
+                                <li><a href="/centro/misalumnos">Mis alumnos</a></li>
+                                <li><a href="/convivencia/misamonestaciones">Mis amonestaciones</a></li>
+                            {% endif %}
 
-                <li class="menu-convivencia {% if menu_convivencia %} active{% endif %}">
-                    <a href="#"><i class="fa fa-thumbs-down"></i> <span class="nav-label">Convivencia</span><span
-                            class="fa arrow"></span></a>
-                    <ul class="nav nav-second-level collapse">
-                        {% if user|has_group:"jefatura de estudios" %}
-                            <li><a href="/convivencia/alumnadosancionable">Alumnado sancionable</a></li>
-                            <li><a href="/centro/busqueda">Búsqueda general</a></li>
-                            <li><a href="/centro/alumnos">Todos los Grupos</a></li>
-                            <li><a href="/convivencia/show">Resumen</a></li>
-                            <li><a href="/convivencia/aulaconvivencia">Aula de Convivencia</a></li>
-                            <li><a href="/convivencia/sancionesactivas">Sanciones Activas</a></li>
-                        {% endif %}
-                        {% if user|has_group:"profesor" %}
-                            <li><a href="/centro/misalumnos">Mis alumnos</a></li>
-                            <li><a href="/convivencia/misamonestaciones">Mis amonestaciones</a></li>
-                        {% endif %}
 
+                        </ul>
+                    </li>
 
-                    </ul>
-                </li>
+                {% endif %}
 
                 {% if user|has_group:"jefatura de estudios" %}
                     <li class="{% if menu_estadistica %} active{% endif %}">
@@ -126,17 +130,6 @@
                     </ul>
                 </li>
 
-
-
-
-
-
-
-                <!--
-                <li>
-                    <a href="#"><i class="fa fa-address-book-o"></i> <span class="nav-label">Horarios</span> </a>
-                </li>
-                -->
                 {% if user|has_group:"jefatura de estudios" or user|has_group:"tde" %}
 
                     <li class="{% if menu_reservas %} active{% endif %}">
@@ -148,7 +141,7 @@
                         </ul>
                     </li>
 
-                {% else %}
+                {% elif user|not_in_group:"guardia" %}
                     <li>
                         <a href="/reservas/misreservas"><i class="fa fa-calendar"></i> <span
                                 class="nav-label">Reservas</span> </a>
@@ -163,22 +156,14 @@
                         <ul class="nav nav-second-level collapse">
                             <li><a href="/tde/incidenciastic"><i class="fa fa-tasks"></i>Incidencias TIC</a>
                             </li>
-                            <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i>Mis Incidencias TIC</a></li>
+                            <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i>Mis Incidencias TIC</a>
+                            </li>
                         </ul>
                     </li>
-                {% else %}
+                {% elif user|not_in_group:"guardia" %}
                     <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i>Incidencias TIC</a>
                     </li>
                 {% endif %}
-
-                <!--
-                <li>
-                    <a href="https://docs.google.com/spreadsheets/d/1GO2xxRh2DcAs8T8g98t9EwKXLUjSbdgYMXpsZBzpWIU/edit?usp=sharing"><i
-                            class="fa fa-users"></i> <span class="nav-label">Hoja cálculo Guardias</span> </a>
-                </li>
-                -->
-
-
 
             {% endif %}
         </ul>

@@ -14,7 +14,7 @@ from django.utils.timezone import localtime
 
 from centro.models import Profesores, Cursos, Aulas, CursoAcademico
 from centro.utils import get_current_academic_year
-from centro.views import group_check_je, group_check_prof
+from centro.views import group_check_je, group_check_prof, group_check_prof_or_guardia
 from convivencia.forms import FechasForm
 from guardias.forms import ItemGuardiaForm
 from guardias.models import ItemGuardia, TiempoGuardia
@@ -88,7 +88,7 @@ def itemguardia_to_dict(item):
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof, login_url='/')
+@user_passes_test(group_check_prof_or_guardia, login_url='/')
 def parteguardias(request):
     context = {
         'menu_guardias': True
@@ -101,8 +101,6 @@ def parteguardias(request):
 def misausencias(request):
     if not hasattr(request.user, 'profesor'):
         return render(request, 'error.html', {'message': 'No tiene un perfil de profesor asociado.'})
-
-
 
     profesor = request.user.profesor
 
@@ -147,7 +145,7 @@ def misausencias(request):
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof, login_url='/')
+@user_passes_test(group_check_prof_or_guardia, login_url='/')
 def horario_profesor_ajax(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         # Obtener los parámetros de la solicitud
@@ -214,7 +212,7 @@ def horario_profesor_ajax(request):
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof, login_url='/')
+@user_passes_test(group_check_prof_or_guardia, login_url='/')
 def guardar_guardias_ajax(request):
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         # Obtener los datos del formulario
@@ -345,9 +343,14 @@ def parteguardias_ajax(request):
                 # Determinar si el profesor tiene "GUARDIA CONVIVENCIA"
                 materia_guardia = item_horarios.filter(tramo=tramo, profesor=profesor).first().materia
 
-                # Convertir tiempo a horas o minutos
+                # Convertir tiempo a horas y minutos
                 if tiempo_total >= 60:
-                    tiempo_str = f"{tiempo_total // 60} h"
+                    horas = tiempo_total // 60
+                    minutos = tiempo_total % 60
+                    if minutos > 0:
+                        tiempo_str = f"{horas} h {minutos} min"
+                    else:
+                        tiempo_str = f"{horas} h"
                 else:
                     tiempo_str = f"{tiempo_total} min"
 

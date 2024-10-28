@@ -29,6 +29,9 @@ def group_check_tde(user):
 def group_check_prof(user):
     return user.groups.filter(name__in=['jefatura de estudios', 'profesor']).exists()
 
+def group_check_prof_or_guardia(user):
+    return user.groups.filter(name__in=['jefatura de estudios', 'profesor', 'guardia']).exists()
+
 def group_check_prof_and_tutor(user):
     return group_check_prof(user) and is_tutor(user)
 

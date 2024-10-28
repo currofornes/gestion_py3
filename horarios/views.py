@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
@@ -7,9 +8,12 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, UpdateView, DeleteView, CreateView
 
 from centro.models import Cursos
+from centro.views import group_check_prof, group_check_prof_or_guardia
 from .forms import ItemHorarioForm
 from .models import Profesores, ItemHorario
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof_or_guardia, login_url='/')
 def horario_profesor_view(request):
     profesor_id = request.GET.get('profesor')  # Obtener el ID del profesor seleccionado desde el GET
     profesores = Profesores.objects.filter(Baja=False)  # Lista de todos los profesores para el desplegable
@@ -54,6 +58,8 @@ def horario_profesor_view(request):
     return render(request, 'horario_profesor.html', context)
 
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def mihorario(request):
 
     if not hasattr(request.user, 'profesor'):
@@ -99,7 +105,8 @@ def mihorario(request):
     }
     return render(request, 'mihorario.html', context)
 
-
+@login_required(login_url='/')
+@user_passes_test(group_check_prof_or_guardia, login_url='/')
 def horario_curso_view(request):
     curso_id = request.GET.get('curso')  # Obtener el ID del curso seleccionado desde el GET
     cursos = Cursos.objects.all()  # Lista de todos los cursos para el desplegable
