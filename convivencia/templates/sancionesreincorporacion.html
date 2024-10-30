@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load grupo_tags %}
+{% load custom_tags %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h2>Reincorporación de alumnado sancionado</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="get" action="{% url 'sanciones_reincorporacion' %}" class="form-inline mb-3">
+                            <label for="fecha">Selecciona la fecha de reincorporación: </label>
+                            <input type="date" name="fecha" id="fecha" value="{{ fecha_reincorporacion }}" class="form-control ml-2">
+                            <button type="submit" class="btn btn-primary ml-2">Filtrar</button>
+                        </form>
+
+                        {% if sanciones_reincorporacion %}
+                            <div class="table-responsive">
+                                <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
+                                    <thead>
+                                    <tr>
+                                        <th data-toggle="true">N.</th>
+                                        <th>Alumno/a</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha Inicio</th>
+                                        <th>Fecha Fin</th>
+                                        <th>Unidad</th>
+                                        <th>Sanción</th>
+                                        <th data-hide="all">Comentario</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for n, sancion in sanciones_reincorporacion %}
+                                        <tr>
+                                            <td>{{ n }}</td>
+                                            <td>
+                                                <a href="/convivencia/historial/{{ sancion.IdAlumno.id }}/">
+                                                    <strong>{{ sancion.IdAlumno.Nombre }}</strong>
+                                                    {% if sancion.IdAlumno.PDC %} (PDC){% endif %}
+                                                    {% if sancion.IdAlumno.NEAE %} (NEAE){% endif %}
+                                                </a>
+                                            </td>
+                                            <td><span class="label label-danger">Sanción</span></td>
+                                            <td data-value="{{ sancion.Fecha }}">{{ sancion.Fecha|date:"d/m/Y" }}</td>
+                                            <td data-value="{{ sancion.Fecha_fin }}">{{ sancion.Fecha_fin|date:"d/m/Y" }}</td>
+                                            <td><a href="/centro/alumnos/{{ sancion.IdAlumno.Unidad.id }}">{{ sancion.IdAlumno.Unidad }}</a></td>
+                                            <td>
+                                                {{ sancion.Sancion }}
+                                                {% if sancion.NoExpulsion %}<br/><strong>No expulsión</strong>{% endif %}
+                                            </td>
+                                            <td>
+                                                {% if sancion.Profesor %}
+                                                    <strong>{{ sancion.Profesor }} ({{ horas|slice:sancion.Hora|last }})</strong><br/>
+                                                {% endif %}
+                                                {{ sancion.Comentario }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                    <tr>
+                                        <td colspan="6">
+                                            <ul class="pagination float-right"></ul>
+                                        </td>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p>No hay alumnado que se reincorpore en la fecha seleccionada.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(document).ready(function () {
+            $('.footable').footable();
+        });
+    </script>
+{% endblock %}

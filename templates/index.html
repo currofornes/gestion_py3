@@ -7,8 +7,10 @@
 
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
+            {% if user|not_in_group:"guardia" %}
             <div class="col-md-3">
                 <div class="ibox">
+
                     {% if user|has_group:"jefatura de estudios" %}
                         <div class="ibox-content product-box" onclick="location.href='/centro/alumnos';"
                              style="cursor: pointer;">
@@ -30,6 +32,7 @@
                     </div>
                 </div>
             </div>
+                {% endif %}
 
             {% if is_tutor %}
                 <div class="col-md-3">
@@ -100,7 +103,7 @@
                     </div>
                 </div>
             </div>
-
+            {% if user|not_in_group:"guardia" %}
             <div class="col-md-3">
                 <div class="ibox">
                     {% if user|has_group:"jefatura de estudios" %}
@@ -122,7 +125,8 @@
                     </div>
                 </div>
             </div>
-
+            {% endif %}
+            {% if user|not_in_group:"guardia" %}
             <div class="col-md-3">
                 <div class="ibox">
                     <div class="ibox-content product-box" onclick="location.href='/tde/misincidenciastic';"
@@ -139,6 +143,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
 
             {% if user.is_superuser %}
                 <div class="col-md-3">

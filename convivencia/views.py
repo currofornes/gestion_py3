@@ -9,7 +9,7 @@ from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones
 from centro.models import Cursos
 from django.contrib.auth.decorators import login_required, user_passes_test
 import time, calendar
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from operator import itemgetter
 from django.db.models import Count
 from django.template.loader import get_template
@@ -1058,3 +1058,27 @@ def alumnadosancionable(request):
     }
 
     return render(request, 'alumnadosancionable.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def sanciones_reincorporacion(request):
+    # Obtener la fecha seleccionada o usar la fecha de hoy si no se proporciona ninguna
+    fecha_seleccionada = request.GET.get('fecha')
+    if fecha_seleccionada:
+        fecha_reincorporacion = timezone.datetime.strptime(fecha_seleccionada, "%Y-%m-%d").date()
+    else:
+        fecha_reincorporacion = timezone.now().date()
+
+    # Filtrar las sanciones cuya fecha de finalización es el día anterior a la fecha de reincorporación
+    sanciones_reincorporacion = Sanciones.objects.filter(Fecha_fin=fecha_reincorporacion - timedelta(days=1))
+
+    # Enumerar las sanciones para mostrarlas en el template
+    datos = zip(range(1, len(sanciones_reincorporacion) + 1), sanciones_reincorporacion)
+
+    context = {
+        'fecha_reincorporacion': fecha_reincorporacion,
+        'sanciones_reincorporacion': datos,
+        'menu_convivencia': True,
+    }
+
+    return render(request, 'sancionesreincorporacion.html', context)
