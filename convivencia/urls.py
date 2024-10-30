@@ -33,6 +33,10 @@ urlpatterns = [
 
 	re_path(r'^alumnadosancionable$', views.alumnadosancionable, name='alumnadosancionable'),
 
+	re_path(r'^reincorporacionsanciones$', views.sanciones_reincorporacion, name='sanciones_reincorporacion'),
+
+
+
 
         	
 
