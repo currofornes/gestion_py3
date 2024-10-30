@@ -38,6 +38,8 @@ urlpatterns = [
 
     re_path(r'^horarios/', include('horarios.urls')),
 
+    re_path(r'^calendario/', include('calendario.urls')),
+
     path('cambiar-password/', cambiar_password, name='cambiar_password'),
     path('cambiar-password-custom/', cambiar_password_custom, name='cambiar_password_custom'),
 

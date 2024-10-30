@@ -1,0 +1,62 @@
+{
+    "inicio_curso": "2024-09-16",
+    "final_curso": "2025-06-25",
+    "festivos": [
+        {
+            "title": "Día no lectivo local.",
+            "start": "2024-10-21",
+            "className": "bg-info text-white"
+        },
+        {
+            "title": "Día de todos los Santos",
+            "start": "2024-11-01",
+            "className": "bg-info"
+        },
+        {
+            "start": "2024-12-06",
+            "className": "bg-info"
+        },
+        {
+            "start": "2024-12-09",
+            "className": "bg-info"
+        },
+        {
+            "start": "2025-01-07",
+            "className": "bg-info"
+        },
+        {
+            "start": "2025-02-27",
+            "className": "bg-info"
+        },
+        {
+            "start": "2025-02-28",
+            "className": "bg-info"
+        },
+        {
+            "start": "2025-05-01",
+            "className": "bg-info"
+        },
+        {
+            "start": "2025-05-02",
+            "className": "bg-info"
+        },
+        {
+            "start": "2025-05-22",
+            "className": "bg-info"
+        },
+        {
+            "start": "2025-05-23",
+            "className": "bg-info"
+        },
+        {
+            "start": "2024-12-23",
+            "end": "2025-01-01",
+            "className": "bg-info"
+        },
+        {
+            "start": "2025-04-14",
+            "end": "2025-04-21",
+            "className": "bg-info"
+        }
+    ]
+}

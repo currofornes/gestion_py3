@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     "absentismo.apps.AbsentismoConfig",
     "reservas.apps.ReservasConfig",
     "horarios.apps.HorariosConfig",
-    "guardias.apps.GuardiasConfig"
+    "guardias.apps.GuardiasConfig",
+    'calendario.apps.CalendarioConfig'
 ]
 
 MIDDLEWARE = [
@@ -143,11 +144,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 import configparser
 configuracion = configparser.ConfigParser()
 configuracion.read(os.path.join(BASE_DIR, 'gestion.cfg'))
-EMAIL_HOST = configuracion.get('bd','EMAIL_HOST')
-EMAIL_HOST_USER = configuracion.get('bd','EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = configuracion.get('bd','EMAIL_HOST_PASSWORD')
-EMAIL_PORT = configuracion.get('bd','EMAIL_PORT')
-EMAIL_USE_TLS = configuracion.get('bd','EMAIL_USE_TLS')
+# EMAIL_HOST = configuracion.get('bd','EMAIL_HOST')
+# EMAIL_HOST_USER = configuracion.get('bd','EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = configuracion.get('bd','EMAIL_HOST_PASSWORD')
+# EMAIL_PORT = configuracion.get('bd','EMAIL_PORT')
+# EMAIL_USE_TLS = configuracion.get('bd','EMAIL_USE_TLS')
 
 
 

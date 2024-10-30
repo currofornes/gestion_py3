@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col">
+                <h2>Calendario de faltas de: Alumno/a</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <span class="bg-danger">  Falta a día completo. </span>
+                <span> &nbsp; </span>
+                <span class="bg-warning"> Falta a horas sueltas. </span>
+            </div>
+        </div>
+        <div class="row">
+            <div id="cal-sep_dic" class="col-sm"></div>
+        </div>
+        <div class="row">
+            <div id="cal-ene_jun" class="col-sm"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/fullcalendar/index.global.js' %}"></script>
+    <script src="{% static 'js/plugins/fullcalendar/locales/es.global.js' %}"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            inicio_curso = '';
+            final_curso = '';
+            festivos = '';
+
+            $.getJSON("{% static 'data/calendario.json' %}", function(data) {
+                inicio_curso = data.inicio_curso;
+                final_curso = data.final_curso;
+                festivos = data.festivos;
+            })
+
+            var calendar_1 = new FullCalendar.Calendar($('#cal-sep_dic')[0], {
+                locale: 'es',
+                editable: false,
+                droppable: false,
+                weekends: false,
+                validRange: {
+                    start: inicio_curso,
+                    end: '2024-12-31'
+                },
+                initialView: 'sept_dic',
+                views: {
+                    sept_dic: {
+                        type: 'multiMonth',
+                        duration: {months: 4}
+                    }
+                },
+                initialDate: inicio_curso,
+                headerToolbar: {
+                    start: 'title',
+                    center: '',
+                    end: ''
+                }
+            });
+
+            var calendar_2 = new FullCalendar.Calendar($('#cal-ene_jun')[0], {
+                locale: 'es',
+                editable: false,
+                droppable: false,
+                weekends: false,
+                validRange: {
+                    start: '2025-01-01',
+                    end: final_curso
+                },
+                initialView: 'ene_jun',
+                views: {
+                    ene_jun: {
+                        type: 'multiMonth',
+                        duration: {months: 6}
+                    }
+                },
+                headerToolbar: {
+                    start: 'title',
+                    center: '',
+                    end: ''
+                }
+            });
+
+            function addEvent(evento){
+                inicio = new Date(evento.start);
+
+                if(inicio.getFullYear() === 2024){
+                    var cal = calendar_1
+                }
+                if(inicio.getFullYear() === 2025){
+                    var cal = calendar_2
+                }
+                cal.addEvent(evento)
+            }
+
+            festivos.forEach(function(festivo){
+                addEvent(festivo)
+            });
+
+            // Petición AJAX para obtener las faltas de JSON
+            $.getJSON("{% url 'faltas_json' alum_id=1 %}", function(data) {
+                data.NJ_diacompleto.forEach(function(fecha) {
+                    addEvent({ start: fecha, className: 'bg-danger' });
+                });
+                data.NJ_tramos.forEach(function(fecha) {
+                    addEvent({ start: fecha, className: 'bg-warning' });
+                });
+            });
+
+            calendar_1.render();
+            calendar_2.render();
+
+        });
+
+    </script>
+{% endblock %}

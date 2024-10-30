@@ -280,3 +280,8 @@ def todoalumnado(request):
     }
 
     return render(request, 'todoalumnado.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof_and_tutor_or_je_or_orientacion, login_url='/')
+def cargarfaltas(request, proto_id):
+    pass
