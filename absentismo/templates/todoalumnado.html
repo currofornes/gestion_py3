@@ -46,7 +46,7 @@
                                 </thead>
                                 <tbody>
                                     {% for alum, edad, info in alumnos %}
-                                        <tr>
+                                        <tr style="{% if info.ultima_actuacion.id == 10 %} background-color: #fbe4bd; {% endif %}">
                                             <td>{{ alum.Nombre }} {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</td>
                                             <td class="text-center">{{ alum.Fecha_nacimiento|date:"d/m/Y" }}</td>
                                             <td class="text-center">{{ edad }}</td>

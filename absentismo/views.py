@@ -27,7 +27,7 @@ def verprotocolo(request, alum_id):
     protocolos_cerrados = alum.protocolos.filter(abierto=False)
     protocolos_cerrados = sorted(protocolos_cerrados, key=lambda x: x.fecha_cierre, reverse=False)
 
-    context = {'alum': alum, 'protocolo': protocolo, 'protocolos_cerrados': protocolos_cerrados}
+    context = {'alum': alum, 'protocolo': protocolo, 'protocolos_cerrados': protocolos_cerrados, 'menu_absentismo': True}
     return render(request, 'protocolos.html', context)
 
 
@@ -63,9 +63,9 @@ def misalumnos(request):
 
 
     try:
-        context = {'alumnos': lista_combinada, 'curso': cursos.get(id=primer_id), 'profesor': profesor}
+        context = {'alumnos': lista_combinada, 'curso': cursos.get(id=primer_id), 'profesor': profesor, 'menu_absentismo': True}
     except:
-        context = {'alumnos': lista_combinada, 'curso': None, 'profesor': profesor}
+        context = {'alumnos': lista_combinada, 'curso': None, 'profesor': profesor, 'menu_absentismo': True}
     return render(request, 'misalumnosabs.html', context)
 
 
@@ -150,7 +150,7 @@ def nuevaactuacion(request, proto_id):
 
     titulo = "Actuaciones Absentismo"
 
-    context = {'form': form, 'titulo': titulo, 'protocolo': protocolo}
+    context = {'form': form, 'titulo': titulo, 'protocolo': protocolo, 'menu_absentismo': True}
     return render(request, 'actuacionprotocolo.html', context)
 
 
@@ -198,7 +198,7 @@ def abrirprotocolo(request, alum_id):
 
     titulo = "Actuaciones Absentismo"
 
-    context = {'form': form, 'titulo': titulo, 'protocolo': nuevo_protocolo}
+    context = {'form': form, 'titulo': titulo, 'protocolo': nuevo_protocolo, 'menu_absentismo': True}
     return render(request, 'actuacionprotocolo.html', context)
 
 
@@ -209,7 +209,7 @@ def verprotocolocerrado(request, proto_id):
     alumno = protocolo.alumno
     tutor = protocolo.tutor
 
-    context = {'alumno': alumno, 'protocolo': protocolo, 'tutor': tutor}
+    context = {'alumno': alumno, 'protocolo': protocolo, 'tutor': tutor, 'menu_absentismo': True}
     return render(request, 'protocolocerrado.html', context)
 
 
@@ -276,7 +276,8 @@ def todoalumnado(request):
         'cursos': cursos,
         'alumnos': lista_combinada,
         'curso_seleccionado': curso_seleccionado,
-        'profesor': profesor
+        'profesor': profesor,
+        'menu_absentismo': True
     }
 
     return render(request, 'todoalumnado.html', context)

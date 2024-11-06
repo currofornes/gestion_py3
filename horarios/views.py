@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
@@ -141,9 +141,22 @@ def horario_curso_view(request):
     cursos = Cursos.objects.all()  # Lista de todos los cursos para el desplegable
 
     items_horario = None
+    profesores_materias = defaultdict(list)
+    tutor = None
+
     if curso_id:
         # Filtrar los horarios por el curso seleccionado y ordenar por día y tramo
         items_horario = ItemHorario.objects.filter(unidad_id=curso_id).order_by('dia', 'tramo')
+
+        # Obtener el curso y su tutor
+        curso = Cursos.objects.filter(id=curso_id).first()
+        if curso and curso.Tutor:
+            tutor = curso.Tutor  # Asignar el tutor del curso
+
+        # Agrupar profesores y materias en el curso
+        for item in items_horario:
+            if item.profesor and item.materia:  # Asegurarse de que hay un profesor y una materia en el ItemHorario
+                profesores_materias[item.profesor].append(item.materia)
 
     # Crear un diccionario para el horario
     horario = {tramo: {dia: [] for dia in range(1, 6)} for tramo in range(1, 8)}
@@ -154,11 +167,16 @@ def horario_curso_view(request):
         for item in items_horario:
             horario[item.tramo][item.dia].append(item)
 
+    # Convertir materias en una lista única por profesor
+    profesores_materias = {profesor: ', '.join(set(materias)) for profesor, materias in profesores_materias.items()}
+
     context = {
         'cursos': cursos,
         'horario': horario,
         'tramos': tramos,  # Pasar el rango de tramos al contexto
         'dias': range(1, 6),  # Pasar el rango de días al contexto
+        'profesores_materias': profesores_materias,
+        'tutor': tutor,
         'menu_horarios': True
     }
     return render(request, 'horario_grupo.html', context)
@@ -276,13 +294,6 @@ def aulas_libres(request):
                 # Comprobar si la aula está ocupada en el tramo y día específicos
                 if not items_horario.filter(aula=aula, tramo=tramo, dia=dia).exists():
                     horario_aulas_libres[tramo][dia].append(aula)
-
-    # Imprimir el resultado en la consola para depuración
-    print("Horario de Aulas Libres:")
-    for tramo, dias in horario_aulas_libres.items():
-        for dia, aulas_libres in dias.items():
-            print(f"Tramo: {tramo}, Día: {dia}, Aulas Libres: {[aula.Aula for aula in aulas_libres]}")
-
 
     context = {
         'aulas_libres': horario_aulas_libres,
