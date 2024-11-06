@@ -245,8 +245,7 @@
             // Inicializar select2 solo cuando el modal esté completamente mostrado
             $('#modalausenciaprofe').on('shown.bs.modal', function () {
 
-
-                //$('#profesor-ausente').empty().trigger('change');  // Limpiar el select y reiniciar
+                // Comprobar si Select2 ya está inicializado para evitar duplicados
 
                 $('#profesor-ausente').select2({
                     placeholder: 'Selecciona un profesor',
@@ -512,6 +511,10 @@
                 }
             });
 
+            $('#modalausenciaprofe').on('hidden.bs.modal', function () {
+                $('#profesor-ausente').select2('destroy');
+            });
+
             $('#profesor-ausente').on('select2:open', function (e) {
                 // Previene que el campo pierda el foco de forma inesperada
                 setTimeout(() => {
@@ -563,6 +566,7 @@
 
                                     // Recarga la página
                                     //location.reload();
+                                    actualizarGuardias(fechaSeleccionada);
                                 });
 
                                 // Cierra el modal

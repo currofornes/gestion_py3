@@ -68,7 +68,12 @@ class Amonestaciones(models.Model):
 		hoy = datetime.now().date()  # Obtener la fecha de hoy
 
 		diferencia = self.Fecha - hoy
-		tipo = self.Tipo.TipoAmonestacion[1] == "L" if "Leve" else "Grave"
+
+		if self.Tipo and self.Tipo.TipoAmonestacion:
+			tipo = "Leve" if self.Tipo.TipoAmonestacion[1] == "L" else "Grave"
+		else:
+			# Asigna un valor por defecto si Tipo o TipoAmonestacion es None
+			tipo = "Desconocido"
 
 		if tipo == "Leve":
 			return diferencia.days > 30
@@ -87,10 +92,12 @@ class Amonestaciones(models.Model):
 
 	@property
 	def gravedad(self):
-		if self.Tipo.TipoFalta == "L":
-			return "Leve"
-		if self.Tipo.TipoFalta == "G":
-			return "Grave"
+		if self.Tipo and self.Tipo.TipoFalta:
+			if self.Tipo.TipoFalta == "L":
+				return "Leve"
+			elif self.Tipo.TipoFalta == "G":
+				return "Grave"
+		return "Desconocida"  # Valor por defecto si Tipo o TipoFalta es None
 
 	class Meta:
 		verbose_name="Amonestación"

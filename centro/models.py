@@ -106,9 +106,16 @@ class Cursos(models.Model):
     def __str__(self):
         return self.Curso
 
+    def __lt__(self, other):
+        # Comparar los cursos según su 'id' o el campo que prefieras para la ordenación
+        if isinstance(other, Cursos):
+            return self.id < other.id
+        return NotImplemented
+
     class Meta:
         verbose_name = "Curso"
         verbose_name_plural = "Cursos"
+        ordering = ['id']
 
 
 class Alumnos(models.Model):

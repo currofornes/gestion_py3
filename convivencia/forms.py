@@ -49,6 +49,7 @@ class AmonestacionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filtrar el queryset del campo 'Profesor' para que solo muestre profesores que no están dados de baja
         self.fields['Profesor'].queryset = Profesores.objects.filter(Baja=False)
+        self.fields['Tipo'].required = True
 
 
 
@@ -139,6 +140,7 @@ class AmonestacionProfeForm(forms.ModelForm):
             self.fields['Profesor'].initial = self.instance.Profesor
         else:
             self.fields['Fecha'].initial = datetime.today()  # Establecer la fecha de hoy como valor inicial
+        self.fields['Tipo'].required = True
 
 class ResumenForm(forms.Form):
     fecha = forms.DateField(widget=DatePickerInput(attrs={

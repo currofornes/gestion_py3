@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+{% load horario_tags %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Aulas Libres{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h2>Aulas Libres</h2>
+                    </div>
+
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-12">
+
+                                {% if aulas_libres %}
+                                    <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr class="text-center">
+                                            <th class="bg-success">TRAMO</th>
+                                            <th class="bg-success">LUNES</th>
+                                            <th class="bg-success">MARTES</th>
+                                            <th class="bg-success">MIÉRCOLES</th>
+                                            <th class="bg-success">JUEVES</th>
+                                            <th class="bg-success">VIERNES</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for tramo in tramos %}
+                                            {% if tramo == "RECREO" %}
+                                            <tr class="bg-light-warning">
+                                            {% else %}
+                                            <tr>
+                                            {% endif %}
+
+                                                <td class="bg-info text-center" style="vertical-align: middle;"><strong>{{ tramo }}</strong></td>
+                                                {% for dia in dias %}
+                                                    <td class="text-center" style="vertical-align: middle; border: 1px solid #000000;">
+                                                        {% if aulas_libres %}
+                                                            {% if aulas_libres|get_item:forloop.parentloop.counter %}
+                                                                {% if aulas_libres|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                                    {% for aula in aulas_libres|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                                        <span class="simple_tag">{{ aula }}</span>
+                                                                        <br>
+                                                                    {% endfor %}
+                                                                {% else %}
+                                                                    No hay aulas libres
+                                                                {% endif %}
+                                                            {% else %}
+                                                                No hay aulas libres
+                                                            {% endif %}
+                                                        {% else %}
+                                                            No hay aulas libres
+                                                        {% endif %}
+                                                    </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    </div>
+                                {% else %}
+                                    <p>No se encontraron aulas libres.</p>
+                                {% endif %}
+
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#profesor").select2({
+                theme: 'bootstrap4',
+            });
+        });
+    </script>
+{% endblock %}

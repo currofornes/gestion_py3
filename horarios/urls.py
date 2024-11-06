@@ -10,6 +10,8 @@ urlpatterns = [
 
     re_path(r'^mihorario$', views.mihorario, name='mihorario'),
 
+    re_path(r'^aulaslibres$', views.aulas_libres, name='aulas_libres'),
+
     path('profesor/<int:profesor_id>/editar/', EditarHorarioProfesorView.as_view(), name='editar_horario_profesor'),
     path('horario/<int:pk>/editar_item/', UpdateHorarioView.as_view(), name='editar_item_horario'),
 

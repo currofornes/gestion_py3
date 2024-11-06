@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
@@ -7,8 +9,8 @@ from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, UpdateView, DeleteView, CreateView
 
-from centro.models import Cursos
-from centro.views import group_check_prof, group_check_prof_or_guardia
+from centro.models import Cursos, Aulas
+from centro.views import group_check_prof, group_check_prof_or_guardia, group_check_je
 from .forms import ItemHorarioForm
 from .models import Profesores, ItemHorario
 
@@ -32,6 +34,9 @@ def horario_profesor_view(request):
     horario = {tramo: {dia: [] for dia in range(1, 6)} for tramo in range(1, 8)}
     tramos = ['1ª hora', '2ª hora', '3ª hora', 'RECREO', '4ª hora', '5ª hora', '6ª hora']
 
+    # Diccionario para almacenar las unidades y sus materias
+    unidades_dict = {}
+
     if items_horario:
         # Rellenar el diccionario con los ítems del horario
         for item in items_horario:
@@ -48,12 +53,36 @@ def horario_profesor_view(request):
                 item.unidades_combinadas = str(item.unidad)  # Inicializar el campo virtual
                 horario[item.tramo][item.dia].append(item)
 
+            # Llenar el diccionario de unidades y materias
+            if "GUARDIA" not in str(item.unidad).upper() and "GUARDIA" not in str(item.materia).upper():
+                unidad_id = item.unidad.id
+                unidad_nombre = item.unidad.Curso
+                materia_nombre = item.materia
+
+                # Si la unidad ya está en el diccionario, añadimos la materia si no está
+                if unidad_id in unidades_dict:
+                    if materia_nombre not in unidades_dict[unidad_id]['materias']:
+                        unidades_dict[unidad_id]['materias'].append(materia_nombre)
+                else:
+                    # Crear una nueva entrada para la unidad con su nombre y una lista de materias
+                    unidades_dict[unidad_id] = {'nombre': unidad_nombre, 'materias': [materia_nombre]}
+
+    # Ordenar las unidades por su ID
+    unidades_dict = OrderedDict(sorted(unidades_dict.items()))
+
+    # Formatear el listado de unidades y materias para el contexto
+    unidades_materias = [
+        {'unidad': unidad_data['nombre'], 'materias': ', '.join(unidad_data['materias'])}
+        for unidad_id, unidad_data in unidades_dict.items()
+    ]
+
     context = {
         'profesores': profesores,
         'horario': horario,
         'tramos': tramos,  # Pasar el rango de tramos al contexto
         'dias': range(1, 6),  # Pasar el rango de días al contexto
-        'menu_horarios': True
+        'menu_horarios': True,
+        'unidades_materias': unidades_materias
     }
     return render(request, 'horario_profesor.html', context)
 
@@ -199,3 +228,68 @@ class CrearItemHorarioView(CreateView):
             return JsonResponse(data)
 
         return super().form_valid(form)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def aulas_libres(request):
+    # Obtener todas las aulas que no contengan las palabras clave
+    aulas = Aulas.objects.exclude(
+        Aula__icontains='Maleta'
+    ).exclude(
+        Aula__icontains='Carro'
+    ).exclude(
+        Aula__icontains='Moodle'
+    ).exclude(
+        Aula__icontains='Otros'
+    ).exclude(
+        Aula__icontains='profesores'
+    ).exclude(
+        Aula__icontains='Dpto'
+    ).exclude(
+        Aula__icontains='Biblioteca'
+    ).exclude(
+        Aula__icontains='familias'
+    ).exclude(
+        Aula__icontains='Laboratorio'
+    ).exclude(
+        Aula__icontains='Convivencia'
+    ).exclude(
+        Aula__icontains='Música'
+    ).exclude(
+        Aula__icontains='Taller'
+    )
+
+    tramos = ['1ª hora', '2ª hora', '3ª hora', 'RECREO', '4ª hora', '5ª hora', '6ª hora']
+
+    # Obtener todos los ítems de horario
+    items_horario = ItemHorario.objects.all()
+
+    # Crear un diccionario para las aulas libres
+    horario_aulas_libres = {tramo: {dia: [] for dia in range(1, 6)} for tramo in range(1, 8)}
+
+    # Llenar el diccionario de aulas libres
+    for aula in aulas:
+        for tramo in range(1, 8):
+            if tramo == 4:
+                continue
+            for dia in range(1, 6):
+                # Comprobar si la aula está ocupada en el tramo y día específicos
+                if not items_horario.filter(aula=aula, tramo=tramo, dia=dia).exists():
+                    horario_aulas_libres[tramo][dia].append(aula)
+
+    # Imprimir el resultado en la consola para depuración
+    print("Horario de Aulas Libres:")
+    for tramo, dias in horario_aulas_libres.items():
+        for dia, aulas_libres in dias.items():
+            print(f"Tramo: {tramo}, Día: {dia}, Aulas Libres: {[aula.Aula for aula in aulas_libres]}")
+
+
+    context = {
+        'aulas_libres': horario_aulas_libres,
+        'tramos': tramos,
+        'dias': range(1, 6),
+        'menu_horarios': True
+    }
+
+
+    return render(request, 'aulas_libres.html', context)

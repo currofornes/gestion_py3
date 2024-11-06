@@ -54,64 +54,94 @@
 
                                 {% if horario %}
                                     <div class="table-responsive">
-                                    <table class="table table-bordered">
-                                        <thead>
-                                        <tr class="text-center" style="border: 3px solid #EBEBEB;">
-                                            <th class="bg-success">TRAMO</th>
-                                            <th class="bg-success">LUNES</th>
-                                            <th class="bg-success">MARTES</th>
-                                            <th class="bg-success">MIÉRCOLES</th>
-                                            <th class="bg-success">JUEVES</th>
-                                            <th class="bg-success">VIERNES</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {% for tramo in tramos %}
-                                            {% if tramo == "RECREO" %}
-                                                <tr class="bg-light-warning">
-                                                    {% else %}
-                                                <tr>
-                                            {% endif %}
+                                        <table class="table table-bordered">
+                                            <thead>
+                                            <tr class="text-center" style="border: 3px solid #EBEBEB;">
+                                                <th class="bg-success">TRAMO</th>
+                                                <th class="bg-success">LUNES</th>
+                                                <th class="bg-success">MARTES</th>
+                                                <th class="bg-success">MIÉRCOLES</th>
+                                                <th class="bg-success">JUEVES</th>
+                                                <th class="bg-success">VIERNES</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for tramo in tramos %}
+                                                {% if tramo == "RECREO" %}
+                                                    <tr class="bg-light-warning">
+                                                        {% else %}
+                                                    <tr>
+                                                {% endif %}
 
-                                        <td class="bg-info text-center" style="vertical-align: middle;">
-                                            <strong>{{ tramo }}</strong></td>
-                                        {% for dia in dias %}
-                                            <td class="text-center" style="vertical-align: middle; border: 1px solid #000000;">
-                                                {% if horario %}
-                                                    {% if horario|get_item:forloop.parentloop.counter %}
-                                                        {% if horario|get_item:forloop.parentloop.counter|get_item:dia %}
-                                                            {% for item in horario|get_item:forloop.parentloop.counter|get_item:dia %}
-                                                                <strong><span
-                                                                        class="simple_tag">{{ item.materia }}</span></strong>
-                                                                {% if item.materia != "GUARDIAS" and item.materia != "GUARDIAS DE RECREO" %}
-                                                                    <br><br>
-                                                                    <small>
-                                                                        <span class="text-success">{{ item.unidades_combinadas }}</span>
-                                                                        - <span
-                                                                            class="text-danger">{{ item.aula }}</span>
-                                                                    </small><br>
-                                                                {% endif %}
-                                                            {% endfor %}
+                                            <td class="bg-info text-center" style="vertical-align: middle;">
+                                                <strong>{{ tramo }}</strong></td>
+                                            {% for dia in dias %}
+                                                <td class="text-center"
+                                                    style="vertical-align: middle; border: 1px solid #000000;">
+                                                    {% if horario %}
+                                                        {% if horario|get_item:forloop.parentloop.counter %}
+                                                            {% if horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                                {% for item in horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                                    <strong><span
+                                                                            class="simple_tag">{{ item.materia }}</span></strong>
+                                                                    {% if item.materia != "GUARDIAS" and item.materia != "GUARDIAS DE RECREO" %}
+                                                                        <br><br>
+                                                                        <small>
+                                                                            <span class="text-success">{{ item.unidades_combinadas }}</span>
+                                                                            - <span
+                                                                                class="text-danger">{{ item.aula }}</span>
+                                                                        </small><br>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                -
+                                                            {% endif %}
                                                         {% else %}
                                                             -
                                                         {% endif %}
                                                     {% else %}
                                                         -
                                                     {% endif %}
-                                                {% else %}
-                                                    -
-                                                {% endif %}
-                                            </td>
-                                        {% endfor %}
-                                        </tr>
-                                        {% endfor %}
-                                        </tbody>
-                                    </table>
+                                                </td>
+                                            {% endfor %}
+                                            </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 {% else %}
                                     <p>Selecciona un profesor para ver su horario.</p>
                                 {% endif %}
 
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox ">
+                                    <div class="ibox-title">
+                                        <h4>Unidades y Materias</h4>
+                                    </div>
+                                    <div class="ibox-content">
+
+                                        <table class="table table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th>Unidad</th>
+                                                <th>Materias</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for item in unidades_materias %}
+                                                <tr>
+                                                    <td>{{ item.unidad }}</td>
+                                                    <td>{{ item.materias }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
