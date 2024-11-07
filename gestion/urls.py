@@ -21,22 +21,24 @@ from gestion.views import index, salir, login_view, cambiar_password, cambiar_pa
 urlpatterns = [
 
     path('admin/descargar-db/', descargar_base_datos, name='descargar_base_datos'),
-    re_path(r'^admin/', admin.site.urls),
-    re_path(r'^centro/', include('centro.urls')),
-    re_path(r'^convivencia/', include('convivencia.urls')),
-    re_path(r'^pdf/', include('pdf.urls')),
-    re_path(r'^$',index, name='index'),
-    re_path(r'^logout/$',salir),
+    path('admin/', admin.site.urls),
+    path('centro/', include('centro.urls')),
+    path('convivencia/', include('convivencia.urls')),
+    path('pdf/', include('pdf.urls')),
+    path('',index, name='index'),
+    path('logout/',salir),
     # Curro Jul 24:
-    re_path(r'^login/$', login_view, name='login'),
-    re_path(r'^tde/', include('tde.urls')),
-    re_path(r'^absentismo/', include('absentismo.urls')),
+    path(r'login/', login_view, name='login'),
+    path('tde/', include('tde.urls')),
+    path('absentismo/', include('absentismo.urls')),
 
-    re_path(r'^reservas/', include('reservas.urls')),
+    path('reservas/', include('reservas.urls')),
 
-    re_path(r'^guardias/', include('guardias.urls')),
+    path('guardias/', include('guardias.urls')),
 
-    re_path(r'^horarios/', include('horarios.urls')),
+    path('horarios/', include('horarios.urls')),
+
+    path('DACE/', include('DACE.urls')),
 
     path('cambiar-password/', cambiar_password, name='cambiar_password'),
     path('cambiar-password-custom/', cambiar_password_custom, name='cambiar_password_custom'),

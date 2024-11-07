@@ -138,6 +138,18 @@
                     <a href="#"><i class="fa fa-address-book-o"></i> <span class="nav-label">Horarios</span> </a>
                 </li>
                 -->
+                <li class="menu-DACE {% if menu_DACE %} active{% endif %}">
+                    <a href="#">
+                        <i class="fa fa-bus"></i> <span class="nav-label">DACE</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level collapse">
+                    {% if user|has_group:"profesor" %}
+                        <li><a href="/DACE/crear_actividad">Nueva actividad</a></li>
+                    {% endif %}
+                    </ul>
+                </li>
+
                 {% if user|has_group:"jefatura de estudios" or user|has_group:"tde" %}
 
                     <li class="{% if menu_reservas %} active{% endif %}">
