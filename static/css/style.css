@@ -9912,3 +9912,7 @@ tr.disabled {
     pointer-events: none;  /* Evita que se pueda seleccionar */
     cursor: not-allowed;  /* Cambia el cursor */
 }
+
+.modal-xxl {
+  max-width: 1000px !important;
+}

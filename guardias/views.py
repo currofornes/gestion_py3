@@ -7,9 +7,11 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Count
+from django.forms import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 from django.utils.timezone import localtime
 
 from centro.models import Profesores, Cursos, Aulas, CursoAcademico
@@ -76,6 +78,7 @@ def itemguardia_to_dict(item):
     profesores_guardia = [prof.nombre_completo for prof in item.ProfesoresGuardia.all()]
 
     return {
+        'tramo_num': item.Tramo,
         'tramo': TRAMOS_NOMBRES.get(item.Tramo, f'Tramo {item.Tramo}'),
         'materia': item.Materia,
         'unidad': item.Unidad.Curso if item.Unidad else 'Sin unidad',  # Aseguramos que no sea None
@@ -399,46 +402,82 @@ def parteguardias_ajax(request):
         # Preparar las tablas para cada tramo horario
         tablas = {}
 
+        item_guardias_por_tramo = defaultdict(list)
+
+        # Iterar sobre cada tramo de 1 a 7
+        for tramo in range(1, 8):
+            # Filtrar los ItemGuardia por el tramo actual
+            item_guardias_tramo = item_guardias.filter(Tramo=tramo)
+
+            # Procesar cada guardia en el tramo actual
+            for guardia in item_guardias_tramo:
+                guardia.profesor_tiempos = []
+
+                # Iterar sobre cada profesor en ProfesoresGuardia para esta guardia
+                for profesor in guardia.ProfesoresGuardia.all():
+                    # Obtener el tiempo asignado para el profesor específico en esta guardia
+                    tiempo_guardia = TiempoGuardia.objects.filter(
+                        profesor=profesor,
+                        item_guardia=guardia
+                    ).first()
+
+                    # Agregar al contexto el profesor y su tiempo asignado
+                    guardia.profesor_tiempos.append({
+                        'profesor': profesor,
+                        'tiempo_asignado': tiempo_guardia.tiempo_asignado if tiempo_guardia else 0
+                    })
+
+                # Agregar la guardia con la información de tiempos al diccionario por tramo
+                item_guardias_por_tramo[tramo].append(guardia)
+
         # Pasar la lista de profesores a las tablas con los nombres correctos de las tablas
         tablas['tabla_1h'] = render_to_string('partials/tabla_guardias.html', {
             'tramo': 1,
-            'item_guardias': item_guardias.filter(Tramo=1),
+            'item_guardias': item_guardias_por_tramo[1],
+            'item_guardias_data': serializar_item_guardias(item_guardias.filter(Tramo=1)),
             'profesores_guardia': profesores_guardia_info[1],
             'profesor_confirma': request.user.profesor,
         })
         tablas['tabla_2h'] = render_to_string('partials/tabla_guardias.html', {
             'tramo': 2,
-            'item_guardias': item_guardias.filter(Tramo=2),
+            'item_guardias': item_guardias_por_tramo[2],
+            'item_guardias_data': serializar_item_guardias(item_guardias.filter(Tramo=2)),
             'profesores_guardia': profesores_guardia_info[2],
             'profesor_confirma': request.user.profesor,
         })
         tablas['tabla_3h'] = render_to_string('partials/tabla_guardias.html', {
             'tramo': 3,
-            'item_guardias': item_guardias.filter(Tramo=3),
+            'item_guardias': item_guardias_por_tramo[3],
+            'item_guardias_data': serializar_item_guardias(item_guardias.filter(Tramo=3)),
             'profesores_guardia': profesores_guardia_info[3],
             'profesor_confirma': request.user.profesor,
         })
         tablas['tabla_rec'] = render_to_string('partials/tabla_guardias.html', {
             'tramo': 4,
-            'item_guardias': item_guardias.filter(Tramo=4),
+            'item_guardias': item_guardias_por_tramo[4],
+            'item_guardias_data': serializar_item_guardias(item_guardias.filter(Tramo=4)),
             'profesores_guardia': profesores_guardia_info[4],
             'profesor_confirma': request.user.profesor,
         })
+
         tablas['tabla_4h'] = render_to_string('partials/tabla_guardias.html', {
             'tramo': 5,
-            'item_guardias': item_guardias.filter(Tramo=5),
+            'item_guardias': item_guardias_por_tramo[5],
+            'item_guardias_data': serializar_item_guardias(item_guardias.filter(Tramo=5)),
             'profesores_guardia': profesores_guardia_info[5],
             'profesor_confirma': request.user.profesor,
         })
         tablas['tabla_5h'] = render_to_string('partials/tabla_guardias.html', {
             'tramo': 6,
-            'item_guardias': item_guardias.filter(Tramo=6),
+            'item_guardias': item_guardias_por_tramo[6],
+            'item_guardias_data': serializar_item_guardias(item_guardias.filter(Tramo=6)),
             'profesores_guardia': profesores_guardia_info[6],
             'profesor_confirma': request.user.profesor,
         })
         tablas['tabla_6h'] = render_to_string('partials/tabla_guardias.html', {
             'tramo': 7,
-            'item_guardias': item_guardias.filter(Tramo=7),
+            'item_guardias': item_guardias_por_tramo[7],
+            'item_guardias_data': serializar_item_guardias(item_guardias.filter(Tramo=7)),
             'profesores_guardia': profesores_guardia_info[7],
             'profesor_confirma': request.user.profesor,
         })
@@ -457,6 +496,42 @@ def parteguardias_ajax(request):
     return JsonResponse({'error': 'Esta no es una solicitud AJAX.'})
 
 
+# Función para serializar item_guardias a diccionarios
+def serializar_item_guardias(item_guardias):
+    item_guardias_data = []
+    for guardia in item_guardias:
+        # Convertimos cada guardia en un diccionario
+        guardia_data = model_to_dict(guardia,
+                                     fields=['id', 'ProfesorAusente', 'Materia', 'Unidad', 'Aula', 'ProfesorConfirma'])
+
+        # Reemplazamos None por 'null' en los campos que lo necesiten, utilizando una comprensión de diccionario
+        guardia_data = {key: (value if value is not None else 'null') for key, value in guardia_data.items()}
+
+        # Agregamos datos de ProfesoresGuardia con su tiempo asignado
+        profesores_guardia_data = []
+        for profesor in guardia.ProfesoresGuardia.all():
+            tiempo_guardia = TiempoGuardia.objects.filter(
+                profesor=profesor,
+                item_guardia=guardia
+            ).first()  # Usamos .first() para obtener solo un tiempo
+
+            # Añadimos los datos del profesor y su tiempo asignado
+            profesor_data = {
+                'id': profesor.id,
+                'nombre': f"{profesor.Apellidos}, {profesor.Nombre}",
+                'tiempo_asignado': tiempo_guardia.tiempo_asignado if tiempo_guardia else 0
+                # Asignar 0 si no hay tiempo registrado
+            }
+            profesores_guardia_data.append(profesor_data)
+
+        # Añadimos la lista completa de profesores con sus tiempos a guardia_data
+        guardia_data['ProfesoresGuardia'] = profesores_guardia_data
+
+        # Añadimos la guardia serializada a la lista principal
+        item_guardias_data.append(guardia_data)
+
+    return item_guardias_data
+'''
 def confirmar_guardia_ajax(request):
     if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         # Obtener los datos enviados mediante POST
@@ -497,7 +572,7 @@ def confirmar_guardia_ajax(request):
 
     return JsonResponse({'success': False, 'error': 'Solicitud inválida'})
 
-
+'''
 def obtener_profesores(request):
     if request.method == 'GET':
         # Recuperar todos los profesores de la base de datos
@@ -689,7 +764,7 @@ def horario_guardia_ajax(request):
     return JsonResponse({'error': 'Esta no es una solicitud AJAX.'})
 
 
-def actualizar_guardias_ajax(request):
+def actualizar_ausencias_ajax(request):
     if request.method == 'POST':
         fecha = request.POST.get('fecha')
         profesor_ausente_id = request.POST.get('profesor_ausente')
@@ -738,6 +813,34 @@ def eliminar_itemguardia_por_fecha_y_profe(request):
 
         # Eliminar los ItemGuardia
         item_guardias.delete()
+
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+def eliminar_itemguardia_por_fecha_profe_y_tramo(request):
+    if request.method == 'POST':
+        fecha_str = request.POST.get('fecha')
+        profesor_id = request.POST.get('profesor_id')
+        tramo = request.POST.get('tramo')
+
+        # Convertir la fecha
+        try:
+            fecha = datetime.strptime(fecha_str, '%d/%m/%Y').date()
+        except ValueError:
+            return JsonResponse({'error': 'Fecha no válida'}, status=400)
+
+        # Obtener los ItemGuardia asociados a la fecha y al profesor
+        profesor = get_object_or_404(Profesores, id=profesor_id)
+
+        # Obtener los ItemGuardia asociados a la fecha y al profesor
+        item_guardia = ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha, Tramo=tramo)
+
+        # Eliminar los tiempos de guardia asociados a esos ItemGuardia
+        if item_guardia.exists():
+            TiempoGuardia.objects.filter(item_guardia__in=item_guardia).delete()  # Borrar los tiempos relacionados
+            item_guardia.delete()  # Borrar los ItemGuardia
 
         return JsonResponse({'success': True})
 
@@ -861,3 +964,54 @@ def estadisticas(request):
     }
 
     return render(request, 'estadisticasguardias.html', context)
+
+def actualizar_guardia_ajax(request):
+    if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Obtener los datos enviados mediante POST
+        item_guardia_id = request.POST.get('item_guardia_id')
+        profesor_confirma_id = request.POST.get('profesor_confirma_id')
+
+        # Deserializar la cadena JSON de 'profesores_guardia_data' en una lista de diccionarios
+        profesores_guardia_data = json.loads(request.POST.get('profesores_guardia_data', '[]'))
+
+        try:
+            # Obtener el ItemGuardia que se va a actualizar
+            item_guardia = ItemGuardia.objects.get(id=item_guardia_id)
+
+            # Crear una lista de IDs de profesores para asignarlos a ProfesoresGuardia en el ItemGuardia
+            profesores_guardia_ids = [profesor['profesor_id'] for profesor in profesores_guardia_data]
+
+            # Obtener los objetos de los profesores seleccionados
+            profesores_guardia = Profesores.objects.filter(id__in=profesores_guardia_ids)
+
+            # Actualizar los campos correspondientes en ItemGuardia
+            item_guardia.ProfesoresGuardia.set(profesores_guardia)  # Asignar los profesores seleccionados
+            item_guardia.ProfesorConfirma_id = profesor_confirma_id  # Asignar el profesor que confirmó
+            item_guardia.save()
+
+            # Eliminar los registros previos de TiempoGuardia para este ItemGuardia, evitando duplicados
+            TiempoGuardia.objects.filter(item_guardia=item_guardia).delete()
+
+            # Reasignar el tiempo específico a cada profesor
+            for profesor_data in profesores_guardia_data:
+                profesor_id = profesor_data.get('profesor_id')
+                tiempo_asignado = profesor_data.get('tiempo_asignado')
+
+                # Obtener el objeto Profesor
+                profesor = Profesores.objects.get(id=profesor_id)
+
+                # Crear el nuevo registro en TiempoGuardia con el tiempo específico
+                TiempoGuardia.objects.create(
+                    profesor=profesor,
+                    dia_semana=item_guardia.Fecha.weekday() + 1,  # 1:Lunes, 2:Martes, etc.
+                    tramo=item_guardia.Tramo,
+                    tiempo_asignado=tiempo_asignado,
+                    item_guardia=item_guardia
+                )
+
+            return JsonResponse({'success': True})
+
+        except ItemGuardia.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'ItemGuardia no encontrado'})
+
+    return JsonResponse({'success': False, 'error': 'Solicitud inválida'})

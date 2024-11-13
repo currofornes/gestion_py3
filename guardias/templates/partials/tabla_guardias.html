@@ -1,192 +1,683 @@
 {% load static %}
+{% load custom_tags %}
 {% block css %}
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+<link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+<link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+<style>
+.swal2-container {
+    z-index: 2080 !important;
+}
+
+.swal2-backdrop-show {
+    z-index: 2075 !important;
+}
+</style>
 {% endblock %}
 
 {% if item_guardias %}
+<div class="modal inmodal fade modal-editar-guardia" id="modaleditarguardia-{{ tramo }}" tabindex="-1" role="dialog" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span
+               aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+            </button>
+            <h4 class="modal-title">Editar guardia confirmada</h4>
+            <p class="font-bold">Ante cualquier cambio, los tiempos de guardia se recalcularán.</p>
+         </div>
+         <div class="modal-body">
+            <div class="form-group">
+               <h4><label for="profesor-ausente">Añadir nuevo/a profesor/a de guardia:</label>
+               </h4>
+               <div class="input-group">
+                  <select id="profesores-guardia-{{ tramo }}" class="form-control select-profesor">
+                     <option value="" selected disabled>Seleccione un profesor/a</option>
+                     <!-- Opción vacía -->
+                     {% for profesor in profesores_guardia %}
+                     <option value="{{ profesor.id }}">{{ profesor.nombre }}</option>
+                     {% endfor %}
+                  </select>
+                  <div class="profesores-guardia-container"></div>
+                  <span class="input-group-append"> <button type="button" id="agregarprofe" class="btn btn-primary">Añadir
+                  </button> </span>
+               </div>
+            </div>
+            <div class="table-responsive">
+               <table id="profesoresTable" class="table table-bordered">
+                  <thead>
+                     <tr>
+                        <th>Profesor/a</th>
+                        <th>Tiempo asignado (minutos)</th>
+                        <th>Acciones</th>
+                     </tr>
+                  </thead>
+                  <tbody id="profesoresContainer">
+                     <!-- Las filas se agregarán dinámicamente aquí -->
+                  </tbody>
+               </table>
+            </div>
+            <hr>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-white" data-dismiss="modal">Cancelar
+            </button>
+            <button id="btn-editar-guardias" type="button" class="btn btn-primary">Guardar
+            </button>
+         </div>
+      </div>
+   </div>
+</div>
+
+<div class="modal inmodal fade modal-confirmar-guardia" id="modalconfirmarguardia-{{ tramo }}" tabindex="-1" role="dialog" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span
+               aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+            </button>
+            <h4 class="modal-title">Confirmar guardia</h4>
+            <p class="font-bold">Confirma que los tiempos asignados a cada profesor/a son los correctos, o ajústalos si es necesario.</p>
+            <p class="font-bold">Ten en cuenta que el tiempo total NO debe superar los 60 minutos.</p>
+         </div>
+         <div class="modal-body">
+
+            <div class="table-responsive">
+               <table id="profesoresTable" class="table table-bordered table-striped">
+                  <thead>
+                     <tr>
+                        <th>Profesor/a</th>
+                        <th>Tiempo asignado (minutos)</th>
+                     </tr>
+                  </thead>
+                  <tbody id="profesoresContainer">
+                     <!-- Las filas se agregarán dinámicamente aquí -->
+                  </tbody>
+               </table>
+            </div>
+            <hr>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-white" data-dismiss="modal">Cancelar
+            </button>
+            <button id="btn-confirmar-guardias" type="button" class="btn btn-primary">Confirmar
+            </button>
+         </div>
+      </div>
+   </div>
+</div>
 
 <div class="table-responsive">
-
-    <table id="tabla_tramo_{{ tramo }}" class="table table-striped tabla-guardias tabla-tramo">
-        <thead>
-        <tr>
+   <table id="tabla_tramo_{{ tramo }}" class="table table-striped tabla-guardias tabla-tramo">
+      <thead>
+         <tr>
             <th>Ausencia</th>
             <th>Grupo</th>
             <th>Aula</th>
             <th class="text-center">Tarea</th>
             <th>Prof. Guardia</th>
-            <th class="text-center"><i class="fa fa-handshake-o"
-                                       aria-hidden="true"></i></th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for guardia in item_guardias %}
-            <tr>
-                <td style="width: 30%;">{{ guardia.ProfesorAusente }} ({{ guardia.Materia }})</td>
-                <td>{{ guardia.Unidad }}</td>
-                <td>{{ guardia.Aula }}</td>
-
-                {% if guardia.Unidad.Curso == 'GUARDIA' or guardia.Unidad.Curso == 'GUARDIA RECREO' %}
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                {% else %}
-                    <td class="text-center"><i class="fa fa-eye" style="cursor: pointer;" aria-hidden="true" data-toggle="popover" data-placement="right" data-content="{{ guardia.Tarea }}"></i></td>
-                    <td style="width: 30%;">
-
-                        {% if guardia.ProfesorConfirma %}
-                            <!-- Si la guardia está confirmada, mostrar labels en lugar del select -->
-                            {% for profesor in guardia.ProfesoresGuardia.all %}
-                                <span class="label label-primary">{{ profesor.Apellidos }}, {{ profesor.Nombre }}</span>
-                            {% endfor %}
-                        {% else %}
-                            <select id="select-profesores-{{ guardia.id }}" style="width: 100% !important;" class="select2 form-control" multiple="multiple">
-                                {% for profesor in profesores_guardia %}
-                                    <option value="{{ profesor.id }}">{{ profesor.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        {% if guardia.ProfesorConfirma %}
-                            <span class="label label-info">Confirmada</span>
-                        {% else %}
-                            <button type="button" class="btn btn-warning btn-xs confirmar-btn"
-                    data-item-guardia-id="{{ guardia.id }}"
-                    data-profesor-confirma-id="{{ profesor_confirma.id }}">Confirmar</button>
-                        {% endif %}
-
-                    </td>
-                {% endif %}
-
-
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            <th class="text-center">Confirmada por</th>
+            <th class="text-center">Opciones</th>
+         </tr>
+      </thead>
+      <tbody>
+         {% for guardia, guardia_data in item_guardias|zip_lists:item_guardias_data %}
+         <tr>
+            <td style="width: 30%;">{{ guardia.ProfesorAusente }} ({{ guardia.Materia }})</td>
+            <td>{{ guardia.Unidad }}</td>
+            <td>{{ guardia.Aula }}</td>
+            {% if guardia.Unidad.Curso == 'GUARDIA' or guardia.Unidad.Curso == 'GUARDIA RECREO' %}
+            <td></td>
+            <td></td>
+            <td></td>
+            {% else %}
+            <td class="text-center"><i class="fa fa-eye" style="cursor: pointer;" aria-hidden="true" data-toggle="popover" data-placement="right" data-content="{{ guardia.Tarea }}"></i></td>
+            <td style="width: 30%;">
+               {% if guardia.ProfesorConfirma %}
+               <!-- Si la guardia está confirmada, mostrar labels en lugar del select -->
+               {% for profesor_data in guardia.profesor_tiempos  %}
+               <span class="label label-primary">{{ profesor_data.profesor.Apellidos }}, {{ profesor_data.profesor.Nombre }} ({{ profesor_data.tiempo_asignado }} m)</span>
+               {% endfor %}
+               {% else %}
+               <select id="select-profesores-{{ guardia.id }}" style="width: 100% !important;" class="select2 form-control" multiple="multiple">
+                  {% for profesor in profesores_guardia %}
+                  <option value="{{ profesor.id }}">{{ profesor.nombre }}</option>
+                  {% endfor %}
+               </select>
+               {% endif %}
+            </td>
+            {% if guardia.ProfesorConfirma %}
+                <td class="text-center">
+                    <span class="label label-info">{{ guardia.ProfesorConfirma }}</span>
+                </td>
+                <td class="text-center" style="vertical-align: middle;"><button type="button" class="btn btn-warning btn-xs editar-guardia-btn" href="#modal" data-toggle="modal" data-target="#modaleditarguardia-{{ tramo }}"
+               data-item-guardia-id="{{ guardia.id }}" data-guardia="{{ guardia_data }}">Editar</button></td>
+            {% else %}
+                <td class="text-center">
+                    <button type="button" class="btn btn-warning btn-xs confirmar-guardia-btn"
+                  data-item-guardia-id="{{ guardia.id }}"
+                  data-profesor-confirma-id="{{ profesor_confirma.id }}" href="#modal" data-toggle="modal" data-target="#modalconfirmarguardia-{{ tramo }}">Confirmar</button>
+                </td>
+                <td></td>
+            {% endif %}
+            {% endif %}
+         </tr>
+         {% endfor %}
+      </tbody>
+   </table>
 </div>
-
 {% else %}
 <div class="ibox text-center">
-                                    <div class="ibox-content">
-                                        <i class="fa fa-thumbs-o-up fa-3x" aria-hidden="true"></i>
-                                        <h2>No hay guardias registradas a esta hora.</h2>
-
-                                        <h3>No olvides dar una vuelta por el edificio para asegurarte.</h3>
-
-                                    </div>
-                                </div>
-
+   <div class="ibox-content">
+      <i class="fa fa-thumbs-o-up fa-3x" aria-hidden="true"></i>
+      <h2>No hay guardias registradas a esta hora.</h2>
+      <h3>No olvides dar una vuelta por el edificio para asegurarte.</h3>
+   </div>
+</div>
 {% endif %}
-
-
 {% block js %}
-    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
-    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+<script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+<script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+<script>
+   $(document).ready(function () {
 
-    <script>
-        $(document).ready(function () {
+       $('[data-toggle="popover"]').popover()
 
-            $('[data-toggle="popover"]').popover()
+       // Obtener el token CSRF desde las cookies
+       function getCookie(name) {
+           let cookieValue = null;
+           if (document.cookie && document.cookie !== '') {
+               const cookies = document.cookie.split(';');
+               for (let i = 0; i < cookies.length; i++) {
+                   const cookie = cookies[i].trim();
+                   if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                       cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                       break;
+                   }
+               }
+           }
+           return cookieValue;
+       }
 
-            // Obtener el token CSRF desde las cookies
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
+       const csrftoken = getCookie('csrftoken');
+
+       $('.i-checks').iCheck({
+           checkboxClass: 'icheckbox_square-green',
+           radioClass: 'iradio_square-green',
+       });
+
+       $(".select2").select2({
+           theme: 'bootstrap4',
+       });
+
+
+        $('.confirmar-guardia-btn').off('click');
+       $('.confirmar-guardia-btn').on('click', function() {
+           /*
+           // Obtener el ID del ItemGuardia de la fila
+           let item_guardia_id = $(this).attr('data-item-guardia-id');  // Asegúrate de que esto obtenga correctamente el valor
+
+           // Obtener el ID del profesor que ha pulsado "Confirmar"
+           let profesor_confirma_id = $(this).attr('data-profesor-confirma-id');  // Asegúrate de que esto obtenga correctamente el valor
+
+           // Obtener los valores seleccionados en el select (IDs de los profesores)
+           let select = $(`#select-profesores-${item_guardia_id}`);
+           let profesores_guardia_ids = select.val();  // .val() obtiene un array de los valores seleccionados
+
+           console.log(profesores_guardia_ids)
+
+
+           Swal.fire({
+               title: "¿Estás seguro?",
+               text: "La guardia quedará registrada y confirmada.",
+               icon: "warning",
+               showCancelButton: true,
+               confirmButtonColor: "#1ab394",
+               confirmButtonText: "Sí, confirmar.",
+           }).then((result) => {
+               if (result.isConfirmed) {
+
+                   // Enviar los datos mediante AJAX usando jQuery
+                   $.ajax({
+                       url: '#',  // Ruta a la vista confirmar_guardia_ajax
+                       type: 'POST',
+                       headers: { "X-CSRFToken": csrftoken },  // Enviar el token CSRF en los headers
+                       data: {
+                           'item_guardia_id': item_guardia_id,
+                           'profesores_guardia_ids': profesores_guardia_ids,
+                           'profesor_confirma_id': profesor_confirma_id,
+                           'csrfmiddlewaretoken': '{{ csrf_token }}' // CSRF token
+                       },
+                       success: function(response) {
+                           if (response.success) {
+                               Swal.fire({
+                                   title: "¡Confirmada!",
+                                   text: "La guardia ha sido confirmada.",
+                                   icon: "success"
+                               });
+
+                               // Emitir un evento personalizado con la fecha actual
+                               const fechaSeleccionada = $('#fecha-parte-guardia').val();
+
+                               $(document).trigger('guardiaConfirmada', [fechaSeleccionada]);
+                           } else {
+                               Swal.fire({
+                                   title: "Error",
+                                   text: "Ocurrió un error al intentar confirmar la guardia.",
+                                   icon: "error"
+                               });
+                           }
+                       },
+                       error: function(xhr, status, error) {
+                           console.error('Error:', error);
+                           Swal.fire({
+                               title: "Error",
+                               text: "Ocurrió un error inesperado al intentar confirmar la guardia.",
+                               icon: "error"
+                           });
+                       }
+                   });
+
+               }
+           });
+           */
+
+       });
+
+       $('body').on('show.bs.modal', '.modal-editar-guardia', function (event) {
+           var modal = $(this);
+           var button = $(event.relatedTarget); // Botón que activó el modal
+          var guardiaData = button.attr('data-guardia');
+
+
+
+           // Reemplazar comillas simples por dobles
+           guardiaData = guardiaData.replace(/\'/g, '"');
+           guardiaData = JSON.parse(guardiaData, function (key, value) {
+               if (value === "None") {
+                   return null;  // Reemplaza "None" por null
+               }
+               return value;
+           });
+
+           var profesoresContainer = modal.find('#profesoresContainer');
+           profesoresContainer.empty();
+
+           // Suponiendo que guardiaData es el objeto JSON que contiene los datos de los profesores
+           var totalTiempo = 60; // Tiempo total a repartir
+
+
+
+           if (guardiaData && guardiaData.ProfesoresGuardia) {
+
+               var item_guardia_id = guardiaData.id;
+                var profesor_confirma_id = guardiaData.ProfesorConfirma;
+                modal.data('item-guardia-id', item_guardia_id);
+                modal.data('profesor-confirma-id', profesor_confirma_id);
+
+               guardiaData.ProfesoresGuardia.forEach(function(profesordatos, index) {
+                   // Calculamos el tiempo proporcional para cada profesor (suponiendo que se reparten equitativamente)
+                   var tiempoAsignado = profesordatos.tiempo_asignado;
+
+                   // Creamos la fila con tres columnas
+                   var fila = `
+                       <tr data-profesor-id="${profesordatos.id}">
+                           <td>${profesordatos.nombre}</td>
+                           <td>
+                               <input type="number" class="form-control tiempo-input" value="${tiempoAsignado}" min="0" max="60">
+                           </td>
+                           <td>
+                               <button class="btn btn-danger btn-xs borrar-btn">Borrar</button>
+                           </td>
+                       </tr>
+                   `;
+
+                   // Añadimos la fila a la tabla
+                   profesoresContainer.append(fila);
+               });
+           }
+
+           // Manejar el clic en el botón de borrar
+           modal.find('#profesoresContainer').on('click', '.borrar-btn', function() {
+               var fila = $(this).closest('tr');
+               fila.remove();
+               distribuirTiempo(modal);
+           });
+
+           // Inicializar Select2 solo en los selects dentro de modales con la clase modal-editar-guardia
+           modal.find('.select-profesor').select2({
+               width: 'resolve',
+               placeholder: 'Selecciona un profesor/a',
+               theme: 'bootstrap4',
+               allowClear: true
+           });
+       });
+
+
+       $('body').on('show.bs.modal', '.modal-confirmar-guardia', function (event) {
+           var modal = $(this);
+           var button = $(event.relatedTarget); // Botón que activó el modal
+
+           var totalTiempo = 60; // Tiempo total a repartir
+
+           let item_guardia_id = button.attr('data-item-guardia-id');
+           let profesor_confirma_id = button.attr('data-profesor-confirma-id');
+
+           modal.data('item-guardia-id', item_guardia_id);
+           modal.data('profesor-confirma-id', profesor_confirma_id);
+
+           // Obtener los valores seleccionados en el select (IDs de los profesores)
+           let select = $(`#select-profesores-${item_guardia_id}`);
+           let profesoresGuardiaSeleccionados = select.select2('data');
+           let tiempoAsignado = totalTiempo / profesoresGuardiaSeleccionados.length;
+
+            // Seleccionamos el contenedor de la tabla donde se añadirán las filas
+            var profesoresContainer = modal.find('#profesoresContainer');
+           profesoresContainer.empty();
+
+
+            // Añadimos una fila para cada profesor seleccionado en el select2
+            profesoresGuardiaSeleccionados.forEach(function(profesor) {
+                // Creamos la fila con tres columnas
+                let fila = `
+                    <tr data-profesor-id="${profesor.id}">
+                        <td>${profesor.text}</td>
+                        <td>
+                            <input type="number" class="form-control tiempo-input" value="${tiempoAsignado}" min="0" max="60">
+                        </td>
+
+                    </tr>
+                `;
+
+                // Añadimos la fila a la tabla
+                profesoresContainer.append(fila);
+
+            });
+
+       });
+
+
+       $('.modal-editar-guardia').on('click', '#agregarprofe', function() {
+           var modal = $(this).closest('.modal-editar-guardia');
+           var profesorSelect = modal.find('.select-profesor');
+           var profesorId = profesorSelect.val(); // Obtener el ID del profesor seleccionado
+           var profesorNombre = profesorSelect.find('option:selected').text(); // Obtener el nombre del profesor seleccionado
+
+           if (profesorId) {
+               // Verificar si el profesor ya está en la tabla
+               if (modal.find('#profesoresContainer').find(`tr[data-profesor-id="${profesorId}"]`).length === 0) {
+                   // Crear una fila para el profesor con los datos necesarios
+                   var fila = `
+                       <tr data-profesor-id="${profesorId}">
+                           <td>${profesorNombre}</td>
+                           <td><input type="number" class="form-control tiempo-input" value="0" min="0" max="60"></td>
+                           <td><button class="btn btn-danger btn-xs borrar-btn">Borrar</button></td>
+                       </tr>
+                   `;
+                   // Añadir la fila a la tabla
+                   modal.find('#profesoresContainer').append(fila);
+
+                   // Recalcular y distribuir los 60 minutos entre todos los profesores en la tabla
+                    distribuirTiempo(modal);
+               }
+
+
+           }
+       });
+
+       // Función para distribuir los 60 minutos entre todos los profesores en la tabla
+        function distribuirTiempo(modal) {
+            var filas = modal.find('#profesoresContainer tr');
+            var numProfesores = filas.length;
+            var tiempoPorProfesor = Math.floor(60 / numProfesores); // Distribuir los minutos equitativamente
+            var tiempoRestante = 60 % numProfesores; // Minutos sobrantes, si los hay
+
+            // Asignar el tiempo a cada profesor
+            filas.each(function(index) {
+                var tiempoAsignado = tiempoPorProfesor + (index < tiempoRestante ? 1 : 0); // Distribuir el sobrante equitativamente
+                $(this).find('.tiempo-input').val(tiempoAsignado);
+            });
+        }
+
+       $('.modal-editar-guardia').off('click', '#btn-editar-guardias');
+
+       $('.modal-editar-guardia').on('click', '#btn-editar-guardias', function(event) {
+           event.preventDefault();  // Evitar el envío del formulario automáticamente
+           var modal = $(this).closest('.modal-editar-guardia');
+
+            // Obtener el ID del ItemGuardia y el profesor que confirma desde los atributos data del modal
+            var item_guardia_id = modal.data('item-guardia-id');
+            var profesor_confirma_id = modal.data('profesor-confirma-id');
+
+           var totalTiempo = 0;
+
+           // Sumar el tiempo total de todos los profesores en la tabla
+           modal.find('#profesoresContainer .tiempo-input').each(function() {
+               var tiempo = parseInt($(this).val()) || 0;  // Obtener el valor de tiempo y manejar valores vacíos o inválidos
+               totalTiempo += tiempo;
+           });
+
+           // Comprobar si el tiempo total excede los 60 minutos
+           if (totalTiempo > 60) {
+               Swal.fire({
+                    title: "Error",
+                    text: "El tiempo total asignado supera los 60 minutos. Ajuste los tiempos antes de guardar.",
+                    icon: "error",
+                    customClass: {
+                        container: 'swal2-container',
+                        popup: 'swal2-popup',
+                        backdrop: 'swal2-backdrop-show'
                     }
-                }
-                return cookieValue;
-            }
-
-            const csrftoken = getCookie('csrftoken');
-
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            });
-
-            $(".select2").select2({
-                theme: 'bootstrap4',
-            });
-
-            $('.confirmar-btn').on('click', function() {
-                // Obtener el ID del ItemGuardia de la fila
-                let item_guardia_id = $(this).attr('data-item-guardia-id');  // Asegúrate de que esto obtenga correctamente el valor
-
-                // Obtener el ID del profesor que ha pulsado "Confirmar"
-                let profesor_confirma_id = $(this).attr('data-profesor-confirma-id');  // Asegúrate de que esto obtenga correctamente el valor
-
-                // Obtener los valores seleccionados en el select (IDs de los profesores)
-                let select = $(`#select-profesores-${item_guardia_id}`);
-                let profesores_guardia_ids = select.val();  // .val() obtiene un array de los valores seleccionados
-
-
+                });
+           } else {
                 Swal.fire({
                     title: "¿Estás seguro?",
-                    text: "La guardia quedará registrada y confirmada.",
+                    text: "La guardia quedará actualizada con los nuevos cambios.",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#1ab394",
                     confirmButtonText: "Sí, confirmar.",
+                    customClass: {
+                        container: 'swal2-container',
+                        popup: 'swal2-popup',
+                        backdrop: 'swal2-backdrop-show'
+                    }
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        var profesores_guardia_data = [];
+                        modal.find('#profesoresContainer tr').each(function() {
+                            var profesor_id = $(this).data('profesor-id');
+                            var tiempo_asignado = $(this).find('.tiempo-input').val();
+                            profesores_guardia_data.push({
+                                'profesor_id': profesor_id,
+                                'tiempo_asignado': tiempo_asignado
+                            });
+                        });
 
-                        // Enviar los datos mediante AJAX usando jQuery
                         $.ajax({
-                            url: '{% url "confirmar_guardia_ajax" %}',  // Ruta a la vista confirmar_guardia_ajax
+                            url: '{% url "actualizar_guardia_ajax" %}',
                             type: 'POST',
-                            headers: { "X-CSRFToken": csrftoken },  // Enviar el token CSRF en los headers
+                            headers: { "X-CSRFToken": csrftoken },
                             data: {
                                 'item_guardia_id': item_guardia_id,
-                                'profesores_guardia_ids': profesores_guardia_ids,
+                                'profesores_guardia_data': JSON.stringify(profesores_guardia_data),
                                 'profesor_confirma_id': profesor_confirma_id,
-                                'csrfmiddlewaretoken': '{{ csrf_token }}' // CSRF token
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
                             },
                             success: function(response) {
                                 if (response.success) {
                                     Swal.fire({
-                                        title: "¡Confirmada!",
-                                        text: "La guardia ha sido confirmada.",
-                                        icon: "success"
+                                        title: "¡Actualizada!",
+                                        text: "La guardia ha sido actualizada.",
+                                        icon: "success",
+                                        customClass: {
+                                            container: 'swal2-container',
+                                            popup: 'swal2-popup',
+                                            backdrop: 'swal2-backdrop-show'
+                                        }
                                     });
 
-                                    // Emitir un evento personalizado con la fecha actual
                                     const fechaSeleccionada = $('#fecha-parte-guardia').val();
-                        
                                     $(document).trigger('guardiaConfirmada', [fechaSeleccionada]);
+                                    modal.modal('hide');
                                 } else {
                                     Swal.fire({
                                         title: "Error",
-                                        text: "Ocurrió un error al intentar confirmar la guardia.",
-                                        icon: "error"
+                                        text: "Ocurrió un error al intentar actuaizar la guardia.",
+                                        icon: "error",
+                                        customClass: {
+                                            container: 'swal2-container',
+                                            popup: 'swal2-popup',
+                                            backdrop: 'swal2-backdrop-show'
+                                        }
                                     });
                                 }
                             },
                             error: function(xhr, status, error) {
                                 console.error('Error:', error);
                                 Swal.fire({
-                                    title: "Error",
-                                    text: "Ocurrió un error inesperado al intentar confirmar la guardia.",
-                                    icon: "error"
-                                });
+                                        title: "Error",
+                                        text: "Ocurrió un error al intentar actualizar la guardia.",
+                                        icon: "error",
+                                        customClass: {
+                                            container: 'swal2-container',
+                                            popup: 'swal2-popup',
+                                            backdrop: 'swal2-backdrop-show'
+                                        }
+                                    });
+                            }
+                        });
+                    }
+                });
+            }
+       });
+
+
+
+       $('.modal-confirmar-guardia').off('click', '#btn-confirmar-guardias');
+
+       $('.modal-confirmar-guardia').on('click', '#btn-confirmar-guardias', function(event) {
+           event.preventDefault();  // Evitar el envío del formulario automáticamente
+           var modal = $(this).closest('.modal-confirmar-guardia');
+
+            // Obtener el ID del ItemGuardia y el profesor que confirma desde los atributos data del modal
+            var item_guardia_id = modal.data('item-guardia-id');
+            var profesor_confirma_id = modal.data('profesor-confirma-id');
+
+
+
+
+           var totalTiempo = 0;
+
+           // Sumar el tiempo total de todos los profesores en la tabla
+           modal.find('#profesoresContainer .tiempo-input').each(function() {
+               var tiempo = parseInt($(this).val()) || 0;  // Obtener el valor de tiempo y manejar valores vacíos o inválidos
+               totalTiempo += tiempo;
+           });
+
+           // Comprobar si el tiempo total excede los 60 minutos
+           if (totalTiempo > 60) {
+               Swal.fire({
+                    title: "Error",
+                    text: "El tiempo total asignado supera los 60 minutos. Ajuste los tiempos antes de guardar.",
+                    icon: "error",
+                    customClass: {
+                        container: 'swal2-container',
+                        popup: 'swal2-popup',
+                        backdrop: 'swal2-backdrop-show'
+                    }
+                });
+           }
+
+           else {
+                Swal.fire({
+                    title: "¿Estás seguro?",
+                    text: "La guardia quedará confirmada con los datos mostrados.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#1ab394",
+                    confirmButtonText: "Sí, confirmar.",
+                    customClass: {
+                        container: 'swal2-container',
+                        popup: 'swal2-popup',
+                        backdrop: 'swal2-backdrop-show'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var profesores_guardia_data = [];
+                        modal.find('#profesoresContainer tr').each(function() {
+                            var profesor_id = $(this).data('profesor-id');
+                            var tiempo_asignado = $(this).find('.tiempo-input').val();
+                            profesores_guardia_data.push({
+                                'profesor_id': profesor_id,
+                                'tiempo_asignado': tiempo_asignado
+                            });
+                        });
+
+                        $.ajax({
+                            url: '{% url "actualizar_guardia_ajax" %}',
+                            type: 'POST',
+                            headers: { "X-CSRFToken": csrftoken },
+                            data: {
+                                'item_guardia_id': item_guardia_id,
+                                'profesores_guardia_data': JSON.stringify(profesores_guardia_data),
+                                'profesor_confirma_id': profesor_confirma_id,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: "¡Confirmada!",
+                                        text: "La guardia ha sido confirmada.",
+                                        icon: "success",
+                                        customClass: {
+                                            container: 'swal2-container',
+                                            popup: 'swal2-popup',
+                                            backdrop: 'swal2-backdrop-show'
+                                        }
+                                    });
+
+                                    const fechaSeleccionada = $('#fecha-parte-guardia').val();
+                                    $(document).trigger('guardiaConfirmada', [fechaSeleccionada]);
+                                    modal.modal('hide');
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: "Ocurrió un error al intentar actuaizar la guardia.",
+                                        icon: "error",
+                                        customClass: {
+                                            container: 'swal2-container',
+                                            popup: 'swal2-popup',
+                                            backdrop: 'swal2-backdrop-show'
+                                        }
+                                    });
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error:', error);
+                                Swal.fire({
+                                        title: "Error",
+                                        text: "Ocurrió un error al intentar actualizar la guardia.",
+                                        icon: "error",
+                                        customClass: {
+                                            container: 'swal2-container',
+                                            popup: 'swal2-popup',
+                                            backdrop: 'swal2-backdrop-show'
+                                        }
+                                    });
                             }
                         });
 
                     }
                 });
+            }
 
-            });
+       });
 
-        });
 
-    </script>
+
+
+
+   });
+
+</script>
 {% endblock %}
-

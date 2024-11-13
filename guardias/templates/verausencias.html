@@ -5,6 +5,16 @@
     <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
     <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+
+    <style>
+        .swal2-container {
+            z-index: 2080 !important;
+        }
+
+        .swal2-backdrop-show {
+            z-index: 2075 !important;
+        }
+    </style>
 {% endblock %}
 
 {% block title %}Centro{% endblock %}
@@ -40,8 +50,8 @@
                                         <!-- Añadimos el profesor -->
                                         <td style="vertical-align: middle;">
                                             <button class="btn btn-info"
-                                                    onclick="mostrarDetalles('{{ a.fecha }}', '{{ a.profesor_id }}', '{{ a.profesor }}')">{{ a.tramos_ausente }}
-                                                tramos
+                                                    onclick="mostrarDetalles(this, '{{ a.fecha }}', '{{ a.profesor_id }}', '{{ a.profesor }}')">{{ a.tramos_ausente }}
+                                                tramo/s
                                             </button>
                                         </td>
                                         <td>
@@ -68,7 +78,7 @@
 
     <!-- Modal para mostrar los detalles -->
     <div id="detallesModal" class="modal inmodal fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-xxl">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -95,7 +105,16 @@
     <script>
         $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
 
+        let botonActivador;
+        var numTramos = 0;
+
+
         $(document).ready(function () {
+
+
+            $('#detallesModal').on('hidden.bs.modal', function () {
+                botonActivador.text(`${numTramos} tramo/s`);
+            });
 
             $('.eliminar-itemguardia').on('click', function () {
                 const fecha = $(this).data('fecha');
@@ -151,11 +170,81 @@
                 });
             });
 
+            $('#detallesModal').on('click', '.eliminar-itemguardia-tramo', function(event) {
+                event.preventDefault();  // Evitar el envío del formulario automáticamente
+                const fecha = $(this).data('fecha');
+                const profesorId = $(this).data('profesor');
+                const tramo = $(this).data('tramo');
 
-
-
-
-
+                // Usar SweetAlert para la confirmación
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    html: `¿Deseas eliminar la ausencia en ese tramo?`,
+                    footer: '<small>Si la ausencia ya ha sido cubierta, se eliminarán los tiempos acumulados por los profesores de guardia asignados a esta ausencia.</small>',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                        container: 'swal2-container',
+                        popup: 'swal2-popup',
+                        backdrop: 'swal2-backdrop-show'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{% url 'eliminar_itemguardia_por_fecha_profe_y_tramo' %}",  // La URL de la vista que maneja la eliminación
+                            type: 'POST',
+                            data: {
+                                'fecha': fecha,
+                                'profesor_id': profesorId,
+                                'tramo': tramo,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'  // Token CSRF
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: '¡Eliminado!',
+                                        text: 'La ausencia ha sido eliminada con éxito.',
+                                        icon: 'success',
+                                        customClass: {
+                                            container: 'swal2-container',
+                                            popup: 'swal2-popup',
+                                            backdrop: 'swal2-backdrop-show'
+                                        }
+                                    }).then(() => {
+                                        refrescarDetalles(fecha, profesorId);
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: 'Error al eliminar las ausencias.',
+                                        icon: 'error',
+                                        customClass: {
+                                            container: 'swal2-container',
+                                            popup: 'swal2-popup',
+                                            backdrop: 'swal2-backdrop-show'
+                                        }
+                                    });
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: 'Error al intentar eliminar las ausencias.',
+                                    icon: 'error',
+                                    customClass: {
+                                        container: 'swal2-container',
+                                        popup: 'swal2-popup',
+                                        backdrop: 'swal2-backdrop-show'
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            });
 
 
             $('.i-checks').iCheck({
@@ -209,7 +298,8 @@
 
         });
 
-        function mostrarDetalles(fecha, profesor_id, profesor) {
+        function mostrarDetalles(boton, fecha, profesor_id, profesor) {
+            botonActivador = $(boton);
             const fechaFormato = fecha.split('-').reverse().join('/');
             const profesorId = profesor_id;
             const profesorFormato = profesor;
@@ -221,8 +311,8 @@
                     'profesor': profesorId
                 },
                 success: function (data) {
-                    let detallesHtml = `<div class="table-responsive">
-                                        <table class="table table-striped">
+                    let detallesHtml = `<div class="table-responsive ibox">
+                                        <table class="table table-striped" id="tabla-detalles">
                                             <thead>
                                             <tr>
                                                 <th>Tramo</th>
@@ -232,6 +322,7 @@
                                                 <th>Profesores Guardia</th>
                                                 <th>Notificada por</th>
                                                 <th>Confirmada por</th>
+                                                <th>Acciones</th>
                                             </tr>
                                             </thead>
                                             <tbody>`;
@@ -254,16 +345,96 @@
                                 <td style="vertical-align: middle;">${profesoresGuardia}</td>
                                 <td style="vertical-align: middle;">${item.profesor_notifica}</td>
                                 <td style="vertical-align: middle;">${item.profesor_confirma}</td>
+                                <td style="vertical-align: middle;">
+                                    <button class="btn btn-danger eliminar-itemguardia-tramo"
+                                                    data-fecha=${fecha}
+                                                    data-profesor=${profesorId}
+                                                    data-tramo=${item.tramo_num}
+                                                    >Borrar
+                                            </button>
+                                </td>
                             </tr>`;
                     });
 
                     detallesHtml += `</tbody></table></div>`;
 
                     $('#detallesContenido').html(detallesHtml);
+
+                    numTramos = data.length;
+
                     $('#fecha-modal').html(fechaFormato);
                     $('#profesor-modal').html(profesorFormato);
 
                     $('#detallesModal').modal('show');
+                },
+                error: function () {
+                    alert('Error al obtener los detalles.');
+                }
+            });
+        }
+
+        function refrescarDetalles(fecha, profesor_id, boton) {
+            const profesorId = profesor_id;
+            const botonTramos = boton;
+
+            $.ajax({
+                url: "{% url 'obtener_itemguardia_por_fecha_y_profe' %}",
+                data: {
+                    'fecha': fecha,
+                    'profesor': profesorId
+                },
+                success: function (data) {
+                    let detallesHtml = `<div class="table-responsive ibox">
+                                        <table class="table table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th>Tramo</th>
+                                                <th>Materia</th>
+                                                <th>Unidad</th>
+                                                <th>Aula</th>
+                                                <th>Profesores Guardia</th>
+                                                <th>Notificada por</th>
+                                                <th>Confirmada por</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>`;
+
+                    data.forEach(function (item) {
+
+                        // Procesar la lista de profesores guardia
+                        let profesoresGuardia = '';
+
+                        item.profesores_guardia.forEach(function (profesor) {
+                            profesoresGuardia += `<span class="label label-primary">${profesor}</span><br>`;
+                        });
+
+
+                        detallesHtml += `<tr>
+                                <td style="vertical-align: middle;">${item.tramo}</td>
+                                <td style="vertical-align: middle;">${item.materia}</td>
+                                <td style="vertical-align: middle;">${item.unidad}</td>
+                                <td style="vertical-align: middle;">${item.aula}</td>
+                                <td style="vertical-align: middle;">${profesoresGuardia}</td>
+                                <td style="vertical-align: middle;">${item.profesor_notifica}</td>
+                                <td style="vertical-align: middle;">${item.profesor_confirma}</td>
+                                <td style="vertical-align: middle;">
+                                    <button class="btn btn-danger eliminar-itemguardia-tramo"
+                                                    data-fecha=${fecha}
+                                                    data-profesor=${profesorId}
+                                                    data-tramo=${item.tramo_num}
+                                                    >Borrar
+                                            </button>
+                                </td>
+                            </tr>`;
+                    });
+
+                    detallesHtml += `</tbody></table></div>`;
+
+                    $('#detallesContenido').empty();
+                    $('#detallesContenido').html(detallesHtml);
+
+                    numTramos = data.length;
                 },
                 error: function () {
                     alert('Error al obtener los detalles.');
