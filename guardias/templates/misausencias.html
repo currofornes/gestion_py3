@@ -472,7 +472,7 @@
 
                     // Enviar los datos por AJAX
                     $.ajax({
-                        url: '{% url "actualizar_guardias_ajax" %}',  // La vista de Django que manejará la solicitud
+                        url: '{% url "actualizar_ausencias_ajax" %}',  // La vista de Django que manejará la solicitud
                         method: 'POST',
                         data: {
                             'fecha': fechaSeleccionada,

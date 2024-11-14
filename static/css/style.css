@@ -5085,6 +5085,10 @@ table.table-mail tr td {
   background-color: #ffedda !important;
 }
 
+.bg-light-info {
+  background-color: #dfffff !important;
+}
+
 .white-bg {
   background-color: #ffffff;
 }
@@ -9911,4 +9915,8 @@ tr.disabled {
     background-color: #f6ccba !important;  /* Cambia esto según tu diseño */
     pointer-events: none;  /* Evita que se pueda seleccionar */
     cursor: not-allowed;  /* Cambia el cursor */
+}
+
+.modal-xxl {
+  max-width: 1000px !important;
 }

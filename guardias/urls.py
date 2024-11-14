@@ -19,7 +19,7 @@ urlpatterns = [
 
     path('parteguardias_ajax/', views.parteguardias_ajax, name='parteguardias_ajax'),
 
-    path('confirmar_guardia_ajax/', views.confirmar_guardia_ajax, name='confirmar_guardia_ajax'),
+    #path('confirmar_guardia_ajax/', views.confirmar_guardia_ajax, name='confirmar_guardia_ajax'),
 
     path('obtener-profesores/', views.obtener_profesores, name='obtener_profesores'),
 
@@ -31,13 +31,15 @@ urlpatterns = [
 
     path('eliminar_itemguardia_por_fecha_y_profe/', views.eliminar_itemguardia_por_fecha_y_profe, name='eliminar_itemguardia_por_fecha_y_profe'),
 
+    path('eliminar_itemguardia_por_fecha_profe_y_tramo/', views.eliminar_itemguardia_por_fecha_profe_y_tramo,
+         name='eliminar_itemguardia_por_fecha_profe_y_tramo'),
+
     path('obtener_tramos_guardia_por_fecha/', views.obtener_tramos_guardia_por_fecha, name='obtener_tramos_guardia_por_fecha'),
 
     path('horario_guardia_ajax/', views.horario_guardia_ajax, name='horario_guardia_ajax'),
 
-    path('actualizar_guardias_ajax/', views.actualizar_guardias_ajax, name='actualizar_guardias_ajax'),
+    path('actualizar_ausencias_ajax/', views.actualizar_ausencias_ajax, name='actualizar_ausencias_ajax'),
 
-
-
+    path('actualizar_guardia_ajax/', views.actualizar_guardia_ajax, name='actualizar_guardia_ajax'),
 
 ]

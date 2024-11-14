@@ -10,11 +10,15 @@
                         {% for profesor_guardia in profesores %}
                             <div class="col-lg-3">
                                 <div class="ibox">
-                                    <div class="ibox-content {% if profesor_guardia.es_guardia_convivencia %}bg-light-warning{% endif %}">
+                                    <div class="ibox-content {% if profesor_guardia.es_guardia_convivencia %}bg-light-warning{% elif profesor_guardia.es_guardia_DACE %}bg-light-info{% endif %}">
                                         {% if profesor_guardia.es_guardia_convivencia %}
                                             <!-- Badge en la esquina superior derecha -->
                                             <span class="badge badge-danger" style="position: absolute; top: 5px; right: 10px;">
                                                 CONVIVENCIA
+                                            </span>
+                                        {% elif profesor_guardia.es_guardia_DACE %}
+                                            <span class="badge badge-success" style="position: absolute; top: 5px; right: 10px;">
+                                                ACE
                                             </span>
                                         {% endif %}
                                         <h3><strong>{{ profesor_guardia.nombre }}</strong></h3>
