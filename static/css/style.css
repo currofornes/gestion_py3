@@ -5085,6 +5085,10 @@ table.table-mail tr td {
   background-color: #ffedda !important;
 }
 
+.bg-light-info {
+  background-color: #dfffff !important;
+}
+
 .white-bg {
   background-color: #ffffff;
 }

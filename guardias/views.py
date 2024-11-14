@@ -333,7 +333,7 @@ def parteguardias_ajax(request):
         for tramo in range(1, 8):  # Tramos de 1 a 7 (1ª Hora a 6ª Hora más Recreo)
             # Obtener todos los IDs de los profesores asignados en el tramo y materia 'GUARDIAS'
             profesor_ids = item_horarios.filter(
-                tramo=tramo, materia__in=["GUARDIAS", "GUARDIA CONVIVENCIA"]
+                tramo=tramo, materia__in=["GUARDIAS", "GUARDIA CONVIVENCIA", "GUARDIA ACE"]
             ).values_list('profesor', flat=True).distinct()
 
             # Para cada profesor, obtener el tiempo de guardia
@@ -344,7 +344,8 @@ def parteguardias_ajax(request):
                 tiempo_total = sum(tg.tiempo_asignado for tg in tiempos_guardia)  # Acumular el tiempo total
 
                 # Determinar si el profesor tiene "GUARDIA CONVIVENCIA"
-                materia_guardia = item_horarios.filter(tramo=tramo, profesor=profesor).first().materia
+                #materia_guardia = item_horarios.filter(tramo=tramo, profesor=profesor).first().materia
+                materias_guardia = item_horarios.filter(tramo=tramo, profesor=profesor).values_list('materia',flat=True).distinct()
 
                 # Convertir tiempo a horas y minutos
                 if tiempo_total >= 60:
@@ -376,11 +377,12 @@ def parteguardias_ajax(request):
                     'tiempo': tiempo_str,
                     'tiempo_minutos': tiempo_total,
                     'puntuacion': puntuacion,  # Guardar la puntuación calculada
-                    'es_guardia_convivencia': (materia_guardia == "GUARDIA CONVIVENCIA"),
+                    'es_guardia_convivencia': ("GUARDIA CONVIVENCIA" in materias_guardia),
+                    'es_guardia_DACE': ("GUARDIA ACE" in materias_guardia),
                 })
 
             # Ordenar la lista primero por tiempo y luego por porcentaje
-            profesores_info.sort(key=lambda x: (x['es_guardia_convivencia'], x['tiempo_minutos'], x['puntuacion']))
+            profesores_info.sort(key=lambda x: (x['es_guardia_DACE'], x['es_guardia_convivencia'], x['tiempo_minutos'], x['puntuacion']))
 
             profesores_guardia_info[tramo] = profesores_info
 
