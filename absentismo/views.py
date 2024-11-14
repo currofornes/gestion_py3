@@ -3,6 +3,7 @@ import time
 from datetime import date
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db import IntegrityError
 from django.db.models import When, Case
 from django.http import JsonResponse
 from django.shortcuts import render, get_list_or_404, redirect, get_object_or_404
@@ -139,7 +140,11 @@ def nuevaactuacion(request, proto_id):
     if request.method == 'POST':
         form = ActuacionProtocoloForm(request.POST)
         if form.is_valid():
-            form.save()
+            try:
+                form.save()
+            except IntegrityError:
+                print("Ya existe una actuación igual")
+
             return redirect('/absentismo/' + str(alum_id) + '/protocolo')
         else:
             print(form.errors)
@@ -184,13 +189,14 @@ def abrirprotocolo(request, alum_id):
         # Si ya existe un protocolo abierto, lo utilizamos
         nuevo_protocolo = protocolo_existente
     else:
-        nuevo_protocolo = ProtocoloAbs.objects.create(
+        nuevo_protocolo, creado = ProtocoloAbs.objects.get_or_create(
             alumno=alumno,
             tutor=tutor,
             fecha_apertura=datetime.date.today().strftime('%Y-%m-%d'),  # Asigna la fecha actual
             fecha_cierre=None,
             abierto=True
         )
+
 
     form = ActuacionProtocoloForm(
         initial={'Fecha': time.strftime("%d/%m/%Y"), 'Protocolo': nuevo_protocolo}

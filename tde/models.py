@@ -45,3 +45,4 @@ class IncidenciasTic(models.Model):
     class Meta:
         verbose_name="Incidencia TIC"
         verbose_name_plural="Incidencias TIC"
+        unique_together = ('profesor', 'aula', 'prioridad', 'comentario', 'curso_academico')

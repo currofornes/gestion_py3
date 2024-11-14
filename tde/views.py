@@ -2,6 +2,7 @@ import datetime
 import time,calendar
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import get_template
@@ -27,34 +28,30 @@ def incidenciaticprofe(request):
     if request.method == 'POST':
         form = IncidenciaTicProfeForm(request.POST)
         if form.is_valid():
-            incidencia = form.save()
+            try:
+                incidencia = form.save()
+                aula = incidencia.aula
+                profesores_en_aula = Profesores.objects.filter(itemhorario__aula=aula).distinct()
 
-            aula = incidencia.aula
-            profesores_en_aula = Profesores.objects.filter(itemhorario__aula=aula).distinct()
+                template = get_template("correo_nueva_incidencia.html")
+                contenido = template.render({'inc': incidencia})
+                correos = []
+                for prof in profesores_en_aula:
+                    correo = Profesores.objects.get(id=prof.id).Email
+                    if correo != "":
+                        correos.append(correo)
 
-            template = get_template("correo_nueva_incidencia.html")
-            contenido = template.render({'inc': incidencia})
-            correos = []
-            for prof in profesores_en_aula:
-                correo = Profesores.objects.get(id=prof.id).Email
-                if correo != "":
-                    correos.append(correo)
+                send_mail(
+                    'Nueva Incidencia TIC',
+                    contenido,
+                    '41011038.jestudios.edu@juntadeandalucia.es',
+                    correos,
+                    fail_silently=False,
+                )
 
 
-            send_mail(
-                'Nueva Incidencia TIC',
-                contenido,
-                '41011038.jestudios.edu@juntadeandalucia.es',
-                correos,
-                fail_silently=False,
-            )
-
-            # Imprimir los nombres de los profesores en la consola
-            print("Profesores que imparten clase en el aula", aula, ":")
-            for profesor in profesores_en_aula:
-                print(profesor)
-
-            # Enviar correo a todo el profesorado que de clase en ese aula o al equipo educativo
+            except IntegrityError:
+                print("Ya existe una Incidencia TIC igual")
 
             return redirect('/tde/misincidenciastic')
         else:

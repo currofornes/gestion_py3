@@ -291,3 +291,43 @@ def carta_abs_tutor_ED(request,proto_id):
 	template = get_template("pdf_contenido_carta_abs_tutor_ED.html")
 	info = {"contenido": template.render(Context(info2).flatten())}
 	return imprimir("pdf_carta.html", info, "carta_abs_tutor_ED.pdf")
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def carta_abs_ED_familia(request,proto_id):
+	#locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
+	profesor = request.user.profesor
+
+	protocolo = ProtocoloAbs.objects.get(id=proto_id)
+
+	info2 = {
+		"protocolo": protocolo,
+		"destinatarios": protocolo.alumno.Nombre.split(", ")[0]
+	}
+
+	# Captura fecha y hora de los parámetros GET
+	fecha = request.GET.get("fecha")
+	hora = request.GET.get("hora")
+	if fecha and hora:
+		# Convierte la fecha y hora en el formato deseado
+		fecha_obj = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
+		dia = fecha_obj.strftime("%d")
+		mes_en_ingles = fecha_obj.strftime("%B")  # Mes en inglés
+		mes = meses_es[mes_en_ingles]  # Traducir al español
+		hora_formateada = fecha_obj.strftime("%H:%M")
+
+		info2["dia_reunion"] = f"{dia}"
+		info2["mes_reunion"] = f"{mes}"
+		info2["hora_reunion"] = f"{hora_formateada}"
+	else:
+		info2["dia_reunion"] = f"____"
+		info2["mes_reunion"] = f"____________________"
+		info2["hora_reunion"] = f"__________"
+
+	info2["nombre_jefe"] = profesor
+
+	template = get_template("pdf_contenido_carta_abs_ED_familia.html")
+	info = {"contenido": template.render(Context(info2).flatten())}
+	return imprimir("pdf_carta.html", info, "carta_abs_ED_familias.pdf")

@@ -35,6 +35,7 @@ class ItemGuardia(models.Model):
     class Meta:
         verbose_name = "Item Guardia"
         verbose_name_plural = "Items Guardia"
+        unique_together = ('Unidad', 'ProfesorAusente', 'Aula', 'Tarea', 'Materia', 'Fecha', 'Tramo', 'ProfesorNotifica', 'ProfesorConfirma', 'curso_academico')
 
 class TiempoGuardia(models.Model):
     profesor = models.ForeignKey(Profesores, on_delete=models.CASCADE)
@@ -47,3 +48,6 @@ class TiempoGuardia(models.Model):
 
     def __str__(self):
         return f"{self.profesor} - Día {self.dia_semana}, Tramo {self.tramo}: {self.tiempo_asignado} min"
+
+    class Meta:
+        unique_together = ('profesor', 'dia_semana', 'tramo', 'tiempo_asignado', 'item_guardia', 'curso_academico')

@@ -1,5 +1,6 @@
 import json
 from datetime import timedelta, datetime
+from sqlite3 import IntegrityError
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -23,6 +24,7 @@ def crear_reserva(request):
     if request.method == 'POST':
         form = ReservaForm(request.POST)
         if form.is_valid():
+
             reserva = form.save(commit=False)
             reserva.Profesor = profesor  # Asignar el profesor desde el contexto
 
@@ -38,7 +40,6 @@ def crear_reserva(request):
             else:
                 tramos_seleccionados = []
 
-            reservas = []
             errores = []
 
             for i in range(int(num_semanas)):
@@ -48,20 +49,20 @@ def crear_reserva(request):
                     if Reservas.objects.filter(Fecha=nueva_fecha, Hora=tramo, Reservable=reserva.Reservable).exists():
                         errores.append(f'Ya existe una reserva para el {nueva_fecha} en la {tramo}ª hora.')
                     else:
-                        nueva_reserva = Reservas(
+                        Reservas.objects.get_or_create(
                             Profesor=reserva.Profesor,
                             Fecha=nueva_fecha,
                             Hora=tramo,
                             Reservable=reserva.Reservable
                         )
-                        reservas.append(nueva_reserva)
 
             if errores:
                 for error in errores:
                     messages.error(request, error)
                 return render(request, 'nuevareserva.html', {'form': form, 'profesor': profesor, 'menu_reservas': True})
 
-            Reservas.objects.bulk_create(reservas)
+
+
             return redirect('misreservas')
         else:
             # Mostrar errores del formulario

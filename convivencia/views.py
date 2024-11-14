@@ -1,3 +1,5 @@
+from sqlite3 import IntegrityError
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
@@ -50,51 +52,59 @@ def parte(request, tipo, alum_id):
                                                          Tipo=form.cleaned_data['Tipo'],
                                                          Comentario=form.cleaned_data['Comentario']).exists():
 
+                        try:
+
+                            form.save()
+
+                            amon = form.instance
+                            destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
+                            destinatarios.append(amon.IdAlumno.Unidad.Tutor)
+                            template = get_template("correo_amonestacion.html")
+                            contenido = template.render({'amon': amon})
+
+                            correos = []
+                            for prof in destinatarios:
+                                correo = Profesores.objects.get(id=prof.id).Email
+                                if correo != "":
+                                    correos.append(correo)
+                            send_mail(
+                                'Nueva amonestación',
+                                contenido,
+                                '41011038.jestudios.edu@juntadeandalucia.es',
+                                correos,
+                                fail_silently=False,
+                            )
+                        except IntegrityError:
+                            print("Ya existe una amonestación igual")
+
+                if tipo == "sancion":
+
+                    try:
+
                         form.save()
 
-                        amon = form.instance
-                        destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
-                        destinatarios.append(amon.IdAlumno.Unidad.Tutor)
-                        template = get_template("correo_amonestacion.html")
-                        contenido = template.render({'amon': amon})
+                        sanc = form.instance
+                        destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
+                        destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
+                        template = get_template("correo_sancion.html")
+                        contenido = template.render({'sanc': sanc})
 
                         correos = []
                         for prof in destinatarios:
                             correo = Profesores.objects.get(id=prof.id).Email
                             if correo != "":
                                 correos.append(correo)
+
+
                         send_mail(
-                            'Nueva amonestación',
+                            'Nueva sanción',
                             contenido,
                             '41011038.jestudios.edu@juntadeandalucia.es',
                             correos,
                             fail_silently=False,
                         )
-
-                if tipo == "sancion":
-
-                    form.save()
-
-                    sanc = form.instance
-                    destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
-                    destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
-                    template = get_template("correo_sancion.html")
-                    contenido = template.render({'sanc': sanc})
-
-                    correos = []
-                    for prof in destinatarios:
-                        correo = Profesores.objects.get(id=prof.id).Email
-                        if correo != "":
-                            correos.append(correo)
-
-
-                    send_mail(
-                        'Nueva sanción',
-                        contenido,
-                        '41011038.jestudios.edu@juntadeandalucia.es',
-                        correos,
-                        fail_silently=False,
-                    )
+                    except IntegrityError:
+                        print("Ya existe una sanción igual")
 
 
                 return redirect('/centro/alumnos')
@@ -250,7 +260,6 @@ def show(request, tipo=None, mes=None, ano=None, dia=None):
         fecha = request.POST.get('fecha')
         tipo = request.POST.get('tipo')
         dia, mes, ano = fecha.split('/')
-        print("ENTRA EN EL POST")
         return redirect('show', tipo=tipo, mes=mes, ano=ano, dia=dia)
 
     if tipo is None or mes is None or ano is None or dia is None:
@@ -832,9 +841,6 @@ def parteprofe(request, tipo, alum_id):
 
         if form.is_valid():
 
-
-
-
                 if tipo == "amonestacion":
 
                     # Comprobar si ya existe una amonestación similar para evitar duplicados
@@ -844,14 +850,40 @@ def parteprofe(request, tipo, alum_id):
                                                          Hora=form.cleaned_data['Hora'],
                                                          Tipo=form.cleaned_data['Tipo'],
                                                          Comentario=form.cleaned_data['Comentario']).exists():
+                        try:
+                            form.save()
+
+
+                            amon = form.instance
+                            destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
+                            destinatarios.append(amon.IdAlumno.Unidad.Tutor)
+                            template = get_template("correo_amonestacion.html")
+                            contenido = template.render({'amon': amon})
+
+                            correos = []
+                            for prof in destinatarios:
+                                correo = Profesores.objects.get(id=prof.id).Email
+                                if correo != "":
+                                    correos.append(correo)
+                            send_mail(
+                                'Nueva amonestación',
+                                contenido,
+                                '41011038.jestudios.edu@juntadeandalucia.es',
+                                correos,
+                                fail_silently=False,
+                            )
+                        except IntegrityError:
+                            print("Ya existe una amonestación igual")
+
+                if tipo == "sancion":
+                    try:
                         form.save()
 
-
-                        amon = form.instance
-                        destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
-                        destinatarios.append(amon.IdAlumno.Unidad.Tutor)
-                        template = get_template("correo_amonestacion.html")
-                        contenido = template.render({'amon': amon})
+                        sanc = form.instance
+                        destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
+                        destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
+                        template = get_template("correo_sancion.html")
+                        contenido = template.render({'sanc': sanc})
 
                         correos = []
                         for prof in destinatarios:
@@ -859,35 +891,14 @@ def parteprofe(request, tipo, alum_id):
                             if correo != "":
                                 correos.append(correo)
                         send_mail(
-                            'Nueva amonestación',
+                            'Nueva sanción',
                             contenido,
                             '41011038.jestudios.edu@juntadeandalucia.es',
                             correos,
                             fail_silently=False,
                         )
-
-                if tipo == "sancion":
-
-                    form.save()
-
-                    sanc = form.instance
-                    destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
-                    destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
-                    template = get_template("correo_sancion.html")
-                    contenido = template.render({'sanc': sanc})
-
-                    correos = []
-                    for prof in destinatarios:
-                        correo = Profesores.objects.get(id=prof.id).Email
-                        if correo != "":
-                            correos.append(correo)
-                    send_mail(
-                        'Nueva sanción',
-                        contenido,
-                        '41011038.jestudios.edu@juntadeandalucia.es',
-                        correos,
-                        fail_silently=False,
-                    )
+                    except IntegrityError:
+                        print("Ya existe una sanción igual")
                 return redirect('/centro/misalumnos')
     else:
         if tipo == "amonestacion":

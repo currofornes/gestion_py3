@@ -79,6 +79,10 @@
 
         $(document).ready(function () {
 
+            $('form').on('submit', function() {
+                $('button[type="submit"]').prop('disabled', true).text('Procesando...');
+            });
+
             $(".select2_Prioridad").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona una prioridad",

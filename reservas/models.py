@@ -58,3 +58,4 @@ class Reservas(models.Model):
     class Meta:
         verbose_name = "Reserva"
         verbose_name_plural = "Reservas"
+        unique_together = ('Profesor', 'Fecha', 'Hora', 'Reservable', 'curso_academico')

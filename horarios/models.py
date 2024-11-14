@@ -37,4 +37,4 @@ class ItemHorario(models.Model):
     class Meta:
         verbose_name = "Item de Horario"
         verbose_name_plural = "Items de Horario"
-        unique_together = ('tramo', 'dia', 'profesor', 'unidad', 'aula')
+        unique_together = ('tramo', 'dia', 'profesor', 'unidad', 'aula', 'materia')

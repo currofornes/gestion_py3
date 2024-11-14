@@ -31,6 +31,7 @@ class ProtocoloAbs(models.Model):
     class Meta:
         verbose_name="Protocolo Absentismo"
         verbose_name_plural="Protocolos Absentismo"
+        unique_together = ('alumno', 'tutor', 'fecha_apertura','fecha_cierre','abierto', 'curso_academico')
 
 
 class Actuaciones(models.Model):
@@ -57,3 +58,4 @@ class Actuaciones(models.Model):
     class Meta:
         verbose_name = "Actuación"
         verbose_name_plural = "Actuaciones"
+        unique_together = ('Protocolo', 'Fecha', 'Tipo', 'Comentario', 'Notificada', 'Medio', 'Telefono', 'curso_academico')

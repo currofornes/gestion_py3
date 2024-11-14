@@ -1,4 +1,5 @@
 from collections import OrderedDict, defaultdict
+from sqlite3 import IntegrityError
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
@@ -229,10 +230,13 @@ class CrearItemHorarioView(CreateView):
 
     def form_valid(self, form):
         # Guarda el nuevo ítem de horario
-        item = form.save(commit=False)
-        item.profesor = get_object_or_404(Profesores,
-                                          id=self.kwargs['profesor_id'])  # Asegurarse de asignar el profesor
-        item.save()
+        try:
+            item = form.save(commit=False)
+            item.profesor = get_object_or_404(Profesores,
+                                              id=self.kwargs['profesor_id'])  # Asegurarse de asignar el profesor
+            item.save()
+        except IntegrityError:
+            print("Ya existe un ItemHorario igual")
 
         # Si la solicitud es AJAX, devolvemos un JSON con los datos del nuevo ítem
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':

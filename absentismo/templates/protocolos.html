@@ -81,6 +81,13 @@
                                                     <i class="fa fa-file-text"></i> Carta
                                                 </a>
                                             </td>
+                                        {% elif a.Tipo.id == 11 %}
+                                            <td>
+                                                <a href="#" data-toggle="modal" data-target="#dateTimeModalEDfamilia"
+                                                   class="btn btn-sm btn-warning">
+                                                    <i class="fa fa-file-text"></i> Carta
+                                                </a>
+                                            </td>
                                         {% endif %}
                                     </tr>
                                 {% endfor %}
@@ -147,6 +154,37 @@
                                         PDF sin fecha
                                     </button>
                                     <button type="button" class="btn btn-primary" id="generatePdfEDButton">Generar PDF
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="modal fade" id="dateTimeModalEDfamilia" tabindex="-1" role="dialog"
+                         aria-labelledby="dateTimeModalEDfamiliaLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3 class="modal-title" id="dateTimeModalEDfamiliaLabel">Seleccionar Fecha y Hora de la
+                                        reunión</h3>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <label for="fecha-reunion-ED-familia">Fecha:</label>
+                                    <input type="date" id="fecha-reunion-ED-familia" class="form-control">
+                                    <label for="hora-reunion-ED-familia" class="mt-2">Hora:</label>
+                                    <input type="time" id="hora-reunion-ED-familia" class="form-control">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar
+                                    </button>
+                                    <button type="button" class="btn btn-warning" id="generatePdfEDfamiliaButtonSinFecha">Generar
+                                        PDF sin fecha
+                                    </button>
+                                    <button type="button" class="btn btn-primary" id="generatePdfEDfamiliaButton">Generar PDF
                                     </button>
                                 </div>
                             </div>
@@ -237,6 +275,20 @@
                 }
             });
 
+            $('#generatePdfEDfamiliaButton').on('click', function () {
+                const fecha = $('#fecha-reunion-ED-familia').val();
+                const hora = $('#hora-reunion-ED-familia').val();
+                const protocoloId = "{{ protocolo.id }}";  // Asegúrate de tener el ID del protocolo en el contexto
+
+                if (fecha) {
+                    $('#dateTimeModalEDfamilia').modal('hide');
+                    // Redirigir a la vista con los parámetros de fecha y hora seleccionados
+                    window.location.href = `/pdf/carta_abs_familia_ED/${protocoloId}?fecha=${fecha}&hora=${hora}`;
+                } else {
+                    alert("Por favor, selecciona una fecha.");
+                }
+            });
+
             $('#generatePdfButtonSinFecha').on('click', function () {
 
                 const protocoloId = "{{ protocolo.id }}";  // Asegúrate de tener el ID del protocolo en el contexto
@@ -256,6 +308,17 @@
                 window.location.href = `/pdf/carta_abs_ED/${protocoloId}`;
 
             });
+
+            $('#generatePdfEDfamiliaButtonSinFecha').on('click', function () {
+
+                const protocoloId = "{{ protocolo.id }}";  // Asegúrate de tener el ID del protocolo en el contexto
+
+                $('#dateTimeModalEDfamilia').modal('hide');
+                // Redirigir a la vista con los parámetros de fecha y hora seleccionados
+                window.location.href = `/pdf/carta_abs_familia_ED/${protocoloId}`;
+
+            });
+
 
             $('.cerrar-protocolo').click(function () {
                 var protocoloId = $(this).data('id');

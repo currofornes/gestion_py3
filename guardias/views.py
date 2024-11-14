@@ -6,6 +6,7 @@ from collections import defaultdict, OrderedDict
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import IntegrityError
 from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -251,7 +252,7 @@ def guardar_guardias_ajax(request):
                 aula = None
 
             # Crear el nuevo ItemGuardia
-            ItemGuardia.objects.create(
+            ItemGuardia.objects.get_or_create(
                 Unidad=unidad,
                 ProfesorAusente=profesor_ausente,
                 Aula=aula,
@@ -482,7 +483,7 @@ def confirmar_guardia_ajax(request):
 
             for profesor_id in profesores_guardia_ids:
                 profesor = Profesores.objects.get(id=profesor_id)
-                TiempoGuardia.objects.create(
+                TiempoGuardia.objects.get_or_create(
                     profesor=profesor,
                     dia_semana=item_guardia.Fecha.weekday() + 1,  # 1:Lunes, 2:Martes, etc.
                     tramo=item_guardia.Tramo,
@@ -550,7 +551,11 @@ def editar_item_guardia(request, pk):
     if request.method == 'POST':
         form = ItemGuardiaForm(request.POST, instance=item)
         if form.is_valid():
-            form.save()
+            try:
+                form.save()
+            except IntegrityError:
+                print("Ya existe un ItemGuardia igual")
+
             return redirect('listar_item_guardia')
     else:
         form = ItemGuardiaForm(instance=item)

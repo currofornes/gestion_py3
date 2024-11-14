@@ -17,5 +17,6 @@ urlpatterns = [
 
     re_path(r'^carta_abs_tutor/(?P<proto_id>[0-9]+)$', views.carta_abs_tutor_familia),
     re_path(r'^carta_abs_ED/(?P<proto_id>[0-9]+)$', views.carta_abs_tutor_ED),
+    re_path(r'^carta_abs_familia_ED/(?P<proto_id>[0-9]+)$', views.carta_abs_ED_familia),
 
 ]

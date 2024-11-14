@@ -102,6 +102,7 @@ class Amonestaciones(models.Model):
 	class Meta:
 		verbose_name="Amonestación"
 		verbose_name_plural="Amonestaciones"
+		unique_together = ('IdAlumno', 'Fecha', 'Hora', 'Profesor', 'Tipo', 'Comentario', 'DerivadoConvivencia', 'FamiliarComunicado', 'FechaComunicado', 'HoraComunicado', 'Medio', 'TelefonoComunicado', 'ObservacionComunicado', 'curso_academico')
 
 
 class Sanciones(models.Model):
@@ -121,3 +122,4 @@ class Sanciones(models.Model):
 	class Meta:
 		verbose_name="Sanción"
 		verbose_name_plural="Sanciones"
+		unique_together = ('IdAlumno', 'Fecha', 'Fecha_fin', 'Sancion', 'Comentario', 'curso_academico')
