@@ -26,6 +26,7 @@
                 <div class="ibox-title">
                     {% if protocolo %}
                         <div class="float-right">
+                            <a href="/calendario/faltas/{{ protocolo.id }}" class="btn btn-info"><i class="fa fa-calendar"></i> Ver calendario </a>
                             <a href="/absentismo/protocolo/{{ protocolo.id }}/cargarfaltas" class="btn btn-info"><i class="fa fa-calendar"></i> Cargar faltas </a>
                             <a href="#" class="btn btn-danger cerrar-protocolo" data-id="{{ protocolo.id }}"> Cerrar
                                 protocolo </a>

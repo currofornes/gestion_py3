@@ -140,6 +140,11 @@ STATICFILES_DIRS = (
 )
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
+# Cambios añadidos por RRM para poder almacenar archivos en el server y procesarlos posteriormente.
+# @FFR: Esto es el gérmen para poder subir archivos a gestiona exportados desde Séneca sin tener que hacerlos en local
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+# Fin de cambios
 
 import configparser
 configuracion = configparser.ConfigParser()

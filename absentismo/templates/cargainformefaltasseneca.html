@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>{{ titulo }}</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <h4>Alumno/a: {{ protocolo.alumno.Nombre }}</h4>
+                        <br/>
+                        <form  method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+{#                            {{ form.Protocolo }}  <!-- Campo oculto -->#}
+
+                            <div class="input-group">
+                                <div class="custom-file">
+{#                                    <input id="inputGroupFile01" type="file" class="custom-file-input">#}
+                                    {{ form.InformePDF }}
+                                    <label class="custom-file-label" for="id_InformePDF">Elige el archivo con el informe</label>
+                                </div>
+                            </div>
+                            <br/>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </form>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+    <script src="{% static 'js/plugins/bs-custom-file/bs-custom-file-input.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            bsCustomFileInput.init()
+        });
+    </script>
+{% endblock %}

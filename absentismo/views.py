@@ -1,15 +1,21 @@
-import datetime
 import time
-from datetime import date
+from datetime import date, datetime
+import os
+import re
+import subprocess
+import csv
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db import transaction
 from django.db.models import When, Case
 from django.http import JsonResponse
 from django.shortcuts import render, get_list_or_404, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.core.files.storage import default_storage
 
-from absentismo.forms import ActuacionProtocoloForm
-from absentismo.models import ProtocoloAbs
+from absentismo.forms import ActuacionProtocoloForm, CargaInformeFaltasSeneca
+from absentismo.models import ProtocoloAbs, FaltasProtocolo
 from centro.models import Cursos, Alumnos, Profesores
 from centro.views import group_check_prof, is_tutor, group_check_je, group_check_prof_and_tutor_or_je, \
     group_check_prof_and_tutor, group_check_je_or_orientacion, group_check_prof_and_tutor_or_je_or_orientacion
@@ -281,7 +287,156 @@ def todoalumnado(request):
 
     return render(request, 'todoalumnado.html', context)
 
+# Funciones auxiliares para parsear el informe de faltas de Séneca
+def extraer_faltas(line):
+    parts = line.strip().split(',')
+    # Procesar cada parte
+    date = parts[0]
+    numbers = []
+
+    for part in parts[1:]:
+        # Separar por espacios y convertir a enteros
+        nums = list(map(int, part.split()))
+        numbers.extend(nums)  # Agregar los números a la lista
+
+    # Combinar fecha y números en una sola lista
+    return [date] + numbers
+
+
+def procesar_pdf(proto_id):
+    # Construir el comando como una lista
+    jar_path = os.path.join(settings.BASE_DIR, 'tabula-1.0.5-jar-with-dependencies.jar')
+
+    file_path = os.path.join('informes_faltas_seneca', f'informe_{proto_id}.pdf')
+    full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+
+    temp_file_path = os.path.join('informes_faltas_seneca', f'informe_{proto_id}.txt')
+    temp_full_path = os.path.join(settings.MEDIA_ROOT, temp_file_path)
+
+    comando = ['java', '-jar', jar_path, '-o', temp_full_path, '-p', 'all', full_path]
+
+    # Ejecutar el comando usando subprocess.run
+    resultado = subprocess.run(comando, capture_output=True, text=True)
+
+    # Verificar si hubo errores al ejecutar Tabula
+    if resultado.returncode != 0:
+        print(comando)
+        print(f"Error al ejecutar Tabula: {resultado.stderr}")
+        return
+
+    # Leer archivo de texto generado
+
+    with open(temp_full_path, 'r', encoding='utf-8') as archivo:
+        lineas = archivo.readlines()
+
+    alumno = ""
+    unidad = ""
+    faltas = []
+    # Expresión regular para una fecha en formato DD/MM/AAAA
+    patron_fecha = r'^\d{2}/\d{2}/\d{4}'
+
+    for linea in lineas:
+        # Identificar las líneas de faltas que empiezan con una fecha
+        if re.match(patron_fecha, linea):
+            # Partir la línea de faltas en columnas
+            datos_faltas = extraer_faltas(linea)
+
+            # Verificar que la línea tiene suficientes columnas
+            if len(datos_faltas) >= 10:
+                faltas.append(datos_faltas)
+
+        if linea.startswith("UNIDAD:"):
+            patron = r'UNIDAD:,\s*([^,]+)'
+
+            unidad = linea
+            coincidencia = re.search(patron, linea)
+            if coincidencia:
+                unidad = coincidencia.group(1)
+                patron = r'(\d)o'
+                unidad = re.sub(patron, r'\1º', unidad)
+
+        if linea.startswith("ALUMNO:"):
+            patron = r'ALUMNO:,"([^"]+)"'
+            coincidencia = re.search(patron, linea)
+            if coincidencia:
+                alumno = coincidencia.group(1)
+
+
+    return faltas
+# Fin de funciones auxiliares
+
 @login_required(login_url='/')
 @user_passes_test(group_check_prof_and_tutor_or_je_or_orientacion, login_url='/')
 def cargarfaltas(request, proto_id):
-    pass
+    protocolo = ProtocoloAbs.objects.get(pk=proto_id)
+    alum_id = protocolo.alumno.id
+
+    if request.method == 'POST':
+        form = CargaInformeFaltasSeneca(request.POST, request.FILES)
+        print(f'El formulario {"" if form.is_valid() else "no"} es válido')
+        if form.is_valid():
+            informe_pdf = form.cleaned_data['InformePDF']
+
+            # Define la ruta completa donde deseas guardar el archivo
+            file_path = os.path.join('informes_faltas_seneca', f'informe_{proto_id}.pdf')
+            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+
+            # Guarda el archivo en la ubicación especificada
+            with default_storage.open(full_path, 'wb+') as destination:
+                for chunk in informe_pdf.chunks():
+                    destination.write(chunk)
+
+
+            lista_faltas = procesar_pdf(proto_id)
+
+            for falta in lista_faltas:
+                fecha = datetime.strptime(falta[0], "%d/%m/%Y").date()
+
+                dia_completo_justificada_prof = falta[1]
+                dia_completo_justificada_tutor = falta[2]
+                dia_completo_no_justificada = falta[3]
+                tramos_justificados_prof = falta[4]
+                tramos_justificados_tutor = falta[5]
+                tramos_no_justificada = falta[6]
+                tramos_retraso = falta[7]
+                notificacion_dia_completo = falta[8]
+                notificacion_tramos = falta[9]
+
+                # Usamos una transacción para garantizar atomicidad
+                with transaction.atomic():
+                    # Busca o crea el registro para la fecha y protocolo especificados
+                    obj, created = FaltasProtocolo.objects.get_or_create(
+                        Protocolo=protocolo,
+                        Fecha=fecha,
+                        defaults={
+                            'DiaCompletoJustificada': dia_completo_justificada_prof + dia_completo_justificada_tutor,
+                            'DiaCompletoNoJustificada': dia_completo_no_justificada,
+                            'TramosJustificados': tramos_justificados_prof + tramos_justificados_tutor,
+                            'TramosNoJustificados': tramos_no_justificada,
+                            'NotificacionDiaCompleto': notificacion_dia_completo,
+                            'NotificacionTramos': notificacion_tramos,
+                        }
+                    )
+
+                    # Si el registro ya existía, actualizamos los campos necesarios
+                    if not created:
+                        obj.DiaCompletoJustificada = dia_completo_justificada_prof + dia_completo_justificada_tutor
+                        obj.DiaCompletoNoJustificada = dia_completo_no_justificada
+                        obj.TramosJustificados = tramos_justificados_prof + tramos_justificados_tutor
+                        obj.TramosNoJustificados = tramos_no_justificada
+                        obj.NotificacionDiaCompleto = notificacion_dia_completo
+                        obj.NotificacionTramos = notificacion_tramos
+                        obj.save()
+
+            return redirect(f'/absentismo/{alum_id}/protocolo')
+        else:
+            print(form.errors)
+    else:
+        form = CargaInformeFaltasSeneca(
+            initial={'Protocolo': protocolo}
+        )
+
+    titulo = "Carga de faltas desde informe de Séneca"
+
+    context = {'form': form, 'titulo': titulo, 'protocolo': protocolo}
+    return render(request, 'cargainformefaltasseneca.html', context)

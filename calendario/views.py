@@ -5,65 +5,85 @@ from datetime import date, timedelta
 from convivencia.models import Amonestaciones, Sanciones
 from centro.models import Alumnos
 from centro.views import group_check_je
+from absentismo.models import FaltasProtocolo
+
 
 # ToDo: Añadir texto a loes eventos de calendario.
 
 # Create your views here.
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
-def faltas(request, alum_id):
-    return render(request, 'calendario.html')
+def faltas(request, proto_id):
+    protocolo = FaltasProtocolo.objects.get(id=proto_id)
+    alumno = protocolo.Protocolo.alumno
+    context = {
+        'tipo': 'faltas',
+        'alumno': alumno,
+        'protocolo': protocolo,
+    }
+    return render(request, 'calendario.html', context)
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
-def faltas_json(request, alum_id):
-    # Cargar faltas a día completo de la BBDD
-    # Hard coded en pruebas
-    faltasNJ_dia_completo = [
-        date.fromisoformat('2024-09-23'),
-        date.fromisoformat('2024-09-24'),
-        date.fromisoformat('2024-09-25'),
-        date.fromisoformat('2024-09-26'),
-        date.fromisoformat('2024-09-27'),
-        date.fromisoformat('2024-09-30'),
-        date.fromisoformat('2024-10-01'),
-        date.fromisoformat('2024-10-02'),
-        date.fromisoformat('2024-10-03'),
-        date.fromisoformat('2024-10-08'),
-        date.fromisoformat('2024-10-09'),
-        date.fromisoformat('2024-10-10'),
-        date.fromisoformat('2024-10-11'),
-        date.fromisoformat('2024-10-15'),
-        date.fromisoformat('2024-10-16'),
-        date.fromisoformat('2024-10-17'),
-        date.fromisoformat('2024-10-18'),
-        date.fromisoformat('2024-10-22'),
-    ]
-    # Cargar faltas a tramos de la BBDD
-    # Hard coded en pruebas
-    faltasNJ_tramos = [
-        date.fromisoformat('2024-09-16'),
-        date.fromisoformat( '2024-09-17'),
-        date.fromisoformat('2024-09-18'),
-        date.fromisoformat('2024-09-19'),
-        date.fromisoformat('2024-09-20'),
-        date.fromisoformat('2024-10-04'),
-        date.fromisoformat('2024-10-07'),
-        date.fromisoformat('2024-10-14'),
-    ]
+def faltas_json(request, proto_id):
+    faltas = FaltasProtocolo.objects.filter(Protocolo__id=proto_id).all()
 
-    return JsonResponse(
-        {
-            'NJ_diacompleto': faltasNJ_dia_completo,
-            'NJ_tramos': faltasNJ_tramos
-        }, safe=False)
+    eventos = []
+    faltasNJ_tramos = []
+
+    for falta in faltas:
+        if (falta.DiaCompletoNoJustificada > 0) or (falta.TramosNoJustificados > 4):
+            if falta.DiaCompletoNoJustificada > 0:
+                tramos = 6
+            if falta.TramosNoJustificados > 4:
+                tramos = falta.TramosNoJustificados
+                falta_data = {
+                    'start': falta.Fecha.strftime("%Y-%m-%d"),
+                    'className': 'bg-secondary',
+                    'modalInfo': [
+                        {'label': 'Tipo de falta', 'text': 'A día completo no justificada.'},
+                        {'label': 'Número de tramos', 'text': f'{tramos}'}
+                    ]
+                }
+                eventos.append(falta_data)
+        if (falta.DiaCompletoNoJustificada == 0) and (falta.TramosNoJustificados > 0) and (falta.TramosNoJustificados <= 4):
+            falta_data = {
+                'start': falta.Fecha.strftime("%Y-%m-%d"),
+                'className': 'bg-warning',
+                'modalInfo': [
+                    {'label': 'Tipo de falta', 'text': 'A tramos no justificada.'},
+                    {'label': 'Número de tramos', 'text': f'{falta.TramosNoJustificados}'}
+                ]
+            }
+            eventos.append(falta_data)
+        if (falta.DiaCompletoJustificada > 0):
+            falta_data = {
+                'start': falta.Fecha.strftime("%Y-%m-%d"),
+                'className': 'bg-success',
+                'modalInfo': [
+                    {'label': 'Tipo de falta', 'text': 'Día completo justificada.'},
+                ]
+            }
+            eventos.append(falta_data)
+        if falta.TramosJustificados > 0:
+            falta_data = {
+                'start': falta.Fecha.strftime("%Y-%m-%d"),
+                'className': 'bg-success',
+                'modalInfo': [
+                    {'label': 'Tipo de falta', 'text': 'A tramos justificada.'},
+                    {'label': 'Número de tramos', 'text': f'{falta.TramosJustificados}'}
+                ]
+            }
+            eventos.append(falta_data)
+    return JsonResponse(eventos, safe=False)
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def amonestaciones(request, alum_id):
     alumno = Alumnos.objects.get(id=alum_id)
     context = {
-        'alumno': alumno
+        'alumno': alumno,
+        'tipo': 'amonestaciones'
     }
     return render(request, "amonestaciones.html", context)
 
