@@ -100,7 +100,7 @@ def amonestaciones_json(request, alum_id):
     for amonestacion in amonestaciones:
         amonestacion_data = {
             'start': amonestacion.Fecha.strftime("%Y-%m-%d"),
-            'className': 'bg-warning' if amonestacion.Tipo.TipoFalta == "L" else 'bg-secondary',
+            'className': 'bg-warning' if amonestacion.Tipo.TipoFalta in ("L", None) else 'bg-secondary',
             'modalInfo': [
                 {'label': 'Tipo de amonestación.', 'text': amonestacion.Tipo.TipoAmonestacion},
                 {'label': 'Descripción:', 'text':amonestacion.Comentario}
