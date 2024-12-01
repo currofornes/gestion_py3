@@ -142,6 +142,20 @@ class Alumnos(models.Model):
         dni = self.DNI if self.DNI else "Sin DNI"
         return dni + " - " + self.Nombre
 
+    @property
+    def amonestaciones_leves_vigentes(self):
+        return [am for am in self.amonestaciones_set.all() if am.gravedad == "Leve" and am.vigente]
+
+    @property
+    def amonestaciones_graves_vigentes(self):
+        return [am for am in self.amonestaciones_set.all() if am.gravedad == "Grave" and am.vigente]
+
+    @property
+    def sancionable(self):
+        leves = len(self.amonestaciones_leves_vigentes)
+        graves = len(self.amonestaciones_graves_vigentes)
+        return leves + 2 * graves >= 6
+
     class Meta:
         verbose_name = "Alumno"
         verbose_name_plural = "Alumnos"

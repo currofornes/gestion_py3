@@ -1041,27 +1041,16 @@ def alumnadosancionable(request):
             else:
                 amonestaciones_vivas[amonestacion.IdAlumno].append(amonestacion)
 
-   # Contar cuantas amonestaciones leves y graves tiene cada alumno
-    recuento_amonestaciones = {}
-    for alumno in amonestaciones_vivas:
-        leves = 0
-        graves = 0
-        for amonestacion in amonestaciones_vivas[alumno]:
-            if amonestacion.gravedad == "Leve":
-                leves += 1
-            if amonestacion.gravedad == "Grave":
-                graves += 1
-        recuento_amonestaciones[alumno] = (leves, graves)
-
-    # Generar el listado de alumnos pendientes de ser sancionados.
-    # Criterio: (leves >= 5) | (graves >= 2) | (2 * graves + leves >= 5)
+    # Revisar si el alumno es sancionable y añadirlo a la lista
     alumnado_sancionable = []
-    for alumno in recuento_amonestaciones:
-        leves, graves = recuento_amonestaciones[alumno]
-        if (leves >= 5) or (graves >= 2) or (2 * graves + leves >= 5):
-            alumnado_sancionable.append((alumno, leves, graves))
+    for alumno in amonestaciones_vivas:
+        if alumno.sancionable:
+            leves = len(alumno.amonestaciones_leves_vigentes)
+            graves = len(alumno.amonestaciones_graves_vigentes)
+            total = leves + 2 * graves
+            alumnado_sancionable.append((alumno, leves, graves, total))
 
-    alumnado_sancionable.sort(key=lambda x: x[1] + 2 * x[2], reverse=True)
+    alumnado_sancionable.sort(key=lambda x: x[3], reverse=True)
     context = {
         'alumnado': alumnado_sancionable,
         'num_resultados': len(alumnado_sancionable),

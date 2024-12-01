@@ -57,9 +57,6 @@ class Amonestaciones(models.Model):
 
 	curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
 
-
-
-
 	def __str__(self):
 		return self.IdAlumno.Nombre
 
@@ -67,17 +64,12 @@ class Amonestaciones(models.Model):
 	def caducada(self):
 		hoy = datetime.now().date()  # Obtener la fecha de hoy
 
-		diferencia = self.Fecha - hoy
+		diferencia = hoy - self.Fecha
 
-		if self.Tipo and self.Tipo.TipoAmonestacion:
-			tipo = "Leve" if self.Tipo.TipoAmonestacion[1] == "L" else "Grave"
-		else:
-			# Asigna un valor por defecto si Tipo o TipoAmonestacion es None
-			tipo = "Desconocido"
 
-		if tipo == "Leve":
+		if self.gravedad == "Leve":
 			return diferencia.days > 30
-		elif tipo == "Grave":
+		elif self.gravedad == "Grave":
 			return diferencia.days > 60
 		else:
 			return False
@@ -98,6 +90,10 @@ class Amonestaciones(models.Model):
 			elif self.Tipo.TipoFalta == "G":
 				return "Grave"
 		return "Desconocida"  # Valor por defecto si Tipo o TipoFalta es None
+
+	@property
+	def vigente(self):
+		return (not self.caducada) and (not self.sancionada)
 
 	class Meta:
 		verbose_name="Amonestación"

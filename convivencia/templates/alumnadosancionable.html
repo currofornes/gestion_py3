@@ -18,46 +18,29 @@
                             <tr>
                                 <th>Alumno/a</th>
                                 <th>Unidad</th>
-                                <th class="text-center">Amonestaciones leves vigentes</th>
-                                <th class="text-center">Amonestaciones graves vigentes</th>
-{#                                <th>Profesor/a</th>#}
-{#                                <th data-hide="all">Comentario</th>#}
-{#                                <th data-hide="all">Tipo</th>#}
-{#                                <th data-hide="phone">Tramo horario</th>#}
-{#                                <th data-hide="all">Comunicado a</th>#}
-{#                                <th data-hide="all">Fecha comunicación</th>#}
-{#                                <th data-hide="all">Medio</th>#}
-{#                                <th data-hide="all">Teléfono</th>#}
-{#                                <th data-hide="all">Observaciones</th>#}
-
+                                <th class="text-center">Leves</th>
+                                <th class="text-center">Graves</th>
+                                <th class="text-center">Total</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {% for a, leves, graves in alumnado %}
-                                <tr>
+                            {% for a, leves, graves, total in alumnado %}
+                                <tr
+                                        {% if total < 6 and graves >= 2 %} class="bg-warning" {% endif %}
+                                        {% if total >= 6 and total <= 8 %} class="bg-warning" {% endif %}
+                                        {% if total >= 9 and total <= 12 %} class="bg-info" {% endif %}
+                                        {% if total > 12 %} class="bg-danger" {% endif %}
+                                >
                                     <td>
-                                        <a href="/convivencia/historial/{{ a.id }}/"><strong>{{ a.Nombre }}</strong> {% if a.PDC %} (PDC){% endif %} {% if a.NEAE %} (NEAE){% endif %}</a>
+                                        <a href="/convivencia/historial/{{ a.id }}/"><strong class="text-light">{{ a.Nombre }}</strong> {% if a.PDC %} (PDC){% endif %} {% if a.NEAE %} (NEAE){% endif %}</a>
                                     </td>
-                                    <td><a href="/centro/alumnos/{{ a.Unidad.id }}">{{ a.Unidad }}</a></td>
+                                    <td><a href="/centro/alumnos/{{ a.Unidad.id }}" class="text-light">{{ a.Unidad }}</a></td>
                                     <td class="text-center">
                                         {{ leves }}
                                     </td>
 
                                     <td class="text-center">{{ graves }}</td>
-
-{#                                    <td>{{ a.Profesor }}</td>#}
-{#                                    <td>{{ a.Comentario }}</td>#}
-{#                                    <td>{{ a.Tipo }}</td>#}
-{#                                    <td>{{ horas|slice:a.Hora|last }}</td>#}
-
-
-{#                                    <td> {{ a.FamiliarComunicado }}</td>#}
-{#                                    <td> {{ a.FechaComunicado|date:"d/m/Y" }} {{ a.HoraComunicado }}</td>#}
-{#                                    <td> {{ a.get_Medio_display }}</td>#}
-{#                                    <td> {{ a.TelefonoComunicado }}</td>#}
-{#                                    <td> {{ a.ObservacionComunicado }}</td>#}
-
-
+                                    <td class="text-center">{{ total }}</td>
                                 </tr>
                             {% endfor %}
 

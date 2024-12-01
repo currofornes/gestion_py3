@@ -11,6 +11,7 @@
                 <div class="ibox">
                     <div class="ibox-title">
                         <div class="float-right">
+                            <a href="/convivencia/amonestacion/{{ alum.id }}" class="btn btn-warning"><i class="fa fa-exclamation-triangle"></i> Amonestar </a>
                             <a href="/convivencia/sancion/{{ alum.id }}" class="btn btn-danger"><i class="fa fa-exclamation-triangle"></i> Sancionar </a>
                         </div>
 
@@ -51,7 +52,10 @@
                                 </thead>
                                 <tbody>
                                 {% for h,t,n in historial_actual %}
-                                    <tr>
+                                    <tr
+                                            {% if t == 'Amonestación' and not h.vigente %} class="bg-warning"{% endif %}
+                                            {% if t == 'Sanción' %} class="bg-danger"{% endif %}
+                                    >
                                         <td>
                                             {{ n }}
                                         </td>
