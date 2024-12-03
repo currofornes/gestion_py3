@@ -80,7 +80,7 @@
                                                                     <span class="text-success">{{ item.profesor.NombreHorarios }}</span>
                                                                     - <span
                                                                         class="text-danger">{{ item.aula }}</span>
-                                                                </small><br>
+                                                                </small> {% if forloop.last %} <br> {% else %} <hr> {% endif %}
                                                             {% endfor %}
                                                         {% else %}
                                                             -
