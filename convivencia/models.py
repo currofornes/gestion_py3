@@ -119,3 +119,22 @@ class Sanciones(models.Model):
 		verbose_name="Sanción"
 		verbose_name_plural="Sanciones"
 		unique_together = ('IdAlumno', 'Fecha', 'Fecha_fin', 'Sancion', 'Comentario', 'curso_academico')
+
+
+class PropuestasSancion(models.Model):
+	curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
+
+	alumno = models.ForeignKey(Alumnos,null=True,on_delete=models.SET_NULL)
+	entrada = models.DateField()
+	salida = models.DateField(blank=True, null=True)
+	motivo_salida = models.TextField(blank=True, null=True)
+	ultima_amonestacion = models.ForeignKey(Amonestaciones,null=True,on_delete=models.SET_NULL)
+	ignorar = models.BooleanField(default=False)
+
+
+	def __str__(self):
+		return f"Propuesta de sanción de {self.alumno} ({self.alumno.leves} leves, {self.alumno.graves} graves - peso: {self.alumno.peso_amonestaciones}"
+
+	class Meta:
+		verbose_name = "Propuesta de alumnado sancionable"
+		verbose_name_plural = "Propuestas de alumnado sancionable"

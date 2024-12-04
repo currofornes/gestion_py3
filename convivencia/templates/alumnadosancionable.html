@@ -24,23 +24,23 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for a, leves, graves, total in alumnado %}
+                            {% for alum in alumnado %}
                                 <tr
-                                        {% if total < 6 and graves >= 2 %} class="bg-warning" {% endif %}
-                                        {% if total >= 6 and total <= 8 %} class="bg-warning" {% endif %}
-                                        {% if total >= 9 and total <= 12 %} class="bg-info" {% endif %}
-                                        {% if total > 12 %} class="bg-danger" {% endif %}
+                                        {% if alum.peso_amonestaciones < 6 and alum.graves >= 2 %} class="bg-warning" {% endif %}
+                                        {% if alum.peso_amonestaciones >= 6 and alum.peso_amonestaciones <= 8 %} class="bg-warning" {% endif %}
+                                        {% if alum.peso_amonestaciones >= 9 and alum.peso_amonestaciones <= 12 %} class="bg-info" {% endif %}
+                                        {% if alum.peso_amonestaciones > 12 %} class="bg-danger" {% endif %}
                                 >
                                     <td>
-                                        <a href="/convivencia/historial/{{ a.id }}/"><strong class="text-light">{{ a.Nombre }}</strong> {% if a.PDC %} (PDC){% endif %} {% if a.NEAE %} (NEAE){% endif %}</a>
+                                        <a href="/convivencia/historial/{{ alum.id }}/"><strong class="text-light">{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</a>
                                     </td>
-                                    <td><a href="/centro/alumnos/{{ a.Unidad.id }}" class="text-light">{{ a.Unidad }}</a></td>
+                                    <td><a href="/centro/alumnos/{{ alum.Unidad.id }}" class="text-light">{{ alum.Unidad }}</a></td>
                                     <td class="text-center">
-                                        {{ leves }}
+                                        {{ alum.leves }}
                                     </td>
 
-                                    <td class="text-center">{{ graves }}</td>
-                                    <td class="text-center">{{ total }}</td>
+                                    <td class="text-center">{{ alum.graves }}</td>
+                                    <td class="text-center">{{ alum.peso_amonestaciones }}</td>
                                 </tr>
                             {% endfor %}
 

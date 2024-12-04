@@ -144,17 +144,31 @@ class Alumnos(models.Model):
 
     @property
     def amonestaciones_leves_vigentes(self):
-        return [am for am in self.amonestaciones_set.all() if am.gravedad == "Leve" and am.vigente]
+        return [am for am in self.amonestaciones_set.order_by("Fecha").all() if am.gravedad == "Leve" and am.vigente]
 
     @property
     def amonestaciones_graves_vigentes(self):
-        return [am for am in self.amonestaciones_set.all() if am.gravedad == "Grave" and am.vigente]
+        return [am for am in self.amonestaciones_set.order_by("Fecha").all() if am.gravedad == "Grave" and am.vigente]
+
+    @property
+    def leves(self):
+        return len(self.amonestaciones_leves_vigentes)
+
+    @property
+    def graves(self):
+        return len(self.amonestaciones_graves_vigentes)
 
     @property
     def sancionable(self):
-        leves = len(self.amonestaciones_leves_vigentes)
-        graves = len(self.amonestaciones_graves_vigentes)
-        return leves + 2 * graves >= 6
+        return self.peso_amonestaciones >= 6
+
+    @property
+    def peso_amonestaciones(self):
+        return self.leves + 2 * self.graves
+
+    @property
+    def ultima_sancion(self ):
+        return self.sanciones_set.order_by("Fecha").last()
 
     class Meta:
         verbose_name = "Alumno"
