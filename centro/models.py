@@ -1,6 +1,9 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 
+from .utils import get_current_academic_year
+# from fusiona_old_bbdd import curso_academico_id
 from gestion import settings
 
 
@@ -167,8 +170,34 @@ class Alumnos(models.Model):
         return self.leves + 2 * self.graves
 
     @property
-    def ultima_sancion(self ):
+    def ultima_sancion(self):
         return self.sanciones_set.order_by("Fecha").last()
+
+    @property
+    def amonestacion_entrada_sancionable(self):
+        amonestaciones = [amon for amon in self.amonestaciones_set.filter(
+            curso_academico=get_current_academic_year()
+        ).order_by("Fecha").all() if amon.vigente]
+
+
+        peso_acumulado = {}
+        leves = 0
+        graves = 0
+        peso = 0
+        result = None
+
+        for amonestacion in amonestaciones:
+            if amonestacion.gravedad == "Leve":
+                leves += 1
+                peso += 1
+            elif amonestacion.gravedad == "Grave":
+                graves += 1
+                peso += 2
+
+            if graves >= 2 or peso >= 6:
+                result = amonestacion
+                break
+        return result
 
     class Meta:
         verbose_name = "Alumno"

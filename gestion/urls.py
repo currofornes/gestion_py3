@@ -16,11 +16,16 @@ Including another URLconf
 from django.urls import include, re_path, path
 from django.contrib import admin
 
-from gestion.views import index, salir, login_view, cambiar_password, cambiar_password_custom, descargar_base_datos
+from gestion.views import (
+    index, salir, login_view, cambiar_password, cambiar_password_custom, descargar_base_datos,
+    cargar_qry
+)
 
 urlpatterns = [
 
     path('admin/descargar-db/', descargar_base_datos, name='descargar_base_datos'),
+    path('admin/cargar_qry/', cargar_qry, name='cargar_qry'),
+
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^centro/', include('centro.urls')),
     re_path(r'^convivencia/', include('convivencia.urls')),

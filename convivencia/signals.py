@@ -1,4 +1,5 @@
-from django.db.models.signals import post_save
+from django.db.models import Q
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
@@ -36,28 +37,40 @@ def cerrar_registro_alumnado_sancionable(sender, instance, **kwargs):
         # No hay registro activo, no se hace nada
         pass
 
-@receiver(post_save, sender=Amonestaciones)
-def actualizar_alumnado_sancionable(sender, instance, **kwargs):
-    alumno = instance.IdAlumno
-    curso = instance.curso_academico
-    if not alumno or not curso:
-        return  # No se puede procesar si falta el alumno o el curso académico
-
-    # Buscar registro existente en AlumnadoSancionable
-    propuestas = PropuestasSancion.objects.filter(
-        Q(curso_academico=curso) & Q(salida__isnull=True) & Q(alumno=alumno)).all()
-    if len(propuestas) > 0:
-        propuesta = propuestas[0]
-        propuesta.ultima_amonestacion = instance
-        propuesta.ignorar = False
-        propuesta.save()
-    else:
-        if alumno.sancionable:
-            propuesta = PropuestasSancion(
-                curso_academico=curso,
-                alumno=alumno,
-                entrada=instance.Fecha,
-                ultima_amonestacion=instance
-            )
-
-            propuesta.save()
+# @receiver(post_save, sender=Amonestaciones)
+# def actualizar_alumnado_sancionable(sender, instance, **kwargs):
+#     alumno = instance.IdAlumno
+#     curso = instance.curso_academico
+#     if not alumno or not curso:
+#         return  # No se puede procesar si falta el alumno o el curso académico
+#
+#     # Buscar registro existente en AlumnadoSancionable
+#     propuestas = PropuestasSancion.objects.filter(
+#         Q(curso_academico=curso) & Q(salida__isnull=True) & Q(alumno=alumno)).all()
+#     if len(propuestas) > 0:
+#         propuesta = propuestas[0]
+#         propuesta.ultima_amonestacion = instance
+#         propuesta.ignorar = False
+#         leves = alumno.leves
+#         graves = alumno.graves
+#         peso = leves + 2 * graves
+#         propuesta.leves = leves
+#         propuesta.graves = graves
+#         propuesta.peso = peso
+#         propuesta.save()
+#     else:
+#         leves = alumno.leves
+#         graves = alumno.graves
+#         peso = leves + 2 * graves
+#         if graves >= 2 or peso >= 6:
+#             propuesta = PropuestasSancion(
+#                 curso_academico=curso,
+#                 alumno=alumno,
+#                 entrada=instance.Fecha,
+#                 ultima_amonestacion=instance,
+#                 leves=leves,
+#                 graves=graves,
+#                 peso=peso
+#             )
+#
+#             propuesta.save()

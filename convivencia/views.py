@@ -1,3 +1,4 @@
+from collections import defaultdict
 from sqlite3 import IntegrityError
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,7 +11,6 @@ from centro.views import group_check_je, group_check_prof
 from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones, PropuestasSancion
 from centro.models import Cursos
 from django.contrib.auth.decorators import login_required, user_passes_test
-import time, calendar
 from datetime import datetime, date, timedelta
 from operator import itemgetter
 from django.db.models import Count, Q
@@ -19,6 +19,7 @@ from django.shortcuts import render
 from django.template import Context
 from django.core.mail import send_mail
 from datetime import date
+import time
 # Create your views here.
 
 # Curro Jul 24: Modifico para que solo pueda usarse por JE
@@ -67,13 +68,16 @@ def parte(request, tipo, alum_id):
                                 correo = Profesores.objects.get(id=prof.id).Email
                                 if correo != "":
                                     correos.append(correo)
-                            send_mail(
-                                'Nueva amonestación',
-                                contenido,
-                                '41011038.jestudios.edu@juntadeandalucia.es',
-                                correos,
-                                fail_silently=False,
-                            )
+                            try:
+                                send_mail(
+                                    'Nueva amonestación',
+                                    contenido,
+                                    '41011038.jestudios.edu@juntadeandalucia.es',
+                                    correos,
+                                    fail_silently=False,
+                                )
+                            except ConnectionRefusedError:
+                                print("Error al enviar el correo")
                         except IntegrityError:
                             print("Ya existe una amonestación igual")
 
@@ -96,15 +100,20 @@ def parte(request, tipo, alum_id):
                                 correos.append(correo)
 
 
-                        send_mail(
-                            'Nueva sanción',
-                            contenido,
-                            '41011038.jestudios.edu@juntadeandalucia.es',
-                            correos,
-                            fail_silently=False,
-                        )
+                        try:
+                            send_mail(
+                                'Nueva sanción',
+                                contenido,
+                                '41011038.jestudios.edu@juntadeandalucia.es',
+                                correos,
+                                fail_silently=False,
+                            )
+                        except ConnectionRefusedError:
+                            print("Error de conexión al enviar el correo")
                     except IntegrityError:
                         print("Ya existe una sanción igual")
+
+
 
 
                 return redirect('/centro/alumnos')
@@ -1030,66 +1039,91 @@ def sancionesactivas(request):
 @user_passes_test(group_check_je, login_url='/')
 def alumnadosancionable(request):
     curso_academico_actual = get_current_academic_year()
-
+    fecha_tope_leves = date.today() - timedelta(days=30)
+    fecha_tope_graves = date.today() - timedelta(days=60)
     if not PropuestasSancion.objects.filter(curso_academico=curso_academico_actual).exists():
-        # Es la primera carga de alumnado sancionable por lo que se va a generar la base de datos con datos actuales,
-        # sin histórico.
-        amonestaciones_vivas = [amonestacion for amonestacion in
-                                Amonestaciones.objects.filter(curso_academico=curso_academico_actual).all()
-                                if amonestacion.vigente]
+        # La BBDD está vacía, hay que popularla
+        amonestaciones_sin_caducar = list(
+            Amonestaciones.objects.filter(
+                Q(curso_academico=curso_academico_actual) & (
+                    (Q(Tipo__TipoFalta='L') & Q(Fecha__gt=fecha_tope_leves)) |
+                    (Q(Tipo__TipoFalta='G') & Q(Fecha__gt=fecha_tope_graves))
+                )).order_by('Fecha').all()
+        )
+        alumnado = set(am.IdAlumno for am in amonestaciones_sin_caducar)
+        fecha_ultima_sancion = {}
+        leves = {}
+        graves = {}
+        fecha_entrada = {}
+        for alumno in alumnado:
+            fecha_ultima_sancion[alumno] = alumno.ultima_sancion.Fecha if alumno.ultima_sancion is not None else None
+            leves[alumno] = 0
+            graves[alumno] = 0
 
-        alumnado_amonestado = set(amonestacion.IdAlumno for amonestacion in amonestaciones_vivas)
+        amonestaciones_vivas = defaultdict(list)
+        for amonestacion in amonestaciones_sin_caducar:
+            alumno = amonestacion.IdAlumno
+            if (fecha_ultima_sancion[alumno] is not None) and (amonestacion.Fecha > fecha_ultima_sancion[alumno]):
+                amonestaciones_vivas[alumno].append(amonestacion)
+                if amonestacion.gravedad == 'Leve':
+                    leves[alumno] += 1
+                elif amonestacion.gravedad == 'Grave':
+                    graves[alumno] += 1
+                if ((leves[alumno] + 2 * graves[alumno] >= 6) or (graves[alumno] >= 2)) and not (alumno in fecha_entrada):
+                    fecha_entrada[alumno] = amonestacion.Fecha
 
-        alumnado_sancionable = [alumno for alumno in alumnado_amonestado if alumno.sancionable]
-        alumnado_sancionable.sort(key=lambda x: x.peso_amonestaciones, reverse=True)
+        resultado = []
+        for alumno in amonestaciones_vivas:
+            if (leves[alumno] + 2 * graves[alumno] >= 6) or graves[alumno] >= 2:
+                propuesta = PropuestasSancion(
+                    curso_academico=curso_academico_actual,
+                    alumno=alumno,
+                    entrada=fecha_entrada[alumno],
+                    leves=leves[alumno],
+                    graves=graves[alumno],
+                    peso=(leves[alumno] + 2 * graves[alumno])
+                )
+                propuesta.save()
+                for amonestacion in amonestaciones_vivas[alumno]:
+                    propuesta.amonestaciones.add(amonestacion)
+                    propuesta.save()
+                resultado.append((alumno, leves[alumno], graves[alumno], leves[alumno] + 2 * graves[alumno], propuesta.id))
 
-        for alumno in alumnado_sancionable:
-            # Calcular la fecha de entrada
-            amonestaciones = alumno.amonestaciones_leves_vigentes
-            amonestaciones.extend(alumno.amonestaciones_graves_vigentes)
-            amonestaciones.sort(key=lambda x: x.Fecha)
-            leves = 0
-            graves = 0
-            entrada = None
-            for amonestacion in amonestaciones:
-                if amonestacion.gravedad == "Leve":
-                    leves += 1
-                if amonestacion.gravedad == "Grave":
-                    graves += 1
-
-                if (graves >= 2) or (leves + 2 * graves >= 6):
-                    entrada = amonestacion.Fecha
-                    break
-
-            propuesta = PropuestasSancion(
-                curso_academico=curso_academico_actual,
-                alumno=alumno,
-                entrada=entrada,
-                ultima_amonestacion=amonestaciones[-1])
-            propuesta.save()
     else:
-        # Ya existe la BBDD
-        # Primero cargo los datos
-        print("Hola guapo!")
-        propuestas = PropuestasSancion.objects.filter(curso_academico=curso_academico_actual).filter(
-            Q(salida__isnull=True) & Q(ignorar=False)).all()
-        alumnado_sancionable = [propuesta.alumno for propuesta in propuestas]
-        # Luego quito los alumnos que salen por caducidad de los partes.
-        alumnado_caducado = [alumno for alumno in alumnado_sancionable if not alumno.sancionable]
-        for alumno in alumnado_caducado:
-            propuesta = PropuestasSancion.objects.filter(
-                Q(curso_academico=curso_academico_actual) & Q(alumno=alumno) & Q(salida__isnull=True)
-            ).first()
-            propuesta.salida = date.today()
-            propuesta.motivo_salida = "Partes caducados"
-            propuesta.save()
-            alumnado_sancionable.remove(alumno)
-        alumnado_sancionable.sort(key=lambda x: x.peso_amonestaciones, reverse=True)
+        # Cargar la información de la BBDD
+        propuestas = PropuestasSancion.objects.filter(
+            Q(curso_academico=curso_academico_actual) & Q(salida__isnull=True) & Q(ignorar=False)
+        ).order_by('-peso').all()
 
-        context = {
-        'alumnado': alumnado_sancionable,
-        'num_resultados': len(alumnado_sancionable),
-        'menu_convivencia': True,
+        # Comprobar que el alumno propuesto no haya salido por caducidad sin detectarlo previamente.
+        # Esto se evitará cuando se active django-crontab
+        resultado = []
+        for propuesta in propuestas:
+            amonestaciones_caducadas = [amonestacion for amonestacion
+                                        in propuesta.amonestaciones.order_by('Fecha').all() if amonestacion.caducada]
+            for amonestacion in amonestaciones_caducadas:
+                propuesta.amonestaciones.remove(amonestacion)
+                if amonestacion.gravedad == 'Leve':
+                    propuesta.leves -= 1
+                    propuesta.peso -= 1
+                elif amonestacion.gravedad == 'Grave':
+                    propuesta.graves -= 1
+                    propuesta.peso -= 2
+                propuesta.save()
+            if (propuesta.graves < 2) and (propuesta.peso < 6):
+                propuesta.salida = date.today()
+                propuesta.motivo_salida = 'Amonestaciones caducadas'
+                propuesta.save()
+            else:
+                resultado.append((propuesta.alumno, propuesta.leves, propuesta.graves, propuesta.peso, propuesta.id))
+
+
+    resultado.sort(key=lambda x: x[3], reverse=True)
+
+    context = {
+    'alumnado': resultado,
+    'num_resultados': len(resultado),
+    'menu_convivencia': True,
     }
 
     return render(request, 'alumnadosancionable.html', context)
@@ -1117,3 +1151,44 @@ def sanciones_reincorporacion(request):
     }
 
     return render(request, 'sancionesreincorporacion.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
+def historial_vigente(request, alum_id, prof):
+    horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
+    alum = Alumnos.objects.get(pk=alum_id)
+
+    if request.user.username[:5] == "tutor" and alum.Unidad.Abe != request.user.username[5:]:
+        return redirect("/")
+
+    curso_academico_actual = get_current_academic_year()
+
+    # Filtrar las amonestaciones y sanciones del curso académico actual
+    amon_actual = Amonestaciones.objects.filter(IdAlumno_id=alum_id, curso_academico=curso_academico_actual).order_by(
+        'Fecha')
+    amon_vigentes = [a for a in amon_actual if a.vigente]
+
+    historial_actual = amon_vigentes
+
+    tipo_actual = ["Amonestación" if isinstance(h, Amonestaciones) else "Sanción" for h in historial_actual]
+    hist_actual = zip(historial_actual, tipo_actual, range(1, len(historial_actual) + 1))
+
+    prof = True if prof == "" else False
+    context = {
+        'prof': prof,
+        'alum': alum,
+        'historial_actual': hist_actual,
+        'menu_convivencia': True,
+        'horas': horas,
+    }
+
+    return render(request, 'historial_vigente.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def ignorar_propuesta_sancion(request, prop_id):
+    print('Hola caracola')
+    propuesta = PropuestasSancion(pk=prop_id)
+    propuesta.ignorar = True
+    propuesta.save()
+    return redirect('alumnadosancionable')

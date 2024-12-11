@@ -2,7 +2,7 @@ from datetime import datetime, date
 from django.db import models
 
 # Create your models here.
-from centro.models import Alumnos, Profesores, CursoAcademico
+# from centro.models import Alumnos, Profesores, CursoAcademico
 
 
 # Register your models here.
@@ -36,10 +36,10 @@ class Amonestaciones(models.Model):
 		('3', 'Otro'),
 	)
 
-	IdAlumno = models.ForeignKey(Alumnos,null=True,on_delete=models.SET_NULL)
+	IdAlumno = models.ForeignKey('centro.Alumnos',null=True,on_delete=models.SET_NULL)
 	Fecha = models.DateField()
 	Hora = models.CharField(max_length=1,choices=hora,default='1')
-	Profesor = models.ForeignKey(Profesores, null=True, on_delete=models.SET_NULL)
+	Profesor = models.ForeignKey('centro.Profesores', null=True, on_delete=models.SET_NULL)
 	Tipo = models.ForeignKey(TiposAmonestaciones, related_name='Tipo_de', blank=True, null=True,
 							 on_delete=models.SET_NULL)
 	Comentario=models.TextField(blank=True)
@@ -55,7 +55,7 @@ class Amonestaciones(models.Model):
 	TelefonoComunicado = models.TextField(blank=True, null=True)
 	ObservacionComunicado = models.TextField(blank=True, null=True)
 
-	curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
+	curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
 	def __str__(self):
 		return self.IdAlumno.Nombre
@@ -103,14 +103,14 @@ class Amonestaciones(models.Model):
 
 class Sanciones(models.Model):
 	
-	IdAlumno = models.ForeignKey(Alumnos,null=True,on_delete=models.SET_NULL)
+	IdAlumno = models.ForeignKey('centro.Alumnos',null=True,on_delete=models.SET_NULL)
 	Fecha = models.DateField()
 	Fecha_fin = models.DateField(verbose_name="Fecha finalización")
 	Sancion=models.CharField(max_length=100,blank=True)
 	Comentario=models.TextField(blank=True)
 	NoExpulsion = models.BooleanField(default=False,verbose_name="Medidas de flexibilización a la expulsión")
 
-	curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
+	curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
 	def __str__(self):
 		return self.IdAlumno.Nombre 
@@ -122,14 +122,18 @@ class Sanciones(models.Model):
 
 
 class PropuestasSancion(models.Model):
-	curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
+	curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
-	alumno = models.ForeignKey(Alumnos,null=True,on_delete=models.SET_NULL)
+	alumno = models.ForeignKey('centro.Alumnos',null=True,on_delete=models.SET_NULL)
 	entrada = models.DateField()
 	salida = models.DateField(blank=True, null=True)
 	motivo_salida = models.TextField(blank=True, null=True)
-	ultima_amonestacion = models.ForeignKey(Amonestaciones,null=True,on_delete=models.SET_NULL)
+	amonestaciones = models.ManyToManyField(Amonestaciones, 'propuestas_sancion', null=True, blank=True)
 	ignorar = models.BooleanField(default=False)
+
+	leves = models.PositiveSmallIntegerField(default=0)
+	graves = models.PositiveSmallIntegerField(default=0)
+	peso = models.PositiveSmallIntegerField(default=0)
 
 
 	def __str__(self):

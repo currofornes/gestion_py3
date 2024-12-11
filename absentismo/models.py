@@ -1,6 +1,6 @@
 from django.db import models
 
-from centro.models import Alumnos, Profesores, CursoAcademico
+#from centro.models import Alumnos, Profesores, CursoAcademico
 
 
 # Create your models here.
@@ -16,13 +16,13 @@ class TiposActuaciones(models.Model):
         verbose_name_plural = "Tipos de Actuación"
 
 class ProtocoloAbs(models.Model):
-    alumno = models.ForeignKey(Alumnos, related_name='protocolos', on_delete=models.CASCADE)
-    tutor = models.ForeignKey(Profesores, related_name='tutor', on_delete=models.CASCADE)
+    alumno = models.ForeignKey('centro.Alumnos', related_name='protocolos', on_delete=models.CASCADE)
+    tutor = models.ForeignKey('centro.Profesores', related_name='tutor', on_delete=models.CASCADE)
     fecha_apertura = models.DateField()
     fecha_cierre = models.DateField(blank=True, null=True)
     abierto = models.BooleanField(default=False)
 
-    curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
 
     def __str__(self):
@@ -49,7 +49,7 @@ class Actuaciones(models.Model):
     Notificada = models.BooleanField(default=False)
     Medio = models.CharField(max_length=1, choices=medios,blank=True, null=True)
     Telefono = models.TextField(blank=True, null=True)
-    curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
 
     def __unicode__(self):

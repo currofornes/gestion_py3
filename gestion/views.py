@@ -10,10 +10,12 @@ from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate,login
 from django.urls import reverse
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db import connection
 
 from centro.utils import importar_profesores
 from centro.views import is_tutor
-from gestion.forms import CustomPasswordChangeForm
+from gestion.forms import CustomPasswordChangeForm, QueryForm
 
 
 # Create your views here.
@@ -101,3 +103,25 @@ def descargar_base_datos(request):
     db_path = settings.DATABASES['default']['NAME']
     response = FileResponse(open(db_path, 'rb'), as_attachment=True, filename=os.path.basename(db_path))
     return response
+
+
+@staff_member_required
+def cargar_qry(request):
+    result = None
+    error = None
+    if request.method == "POST":
+        form = QueryForm(request.POST)
+        if form.is_valid():
+            query = form.cleaned_data["query"]
+            print(query)
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(query)
+                    if query.strip().lower().startswith("select"):
+                        result = cursor.fetchall()
+            except Exception as e:
+                error = str(e)
+    else:
+        form = QueryForm()
+
+    return render(request, "cargar_qry.html", {"form": form, "result": result, "error": error})

@@ -21,26 +21,29 @@
                                 <th class="text-center">Leves</th>
                                 <th class="text-center">Graves</th>
                                 <th class="text-center">Total</th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {% for alum in alumnado %}
+                            {% for alum, l, g, p, prop in alumnado %}
                                 <tr
-                                        {% if alum.peso_amonestaciones < 6 and alum.graves >= 2 %} class="bg-warning" {% endif %}
-                                        {% if alum.peso_amonestaciones >= 6 and alum.peso_amonestaciones <= 8 %} class="bg-warning" {% endif %}
-                                        {% if alum.peso_amonestaciones >= 9 and alum.peso_amonestaciones <= 12 %} class="bg-info" {% endif %}
-                                        {% if alum.peso_amonestaciones > 12 %} class="bg-danger" {% endif %}
+                                        {% if p < 6 and g >= 2 %} class="bg-warning" {% endif %}
+                                        {% if p >= 6 and p <= 8 %} class="bg-warning" {% endif %}
+                                        {% if p >= 9 and p <= 12 %} class="bg-info" {% endif %}
+                                        {% if p > 12 %} class="bg-danger" {% endif %}
                                 >
                                     <td>
-                                        <a href="/convivencia/historial/{{ alum.id }}/"><strong class="text-light">{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</a>
+                                        <a href="/convivencia/historial_vigente/{{ alum.id }}/"><strong class="text-light">{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</a>
                                     </td>
                                     <td><a href="/centro/alumnos/{{ alum.Unidad.id }}" class="text-light">{{ alum.Unidad }}</a></td>
                                     <td class="text-center">
-                                        {{ alum.leves }}
+                                        {{ l }}
                                     </td>
 
-                                    <td class="text-center">{{ alum.graves }}</td>
-                                    <td class="text-center">{{ alum.peso_amonestaciones }}</td>
+                                    <td class="text-center">{{ g }}</td>
+                                    <td class="text-center">{{ p }}</td>
+                                    <td class="text-center">
+                                        <a href="/convivencia/ignorar/{{ prop }}" class="btn btn-dark"> Ignorar propuesta </a> </td>
                                 </tr>
                             {% endfor %}
 
