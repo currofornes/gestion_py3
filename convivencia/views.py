@@ -1188,7 +1188,8 @@ def historial_vigente(request, alum_id, prof):
 @user_passes_test(group_check_je, login_url='/')
 def ignorar_propuesta_sancion(request, prop_id):
     print('Hola caracola')
-    propuesta = PropuestasSancion(pk=prop_id)
+    # propuesta = PropuestasSancion(pk=prop_id)
+    propuesta = get_object_or_404(PropuestasSancion, pk=prop_id)
     propuesta.ignorar = True
     propuesta.save()
     return redirect('alumnadosancionable')

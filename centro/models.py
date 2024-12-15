@@ -154,6 +154,10 @@ class Alumnos(models.Model):
         return [am for am in self.amonestaciones_set.order_by("Fecha").all() if am.gravedad == "Grave" and am.vigente]
 
     @property
+    def amonestaciones_vigentes(self):
+        return [am for am in self.amonestaciones_set.order_by("Fecha").all() if am.vigente]
+
+    @property
     def leves(self):
         return len(self.amonestaciones_leves_vigentes)
 

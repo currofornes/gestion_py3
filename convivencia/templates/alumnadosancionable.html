@@ -43,7 +43,8 @@
                                     <td class="text-center">{{ g }}</td>
                                     <td class="text-center">{{ p }}</td>
                                     <td class="text-center">
-                                        <a href="/convivencia/ignorar/{{ prop }}" class="btn btn-dark"> Ignorar propuesta </a> </td>
+{#                                        <a href="/convivencia/ignorar/{{ prop }}" class="btn btn-dark"> Ignorar propuesta </a> </td>#}
+                                        <a href="{% url 'ignorar' prop %}" class="btn btn-dark"> Ignorar propuesta </a>
                                 </tr>
                             {% endfor %}
 
@@ -72,10 +73,32 @@
 {% endblock %}
 
 {% block js %}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
 
         $(document).ready(function () {
             $('.footable').footable();
+
+            // Manejar el evento click en botones "Ignorar propuesta"
+            $('.btn-dark').on('click', function (e) {
+                e.preventDefault(); // Detener la navegación del enlace por defecto
+
+                const link = $(this).attr('href'); // Obtener la URL del enlace
+
+                Swal.fire({
+                    title: 'Confirmar acción',
+                    text: '¿Seguro que desea ignorar esta propuesta de sanción?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ignorar esta propuesta',
+                    cancelButtonText: 'Cancelar',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Si el usuario confirma, redirigir al enlace
+                        window.location.href = link;
+                    }
+                });
+            });
         });
 
     </script>

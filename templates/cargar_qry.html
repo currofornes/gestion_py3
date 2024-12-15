@@ -1,38 +1,64 @@
-{% extends "admin/base_site.html" %}
+{% extends "base.html" %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
 
 {% block content %}
-    <h1>Ejecutar consulta SQL</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="button">Ejecutar</button>
-    </form>
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h2>Ejecutar consulta SQL</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <h3>Consulta a ejecutar</h3>
+                                <div class="row">
+                                    <div class="col"><textarea></textarea>></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
+                                        <button type="submit" class="btn btn-primary btn-lg btn-block">Ejecutar consulta</button>
+                                    </div>>
+                                </div>
+                            </div>
+                        </form>
 
-    {% if error %}
-        <div style="color: red; margin-top: 20px;">
-            <strong>Error:</strong> {{ error }}
+                        {% if error %}
+                            <div style="color: red; margin-top: 20px;">
+                                <strong>Error:</strong> {{ error }}
+                            </div>
+                        {% endif %}
+
+                        {% if result %}
+                            <h2>Resultados</h2>
+                            <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
+                                <thead>
+                                    <tr>
+                                        {% for column in result.0 %}
+                                            <th>{{ column }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in result %}
+                                        <tr>
+                                            {% for cell in row %}
+                                                <td>{{ cell }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
-    {% endif %}
+    </div>
 
-    {% if result %}
-        <h2>Resultados</h2>
-        <table border="1" cellpadding="5">
-            <thead>
-                <tr>
-                    {% for column in result.0 %}
-                        <th>{{ column }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in result %}
-                    <tr>
-                        {% for cell in row %}
-                            <td>{{ cell }}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+
 {% endblock %}

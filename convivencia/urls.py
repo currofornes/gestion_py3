@@ -36,8 +36,8 @@ urlpatterns = [
 
 	re_path(r'^reincorporacionsanciones$', views.sanciones_reincorporacion, name='sanciones_reincorporacion'),
 
-	re_path(r'^ignorar/(?P<prop_id>[0-9]+)', views.ignorar_propuesta_sancion, name='ignorar'),
-
+	# re_path(r'^ignorar/(?P<prop_id>[0-9]+)', views.ignorar_propuesta_sancion, name='ignorar'),
+	re_path(r'^ignorar/(?P<prop_id>[0-9]+)/$', views.ignorar_propuesta_sancion, name='ignorar'),
 
 
 
