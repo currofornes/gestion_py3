@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     "absentismo.apps.AbsentismoConfig",
     "reservas.apps.ReservasConfig",
     "horarios.apps.HorariosConfig",
-    "guardias.apps.GuardiasConfig"
+    "guardias.apps.GuardiasConfig",
+    'calendario.apps.CalendarioConfig'
 ]
 
 MIDDLEWARE = [
@@ -139,17 +140,21 @@ STATICFILES_DIRS = (
 )
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-# # Configuración para envío de correos
-# # Activar sólo para despliegue
-# import configparser
-# configuracion = configparser.ConfigParser()
-# configuracion.read(os.path.join(BASE_DIR, 'gestion.cfg'))
+# Cambios añadidos por RRM para poder almacenar archivos en el server y procesarlos posteriormente.
+# @FFR: Esto es el gérmen para poder subir archivos a gestiona exportados desde Séneca sin tener que hacerlos en local
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+# Fin de cambios
+
+import configparser
+configuracion = configparser.ConfigParser()
+configuracion.read(os.path.join(BASE_DIR, 'gestion.cfg'))
 # EMAIL_HOST = configuracion.get('bd','EMAIL_HOST')
 # EMAIL_HOST_USER = configuracion.get('bd','EMAIL_HOST_USER')
 # EMAIL_HOST_PASSWORD = configuracion.get('bd','EMAIL_HOST_PASSWORD')
 # EMAIL_PORT = configuracion.get('bd','EMAIL_PORT')
 # EMAIL_USE_TLS = configuracion.get('bd','EMAIL_USE_TLS')
-# # Fin
+
 
 
 

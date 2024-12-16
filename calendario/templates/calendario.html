@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col">
+                <h2>Calendario de faltas de: {{ alumno.Nombre }}</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <span class="bg-success text-white">  Falta justificada. </span>
+                <span> &nbsp; </span>
+                <span class="bg-secondary text-white">  Falta a día completo. </span>
+                <span> &nbsp; </span>
+                <span class="bg-warning"> Falta a horas sueltas. </span>
+            </div>
+        </div>
+        <div class="row">
+            <div id="cal-sep_dic" class="col-sm"></div>
+        </div>
+        <div class="row">
+            <div id="cal-ene_jun" class="col-sm"></div>
+        </div>
+    </div>
+    <!-- Modal para mostrar detalles de la amonestación o sanción -->
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Detalles del Evento</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/fullcalendar/index.global.js' %}"></script>
+    <script src="{% static 'js/plugins/fullcalendar/locales/es.global.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Cargo la configuración inicial del calendario: inicio y final de curso y los festivos.
+            $.getJSON("{% static 'data/calendario.json' %}", function(data) {
+                const inicio_curso = data.inicio_curso;
+                const final_curso = data.final_curso;
+                const festivos = data.festivos;
+
+                // Inicializar los calendarios
+                const calendar_1 = new FullCalendar.Calendar($('#cal-sep_dic')[0], {
+                    locale: 'es',
+                    editable: false,
+                    droppable: false,
+                    weekends: false,
+                    validRange: { start: inicio_curso, end: '2024-12-31' },
+                    initialView: 'sept_dic',
+                    views: { sept_dic: { type: 'multiMonth', duration: { months: 4 } } },
+                    initialDate: inicio_curso,
+                    headerToolbar: { start: 'title', center: '', end: '' }
+                });
+
+                const calendar_2 = new FullCalendar.Calendar($('#cal-ene_jun')[0], {
+                    locale: 'es',
+                    editable: false,
+                    droppable: false,
+                    weekends: false,
+                    validRange: { start: '2025-01-01', end: final_curso },
+                    initialView: 'ene_jun',
+                    views: { ene_jun: { type: 'multiMonth', duration: { months: 6 } } },
+                    headerToolbar: { start: 'title', center: '', end: '' }
+                });
+
+                function showEventDetails(eventData) {
+                    const modalBody = document.querySelector("#eventModal .modal-body");
+
+                    // Limpia cualquier contenido previo en el modal
+                    modalBody.innerHTML = '';
+
+                    // Verifica si el campo `modalInfo` existe y no está vacío
+                    if (eventData.extendedProps.modalInfo && eventData.extendedProps.modalInfo.length > 0) {
+                        // Itera sobre los elementos de `modalInfo` para crear los párrafos <p>
+                        eventData.extendedProps.modalInfo.forEach(info => {
+                            const paragraph = document.createElement("p");
+                            paragraph.innerHTML = `<strong>${info.label}:</strong> ${info.text}`;
+                            modalBody.appendChild(paragraph);
+                        });
+                        $('#eventModal').modal('show');
+                    }
+                }
+                // Configurar el evento `eventClick` para ambos calendarios
+                function configurarCalendario(calendar) {
+                    calendar.on('eventClick', function(info) {
+                        const evento = info.event;
+                        if (evento.extendedProps.modalInfo && evento.extendedProps.modalInfo.length > 0) {
+                            showEventDetails(evento)
+                        }
+                    });
+                }
+
+                configurarCalendario(calendar_1);
+                configurarCalendario(calendar_2);
+
+                // Función para agregar eventos a los calendarios correctos
+                function addEvent(evento) {
+                    const inicio = new Date(evento.start);
+
+                    if (inicio.getFullYear() === 2024) {
+                        calendar_1.addEvent(evento);
+                    } else if (inicio.getFullYear() === 2025) {
+                        calendar_2.addEvent(evento);
+                    }
+                }
+
+                // Añadir eventos de festivos
+                festivos.forEach(function(festivo) {
+                    addEvent(festivo);
+                });
+
+                // Cargar eventos de amonestaciones y sanciones
+                $.getJSON("{% url 'faltas_json' proto_id=protocolo.id %}", function(data) {
+                    data.forEach(function(evento) {
+                        addEvent(evento);
+                    });
+                });
+
+                // Renderizar ambos calendarios
+                calendar_1.render();
+                calendar_2.render();
+            });
+        });
+    </script>
+{% endblock %}

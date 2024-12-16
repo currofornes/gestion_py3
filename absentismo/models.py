@@ -1,6 +1,6 @@
 from django.db import models
 
-#from centro.models import Alumnos, Profesores, CursoAcademico
+from centro.models import Alumnos, Profesores, CursoAcademico
 
 
 # Create your models here.
@@ -16,13 +16,13 @@ class TiposActuaciones(models.Model):
         verbose_name_plural = "Tipos de Actuación"
 
 class ProtocoloAbs(models.Model):
-    alumno = models.ForeignKey('centro.Alumnos', related_name='protocolos', on_delete=models.CASCADE)
-    tutor = models.ForeignKey('centro.Profesores', related_name='tutor', on_delete=models.CASCADE)
+    alumno = models.ForeignKey(Alumnos, related_name='protocolos', on_delete=models.CASCADE)
+    tutor = models.ForeignKey(Profesores, related_name='tutor', on_delete=models.CASCADE)
     fecha_apertura = models.DateField()
     fecha_cierre = models.DateField(blank=True, null=True)
     abierto = models.BooleanField(default=False)
 
-    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+    curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
 
 
     def __str__(self):
@@ -31,7 +31,6 @@ class ProtocoloAbs(models.Model):
     class Meta:
         verbose_name="Protocolo Absentismo"
         verbose_name_plural="Protocolos Absentismo"
-        unique_together = ('alumno', 'tutor', 'fecha_apertura','fecha_cierre','abierto', 'curso_academico')
 
 
 class Actuaciones(models.Model):
@@ -49,7 +48,7 @@ class Actuaciones(models.Model):
     Notificada = models.BooleanField(default=False)
     Medio = models.CharField(max_length=1, choices=medios,blank=True, null=True)
     Telefono = models.TextField(blank=True, null=True)
-    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+    curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
 
 
     def __unicode__(self):
@@ -58,4 +57,20 @@ class Actuaciones(models.Model):
     class Meta:
         verbose_name = "Actuación"
         verbose_name_plural = "Actuaciones"
-        unique_together = ('Protocolo', 'Fecha', 'Tipo', 'Comentario', 'Notificada', 'Medio', 'Telefono', 'curso_academico')
+
+class FaltasProtocolo(models.Model):
+    Protocolo = models.ForeignKey(ProtocoloAbs, related_name='faltas', on_delete=models.CASCADE)
+    Fecha = models.DateField()
+    DiaCompletoJustificada = models.PositiveSmallIntegerField(blank=True, null=True)
+    DiaCompletoNoJustificada = models.PositiveSmallIntegerField(blank=True, null=True)
+    TramosJustificados = models.PositiveSmallIntegerField(blank=True, null=True)
+    TramosNoJustificados = models.PositiveSmallIntegerField(blank=True, null=True)
+    NotificacionDiaCompleto = models.PositiveSmallIntegerField(blank=True, null=True)
+    NotificacionTramos = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    def __str__(self):
+        return f'Faltas del protocolo {self.Protocolo} en {self.Fecha}'
+
+    class Meta:
+        verbose_name = "Faltas de un protocolo"
+        verbose_name_plural = "Faltas de los protocolos"
