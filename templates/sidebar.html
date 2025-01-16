@@ -90,11 +90,40 @@
                     </li>
                 {% elif user|has_group:"jefatura de estudios" or user|has_group:"orientacion" %}
                     <li class="{% if menu_absentismo %} active{% endif %}">
-                        <a href="#"><i class="fa fa-university"></i> <span class="nav-label">Absentismo</span><span
-                                class="fa arrow"></span></a>
+                        <a href="#"><i class="fa fa-university"></i>
+                            <span class="nav-label">Absentismo</span>
+                            <span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level collapse">
                             <li><a href="/absentismo/alumnos">Protocolos abiertos</a></li>
                             <li><a href="/absentismo/todoalumnado">Alumnado completo</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+                {%  if user|has_group:"jefatura de estudios" %}
+                    <li class="{% if menu_analisis %} active{% endif %}">
+                        <a href="#">
+                            <i class="fa fa-line-chart"></i>
+                            <span class="nav-label">Análisis de resultados</span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <ul class="nav nav-second-level collapse">
+                            <li><a href="/analres/ver_analisis">Análisis de resultados (tras Eval.)</a></li>
+                            <li><a href="/analres/analisis_por_centros_1_ESO/">Análisis de resultados (tras Eval.) por centro de origen (1º ESO)</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                {% if user.is_superuser %}
+                    <li class="{%  if menu_carga %} active{% endif %}">
+                        <a href="#">
+                            <i class="fa fa-upload"></i>
+                            <span class="nav-label">Carga de archivos</span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <ul class="nav nav-second-level collapse">
+                            <li><a href="/carga_archivos/RegAlum/">Carga de datos adicionales de alumnado desde Séneca</a></li>
+                            <li><a href="/carga_archivos/calificaciones/">Carga de calificaciones desde Séneca</a></li>
+                            <li><a href="/carga_archivos/admision/">Carga de datos de admisión</a></li>
                         </ul>
                     </li>
                 {% endif %}

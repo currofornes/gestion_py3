@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
@@ -16,6 +18,13 @@ class CursoAcademico(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.año_inicio}-{self.año_fin})"
+
+    def __sub__(self, other):
+        if isinstance(other, int):
+            inicio = self.año_inicio - other
+            return CursoAcademico.objects.filter(año_inicio=inicio).first()
+        else:
+            raise NotImplementedError
 
 
 class Aulas(models.Model):
@@ -87,6 +96,7 @@ class Profesores(models.Model):
 class Niveles(models.Model):
     Nombre = models.CharField(max_length=255)
     Abr = models.CharField(max_length=50)
+    NombresAntiguos = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.Abr
@@ -203,6 +213,41 @@ class Alumnos(models.Model):
                 break
         return result
 
+    def edad(self, curso_academico):
+        fecha_final = date(curso_academico.año_fin, 12, 31)
+        return (fecha_final - self.Fecha_nacimiento).years
+
     class Meta:
         verbose_name = "Alumno"
         verbose_name_plural = "Alumnos"
+
+class Centros(models.Model):
+    Codigo = models.CharField(max_length=8, blank=True, null=True)
+    Nombre = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Centro"
+        verbose_name_plural = "Centros"
+        unique_together = ("Codigo", "Nombre")
+
+    def __str__(self):
+        return f"{self.Nombre} ({self.Codigo})"
+
+class InfoAlumnos(models.Model):
+    C_SEXO = (
+        ('H', 'Hombre'),
+        ('M', 'Mujer'),
+    )
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+    Alumno = models.ForeignKey('centro.Alumnos', related_name='info_adicional', null=True, on_delete=models.SET_NULL)
+    Nivel = models.ForeignKey(Niveles, related_name='InfoNivel', blank=True, null=True, on_delete=models.SET_NULL)
+    Unidad = models.CharField(max_length=20, verbose_name="Unidad", null=True, blank=True)
+    Repetidor = models.BooleanField(default=False)
+    Edad = models.PositiveSmallIntegerField(default=0)
+    Sexo = models.CharField(max_length=1, verbose_name="Sexo", choices=C_SEXO, null=True, blank=True)
+    CentroOrigen = models.ForeignKey('centro.Centros', on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Información Adicional de un Alumno"
+        verbose_name_plural = "Información Adicional del Alumnado"
+        unique_together = ('curso_academico', 'Alumno')

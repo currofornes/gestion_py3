@@ -5,7 +5,7 @@
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col">
-                <h2>Calendario de faltas de: {{ alumno.Nombre }}</h2>
+                <h2>Calendario de faltas de: {{ alumno.Nombre }} ({{ alumno.Unidad }})</h2>
             </div>
         </div>
         <div class="row">
@@ -48,6 +48,7 @@
 {% block js %}
     <script src="{% static 'js/plugins/fullcalendar/index.global.js' %}"></script>
     <script src="{% static 'js/plugins/fullcalendar/locales/es.global.js' %}"></script>
+    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
 
     <script>
         $(document).ready(function () {
@@ -129,9 +130,19 @@
 
                 // Cargar eventos de amonestaciones y sanciones
                 $.getJSON("{% url 'faltas_json' proto_id=protocolo.id %}", function(data) {
-                    data.forEach(function(evento) {
-                        addEvent(evento);
-                    });
+                    if (data.length === 0) {
+                        // Mostrar mensaje de advertencia con SweetAlert2
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Sin datos de faltas',
+                            text: 'No hay registros de faltas para este protocolo.',
+                            confirmButtonText: 'Aceptar'
+                        });
+                    } else {
+                        data.forEach(function(evento) {
+                            addEvent(evento);
+                        });
+                    }
                 });
 
                 // Renderizar ambos calendarios

@@ -5,12 +5,15 @@ from django.db import models
 from django.urls import path
 
 from centro.forms import AsignarProfesoresDepartamentoForm
-from centro.models import Cursos, Alumnos, Departamentos, Profesores, Areas, Aulas, Niveles
+from centro.models import (
+    Cursos, Alumnos, Departamentos, Profesores, Areas, Aulas, Niveles, CursoAcademico, InfoAlumnos, Centros
+)
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.shortcuts import render, redirect
 from django.contrib import messages
 
 # Register your models here.
+@admin.register(Alumnos)
 class AlumnosAdmin(admin.ModelAdmin):
     # date_hierarchy = 'Fecha_nacimiento'
     actions_selection_counter = False
@@ -20,7 +23,7 @@ class AlumnosAdmin(admin.ModelAdmin):
     search_fields = ['Nombre', 'DNI']
     icon_name = 'face'
 
-
+@admin.register(Profesores)
 class ProfesoresAdmin(admin.ModelAdmin):
     # date_hierarchy = 'Fecha_nacimiento'
     actions_selection_counter = False
@@ -31,6 +34,7 @@ class ProfesoresAdmin(admin.ModelAdmin):
     icon_name = 'recent_actors'
 
 
+@admin.register(Departamentos)
 class DepartamentosAdmin(admin.ModelAdmin):
     icon_name = 'folder_shared'
 
@@ -72,6 +76,7 @@ class DepartamentosAdmin(admin.ModelAdmin):
     icon_name = 'folder_shared'
 '''
 
+@admin.register(Cursos)
 class CursosAdmin(admin.ModelAdmin):
     # date_hierarchy = 'Fecha_nacimiento'
     actions_selection_counter = False
@@ -87,6 +92,7 @@ class CursosAdmin(admin.ModelAdmin):
     icon_name = 'school'
 
 
+@admin.register(Areas)
 class AreasAdmin(admin.ModelAdmin):
     actions_selection_counter = False
 
@@ -100,6 +106,7 @@ class AreasAdmin(admin.ModelAdmin):
 
     icon_name = 'widgets'
 
+@admin.register(Aulas)
 class AulasAdmin(admin.ModelAdmin):
 # date_hierarchy = 'Fecha_nacimiento'
     actions_selection_counter = False
@@ -108,23 +115,36 @@ class AulasAdmin(admin.ModelAdmin):
     search_fields = ['Aula']
     icon_name = 'store'
 
+@admin.register(Niveles)
 class NivelesAdmin(admin.ModelAdmin):
 
     actions_selection_counter = False
-    list_display = ["Abr", "Nombre"]
+    list_display = ["Abr", "Nombre", 'NombresAntiguos']
 
     search_fields = ['Nombre', 'Abr']
     icon_name = 'subject'
 
-# Register your models here.
 
+@admin.register(CursoAcademico)
+class CursoAcademicoAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'año_inicio', 'año_fin')
+    list_filter = ('año_inicio', 'año_fin')
+    search_fields = ('nombre', 'año_inicio', 'año_fin')
+    ordering = ('-año_inicio',)
+
+@admin.register(Centros)
+class CentrosAdmin(admin.ModelAdmin):
+    list_display = ('Codigo', 'Nombre')
+    list_filter = ('Codigo', 'Nombre')
+    search_fields = ('Nombre', 'Codigo')
+    ordering = ('Nombre', 'Codigo')
+
+@admin.register(InfoAlumnos)
+class InfoAlumnosAdmin(admin.ModelAdmin):
+    list_display = ('curso_academico', 'Alumno', 'Nivel', 'Unidad', 'CentroOrigen', 'Repetidor', 'Edad', 'Sexo')
+    list_filter = ('curso_academico', 'Alumno', 'Nivel__Nombre', 'Nivel__Abr', 'Unidad', 'CentroOrigen')
+    search_fields = ['Alumno__Nombre', 'Unidad', 'Nivel__Nombre', 'Nivel__Abr', 'CentroOrigen__Codigo', 'CentroOrigen__Nombre']  # Busca por el nombre del alumno
+    ordering = ('-curso_academico__año_inicio', 'Nivel__Abr', 'Unidad', 'Alumno__Nombre')
 
 admin.site.site_header = "Gonzalo Nazareno"
 admin.site.index_title = "Gestión del Centro"
-admin.site.register(Cursos, CursosAdmin)
-admin.site.register(Departamentos, DepartamentosAdmin)
-admin.site.register(Areas, AreasAdmin)
-admin.site.register(Alumnos, AlumnosAdmin)
-admin.site.register(Profesores, ProfesoresAdmin)
-admin.site.register(Aulas, AulasAdmin)
-admin.site.register(Niveles, NivelesAdmin)

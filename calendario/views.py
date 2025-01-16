@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from convivencia.models import Amonestaciones, Sanciones
 from centro.models import Alumnos
 from centro.views import group_check_je
-from absentismo.models import FaltasProtocolo
+from absentismo.models import FaltasProtocolo, ProtocoloAbs
 
 
 # ToDo: Añadir texto a loes eventos de calendario.
@@ -14,8 +14,8 @@ from absentismo.models import FaltasProtocolo
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def faltas(request, proto_id):
-    protocolo = FaltasProtocolo.objects.get(id=proto_id)
-    alumno = protocolo.Protocolo.alumno
+    protocolo = ProtocoloAbs.objects.get(id=proto_id)
+    alumno = protocolo.alumno
     context = {
         'tipo': 'faltas',
         'alumno': alumno,

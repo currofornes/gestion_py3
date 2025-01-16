@@ -516,3 +516,47 @@ def get_previous_academic_years():
     current_year = get_current_academic_year()
     previous_years = CursoAcademico.objects.filter(año_inicio__lt=current_year.año_inicio).order_by('-año_inicio')
     return previous_years
+
+def get_encoding(archivo_csv):
+    content = archivo_csv.read()
+    for encoding in ['utf-8', 'iso-8859-15']:
+        try:
+            decoded = content.decode(encoding)
+            return encoding
+        except UnicodeDecodeError:
+            continue
+    else:
+        raise UnicodeDecodeError("No se pudo detectar la codificación del archivo.")
+
+def get_nivel(nombre_archivo):
+    """
+    :param nombre_archivo: Es un str con uno de estos valores
+        1º ASIR (23-24)_Datos calificaciones.csv,
+        1º SMR (23-24)_Datos calificaciones.csv,
+        2º ASIR (23-24)_Datos calificaciones.csv,
+        2º BTO (23-24)_Datos calificaciones HyCS.csv,
+        2º BTO (23-24)_Datos calificaciones CyT.csv,
+        1º BTO (23-24)_Datos calificaciones HyCS.csv,
+        1º BTO (23-24)_Datos calificaciones CyT.csv,
+        2º SMR (23-24)_Datos calificaciones.csv,
+        4º ESO (23-24)_Datos calificaciones.csv,
+        3º ESO (23-24)_Datos calificaciones.csv,
+        2º ESO (23-24)_Datos calificaciones.csv,
+        1º ESO (23-24)_Datos calificaciones.csv
+
+    :return: Un objeto de tipo centro.models.Niveles con el nivel correspondiente.
+    """
+    from .models import Niveles
+    # ToDo: Comprobar que el nombre de archivo sigue el formato adecuado.
+
+    lst = nombre_archivo.split(' ')
+    curso = lst[0][0]
+    etapa = lst[1]
+    if etapa == 'BTO':
+        modalidad = lst[-1].split('.')[0]
+        abr = f'{curso}º {etapa} {modalidad}'
+    else:
+        abr = f'{curso}º {etapa}'
+
+    nivel = Niveles.objects.filter(Abr=abr).first()
+    return nivel

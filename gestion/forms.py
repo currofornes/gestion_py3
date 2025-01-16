@@ -22,3 +22,7 @@ class QueryForm(forms.Form):
         label="Consulta SQL",
         help_text="Introduce una consulta SQL válida."
     )
+
+    def __init__(self, *args, **kwargs):
+        super(QueryForm, self).__init__(*args, **kwargs)
+        self.fields['query'].required = False

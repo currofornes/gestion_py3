@@ -2,7 +2,7 @@ from django.urls import include, re_path, path
 from . import views
 
 urlpatterns = [
-    path('faltas/<int:proto_id>', views.faltas, name='faltas'),
+    path('faltas/<int:proto_id>/', views.faltas, name='faltas'),
 
     path('faltas_json/<int:proto_id>/', views.faltas_json, name='faltas_json'),
 

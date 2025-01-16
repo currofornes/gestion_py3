@@ -36,7 +36,7 @@ class Amonestaciones(models.Model):
 		('3', 'Otro'),
 	)
 
-	IdAlumno = models.ForeignKey('centro.Alumnos',null=True,on_delete=models.SET_NULL)
+	IdAlumno = models.ForeignKey('centro.Alumnos', related_name='amonestaciones',null=True,on_delete=models.SET_NULL)
 	Fecha = models.DateField()
 	Hora = models.CharField(max_length=1,choices=hora,default='1')
 	Profesor = models.ForeignKey('centro.Profesores', null=True, on_delete=models.SET_NULL)

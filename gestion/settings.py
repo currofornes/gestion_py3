@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     "reservas.apps.ReservasConfig",
     "horarios.apps.HorariosConfig",
     "guardias.apps.GuardiasConfig",
-    'calendario.apps.CalendarioConfig'
+    'calendario.apps.CalendarioConfig',
+    'analres.apps.AnalresConfig',
+    'carga_archivos.apps.CargaArchivosConfig'
 ]
 
 MIDDLEWARE = [

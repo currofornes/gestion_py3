@@ -109,19 +109,30 @@ def descargar_base_datos(request):
 def cargar_qry(request):
     result = None
     error = None
+    columnas = None
     if request.method == "POST":
         form = QueryForm(request.POST)
         if form.is_valid():
+            print("hola")
+            print(form.cleaned_data)
             query = form.cleaned_data["query"]
+
             print(query)
             try:
                 with connection.cursor() as cursor:
                     cursor.execute(query)
                     if query.strip().lower().startswith("select"):
+                        columnas = [col[0] for col in cursor.description]
+                        print(columnas)
+                        columnas = cursor.description
                         result = cursor.fetchall()
             except Exception as e:
                 error = str(e)
+        else:
+            print("Algo falla!")
+            print(form.errors)
+            print(form.cleaned_data)
     else:
         form = QueryForm()
 
-    return render(request, "cargar_qry.html", {"form": form, "result": result, "error": error})
+    return render(request, "cargar_qry.html", {"form": form, "result": result, "columnas": columnas, "error": error})
