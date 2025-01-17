@@ -1,6 +1,6 @@
 from django.db import models
 
-from centro.models import Profesores, CursoAcademico
+# from centro.models import Profesores, CursoAcademico
 
 
 # Create your models here.
@@ -43,12 +43,12 @@ class Reservas(models.Model):
     )
 
 
-    Profesor = models.ForeignKey(Profesores, null=True, on_delete=models.SET_NULL)
+    Profesor = models.ForeignKey('centro.Profesores', null=True, on_delete=models.SET_NULL)
     Fecha = models.DateField()
     Hora = models.CharField(max_length=1, choices=hora, default='1')
     Reservable = models.ForeignKey(Reservables, null=True, on_delete=models.SET_NULL, related_name='reservable')
 
-    curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
 
     def __str__(self):

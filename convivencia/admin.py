@@ -1,5 +1,7 @@
 from django.contrib import admin
-from convivencia.models import Amonestaciones,Sanciones,TiposAmonestaciones
+from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones, PropuestasSancion
+
+
 # Register your models here.
 
 
@@ -32,7 +34,10 @@ class SancionesAdmin(admin.ModelAdmin):
     search_fields = ['Comentario']
     icon_name = 'exit_to_app'
 
+class PropuestasSancionAdmin(admin.ModelAdmin):
+    actions_selection_counter=False
+
 admin.site.register(TiposAmonestaciones)
 admin.site.register(Amonestaciones,AmonestacionesAdmin)
 admin.site.register(Sanciones,SancionesAdmin)
-
+admin.site.register(PropuestasSancion,PropuestasSancionAdmin)

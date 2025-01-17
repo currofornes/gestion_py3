@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>Análisis de resultados del curso actual</h2>
+                        <h3>Específico para 1º ESO por centro de origen</h3>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="post" id="form-analisis">
+                            {% csrf_token %}
+                            <div class="input-group row">
+                                <label class="col-sm-2 col-form-label" for="id_Convocatoria">Convocatoria</label>
+                                {{ form.Convocatoria }}
+                            </div>
+                            <div class="input-group row">
+                                <label class="col-sm-2 col-form-label" for="id_Centros">Centro(s) de origen</label>
+                                {{ form.Centros }}
+                            </div>
+                            <br/>
+                            <button type="submit" class="btn btn-primary" id="submit-button">Calcular</button>
+                            {% if descarga %}
+                                <div class="float-right">
+                                    <a href="{{ descarga }}" class="btn btn-success">
+                                        <i class="fa fa-download"></i> Descargar informe
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+                {% if resultados %}
+                    <div class="ibox float-e-margins">
+                        <div class="ibox">
+                            <h2>Resultados</h2>
+                            {% for indicador, valores, grafica in resultados %}
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <h4>{{ indicador }}</h4>
+                                        <table class="table table-striped table-bordered table-hover">
+                                            <thead>
+                                                <th> Centro </th>
+                                                <th> Porcentaje </th>
+                                            </thead>
+                                            <tbody>
+                                                {% for centro, valor in valores %}
+                                                    <tr>
+                                                        <td>{{ centro }}</td>
+                                                        <td>{{ valor|floatformat:2 }}%</td>
+                                                    </tr>
+                                                {%  endfor %}
+                                            </tbody>
+                                        </table>
+
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <img src="data:image/png;base64,{{ grafica }}" alt="Gráfica del indicador {{ indicador }} para {{ nivel }}">
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            $(".select2_Convocatoria").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona una convocatoria",
+                allowClear: false
+            });
+            $(".select2_Centros").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona uno o varios centros para el análisis.",
+                allowClear: false
+            });
+        });
+    </script>
+{% endblock %}
+

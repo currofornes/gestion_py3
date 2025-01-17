@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>Carga de Datos adicionales del Alumnado desde Séneca</h2>
+                        <h3>(Archivo CSV)</h3>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="input-group row">
+                                <label class="col-sm-2 col-form-label" for="id_CursoAcademico">Curso académico</label>
+                                {{ form.CursoAcademico }}
+                            </div>
+                            <div class="input-group row">
+                                <div class="custom-file">
+                                    {{ form.ArchivoCSV }}
+                                    <label class="custom-file-label" for="id_ArchivoCSV">Elige el archivo </label>
+                                </div>
+                            </div>
+                            <br/>
+                            <button type="submit" class="btn btn-primary" id="submit-button">Guardar</button>
+                        </form>
+                        <div class="row">
+                            <div class="col">
+                                <div class="progress">
+                                  <div
+                                          class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                          role="progressbar"
+                                          style="width: 0%"
+                                          aria-valuenow="0"
+                                          aria-valuemin="0"
+                                          aria-valuemax="100"
+                                          id="progressBar">
+                                      0% Completado
+                                  </div>
+                                </div>
+                            <div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+    <script src="{% static 'js/plugins/bs-custom-file/bs-custom-file-input.min.js' %}"></script>
+    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does the cookie match the given name?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+    <script>
+        $(document).ready(function() {
+            bsCustomFileInput.init();
+
+            $(".select2_CursoAcademico").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un curso academico",
+                allowClear: false
+            });
+            $("form").on("submit", function(event) {
+                event.preventDefault();
+
+                const formData = new FormData(this);
+                const submitButton = $('#submit-button');
+
+                submitButton.prop('disabled', true);
+                submitButton.text('Procesando...');
+
+                $.ajax({
+                    url: '',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: (response) => {
+                        submitButton.prop('disabled', false);
+                        submitButton.text('Guardar');
+
+                        const nro_registros = response.nro_registros;
+                        let registrosProcesados = 0;
+                        let errores = 0;
+                        const progressBar = $('#progressBar');
+                        function actualizarBarraProgreso() {
+                            const porcentaje = Math.round((registrosProcesados / nro_registros) * 100);
+                            let msg = `${porcentaje}% Completado`;
+                            progressBar.css('width', porcentaje + '%').attr('aria-valuenow', porcentaje).text(msg);
+                        }
+                        actualizarBarraProgreso()
+
+                        const processingPromises = [];
+
+                        response.datos.forEach(fila => {
+                            processingPromises.push(
+                                new Promise((resolve, reject) => {
+                                    $.ajax({
+                                        url: 'procesar/',
+                                        type: 'POST',
+                                        contentType: 'application/json',
+                                        data: JSON.stringify(fila),
+                                        headers: {
+                                            'X-CSRFToken': getCookie('csrftoken')
+                                        },
+                                        success: (response) => {
+                                            registrosProcesados++;
+                                            actualizarBarraProgreso();
+                                            resolve();
+                                        },
+                                        error: (error) => {
+                                            registrosProcesados++;
+                                            actualizarBarraProgreso();
+                                            console.error(`El alumno ${fila["Alumno/a"]} se ha procesado con errores:`, error);
+                                            reject(error);
+                                        }
+                                    });
+                                })
+                            );
+                        });
+
+                        Promise.all(processingPromises)
+                            .then(() => {
+                                if(errores === 0){
+                                    Swal.fire({
+                                        title: 'Éxito',
+                                        text: nro_registros + " registros procesados.",
+                                        icon: 'success'
+                                    });
+                                }
+                                else {
+                                    submitButton.prop('disabled', false);
+                                    submitButton.text('Guardar');
+
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: `Han ocurrido ${errores} errores al procesar el archivo. Por favor, inténtalo de nuevo.`,
+                                        icon: 'error'
+                                    });
+                                }
+
+                            })
+                            .catch((error) => {
+                                console.error('Error:', error);
+                                errores++;
+                            });
+                    },
+                    error: (error) => {
+                        console.error('Error:', error);
+                        submitButton.prop('disabled', false);
+                        submitButton.text('Guardar');
+
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Ha ocurrido un error al procesar el archivo. Por favor, inténtalo de nuevo.',
+                            icon: 'error'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

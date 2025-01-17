@@ -70,3 +70,11 @@ class ActuacionProtocoloForm(forms.ModelForm):
 
         return instance
 
+class CargaInformeFaltasSeneca(forms.Form):
+    InformePDF = forms.FileField()
+    Protocolo = forms.HiddenInput()
+
+    widgets = {
+        'InformePDF': forms.FileInput(attrs={'class': 'custom-file-input'}),
+        'Protocolo': forms.HiddenInput(),
+    }

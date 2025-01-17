@@ -15,3 +15,14 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         label='Confirm new password',
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirma nueva contraseña'})
     )
+
+class QueryForm(forms.Form):
+    query = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 5, 'cols': 60}),
+        label="Consulta SQL",
+        help_text="Introduce una consulta SQL válida."
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(QueryForm, self).__init__(*args, **kwargs)
+        self.fields['query'].required = False

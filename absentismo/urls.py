@@ -4,13 +4,14 @@ from . import views
 from .views import cerrar_protocolo
 
 urlpatterns = [
-        re_path(r'^misalumnos$', views.misalumnos),
-        re_path(r'^alumnos$', views.alumnos),
-        re_path(r'^(?P<alum_id>[0-9]+)/protocolo$', views.verprotocolo),
-        re_path(r'^protocolo/(?P<proto_id>[0-9]+)/nuevaactuacion$', views.nuevaactuacion),
-        re_path(r'^protocolo/(?P<alum_id>[0-9]+)/abrirprotocolo$', views.abrirprotocolo),
-        re_path(r'^protocolo/(?P<proto_id>[0-9]+)/ver$', views.verprotocolocerrado),
+        path('misalumnos', views.misalumnos),
+        path('alumnos', views.alumnos),
+        path('<int:alum_id>/protocolo', views.verprotocolo),
+        path('protocolo/<int:proto_id>/nuevaactuacion', views.nuevaactuacion),
+        path('protocolo/<int_alum_id>/abrirprotocolo', views.abrirprotocolo),
+        path('protocolo/<int:proto_id>/ver', views.verprotocolocerrado),
+        path('protocolo/<int:proto_id>/cargarfaltas', views.cargarfaltas),
         path('cerrar_protocolo/', cerrar_protocolo, name='cerrar_protocolo'),
-        re_path(r'^todoalumnado$', views.todoalumnado),
+        path('todoalumnado', views.todoalumnado),
 
 ]

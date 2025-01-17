@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TiposActuaciones, ProtocoloAbs, Actuaciones
+from .models import TiposActuaciones, ProtocoloAbs, Actuaciones, FaltasProtocolo
 from centro.models import Alumnos, Profesores
 
 class ActuacionesInline(admin.TabularInline):
@@ -24,6 +24,10 @@ class TiposActuacionesAdmin(admin.ModelAdmin):
     list_display = ('TipoActuacion',)
     search_fields = ('TipoActuacion',)
 
+class FaltasProtocoloAdmin(admin.ModelAdmin):
+    list_display = ('Protocolo', 'Fecha')
+
 admin.site.register(TiposActuaciones, TiposActuacionesAdmin)
 admin.site.register(ProtocoloAbs, ProtocoloAbsAdmin)
 admin.site.register(Actuaciones, ActuacionesAdmin)
+admin.site.register(FaltasProtocolo, FaltasProtocoloAdmin)

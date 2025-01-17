@@ -1,6 +1,6 @@
 from django.db import models
 
-from centro.models import Aulas, Profesores, CursoAcademico
+# from centro.models import Aulas, Profesores, CursoAcademico
 
 
 # Create your models here.
@@ -29,15 +29,15 @@ class Elemento(models.Model):
 
 class IncidenciasTic(models.Model):
     fecha = models.DateField()
-    profesor = models.ForeignKey(Profesores, on_delete=models.CASCADE)
-    aula = models.ForeignKey(Aulas, on_delete=models.CASCADE)
+    profesor = models.ForeignKey('centro.Profesores', on_delete=models.CASCADE)
+    aula = models.ForeignKey('centro.Aulas', on_delete=models.CASCADE)
     prioridad = models.ForeignKey(Prioridad, on_delete=models.SET_NULL, null=True)
     comentario = models.TextField()
     elementos = models.ManyToManyField(Elemento)
     resuelta = models.BooleanField(default=False)
     solucion = models.TextField(blank=True, null=True)
 
-    curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"Incidencia en {self.aula} por {self.profesor} con prioridad {self.prioridad}"

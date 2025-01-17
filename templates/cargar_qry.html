@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load grupo_tags %}
+{% load static %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h2>Ejecutar consulta SQL</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="post" id="queryForm">
+                            {% csrf_token %}
+                            <div class="row">
+                                <h3>Consulta a ejecutar</h3>
+                                <div class="row">
+                                    <div class="col">
+                                        {{ form.query }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-2">
+                                    <button type="submit" id="btnEnviar" class="btn btn-primary btn-lg btn-block">Ejecutar consulta</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        {% if error %}
+                            <div style="color: red; margin-top: 20px;">
+                                <strong>Error:</strong> {{ error }}
+                            </div>
+                        {% endif %}
+
+                        {% if result %}
+                            <h2>Resultados</h2>
+                            <table class="  footable table table-stripped toggle-arrow-tiny" data-page-size="15">
+                                <thead>
+                                    <tr>
+                                        {% for col, _, _, _, _, _, _ in columnas %}
+                                            <th>{{ col }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in result %}
+                                        <tr>
+                                            {% for cell in row %}
+                                                <td>{{ cell }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function (e) {
+            $("#btnEnviar").click(function (e) {
+                e.preventDefault();
+                const query = $("#id_query").val().trim();
+                if(!query.toUpperCase().includes("SELECT")) {
+                    Swal.fire({
+                        title: '¿Ejecutar consulta?',
+                        text: '¿Estás seguro de que deseas ejecutar esta consulta? Los cambios no podrán deshacerse.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, ejecutar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Enviar el formulario si el usuario confirma
+                            $("#queryForm").submit();
+                        }
+                    });
+                }
+                else {
+                    $("#queryForm").submit();
+                }
+            });
+        });
+    </script>
+{% endblock %}

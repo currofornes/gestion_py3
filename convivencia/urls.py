@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
 	re_path(r'^historial/(?P<alum_id>[0-9]+)/(?P<prof>[a-z]*)$', views.historial),
+	re_path(r'^historial_vigente/(?P<alum_id>[0-9]+)/(?P<prof>[a-z]*)$', views.historial_vigente),
 	re_path(r'^(?P<tipo>[a-z]+)/(?P<alum_id>[0-9]+)$', views.parte),
 	re_path(r'^resumen/', views.resumen, name='resumen'),  # Para GET sin parámetros
     re_path(r'^resumen/(?P<tipo>[a-z]+)/(?P<fecha>[0-9]+)/', views.resumen, name='resumen_con_parametros'),  # Para GET con parámetros
@@ -35,6 +36,8 @@ urlpatterns = [
 
 	re_path(r'^reincorporacionsanciones$', views.sanciones_reincorporacion, name='sanciones_reincorporacion'),
 
+	# re_path(r'^ignorar/(?P<prop_id>[0-9]+)', views.ignorar_propuesta_sancion, name='ignorar'),
+	re_path(r'^ignorar/(?P<prop_id>[0-9]+)/$', views.ignorar_propuesta_sancion, name='ignorar'),
 
 
 

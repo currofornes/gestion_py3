@@ -11,6 +11,13 @@
 {% block title %}Centro{% endblock %}
 
 {% block content %}
+    <style>
+        .tramo-actual {
+            background-color: #ffd700; /* Color dorado */
+            font-weight: bold;
+        }
+    </style>
+
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-lg-12">
@@ -66,46 +73,53 @@
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {% for tramo in tramos %}
-                                                {% if tramo == "RECREO" %}
-                                                    <tr class="bg-light-warning">
-                                                        {% else %}
-                                                    <tr>
-                                                {% endif %}
-
-                                            <td class="bg-info text-center" style="vertical-align: middle;">
-                                                <strong>{{ tramo }}</strong></td>
-                                            {% for dia in dias %}
-                                                <td class="text-center"
-                                                    style="vertical-align: middle; border: 1px solid #000000;">
-                                                    {% if horario %}
-                                                        {% if horario|get_item:forloop.parentloop.counter %}
-                                                            {% if horario|get_item:forloop.parentloop.counter|get_item:dia %}
-                                                                {% for item in horario|get_item:forloop.parentloop.counter|get_item:dia %}
-                                                                    <strong><span
-                                                                            class="simple_tag">{{ item.materia }}</span></strong>
-                                                                    {% if item.materia != "GUARDIAS" and item.materia != "GUARDIAS DE RECREO" %}
-                                                                        <br><br>
-                                                                        <small>
-                                                                            <span class="text-success">{{ item.unidades_combinadas }}</span>
-                                                                            - <span
-                                                                                class="text-danger">{{ item.aula }}</span>
-                                                                        </small><br>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            {% else %}
-                                                                -
-                                                            {% endif %}
-                                                        {% else %}
-                                                            -
-                                                        {% endif %}
+                                                {% for tramo in tramos %}
+                                                    {% if tramo == "RECREO" %}
+                                                        <tr class="bg-light-warning" data-tramo="{{ tramo }}">
                                                     {% else %}
-                                                        -
+                                                        <tr data-tramo="{{ tramo }}">
                                                     {% endif %}
-                                                </td>
-                                            {% endfor %}
-                                            </tr>
-                                            {% endfor %}
+                                                        <td class="bg-info text-center" style="vertical-align: middle;">
+                                                            <strong>{{ tramo }}</strong><br>
+                                                            <small class="text-muted">
+                                                                {% if tramo == "1ª hora" %}08:15 - 09:15
+                                                                {% elif tramo == "2ª hora" %}09:15 - 10:15
+                                                                {% elif tramo == "3ª hora" %}10:15 - 11:15
+                                                                {% elif tramo == "RECREO" %}11:15 - 11:45
+                                                                {% elif tramo == "4ª hora" %}11:45 - 12:45
+                                                                {% elif tramo == "5ª hora" %}12:45 - 13:45
+                                                                {% elif tramo == "6ª hora" %}13:45 - 14:45
+                                                                {% endif %}
+                                                            </small>
+                                                        </td>
+                                                        {% for dia in dias %}
+                                                            <td class="text-center" style="vertical-align: middle; border: 1px solid #000000;">
+                                                                {% if horario %}
+                                                                    {% if horario|get_item:forloop.parentloop.counter %}
+                                                                        {% if horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                                            {% for item in horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                                                <strong><span class="simple_tag">{{ item.materia }}</span></strong>
+                                                                                {% if item.materia != "GUARDIAS" and item.materia != "GUARDIAS DE RECREO" %}
+                                                                                    <br><br>
+                                                                                    <small>
+                                                                                        <span class="text-success">{{ item.unidades_combinadas }}</span>
+                                                                                        - <span class="text-danger">{{ item.aula }}</span>
+                                                                                    </small><br>
+                                                                                {% endif %}
+                                                                            {% endfor %}
+                                                                        {% else %}
+                                                                            -
+                                                                        {% endif %}
+                                                                    {% else %}
+                                                                        -
+                                                                    {% endif %}
+                                                                {% else %}
+                                                                    -
+                                                                {% endif %}
+                                                            </td>
+                                                        {% endfor %}
+                                                    </tr>
+                                                {% endfor %}
                                             </tbody>
                                         </table>
                                     </div>
@@ -162,6 +176,57 @@
     <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentTime = new Date();
+            const currentHour = currentTime.getHours();
+            const currentMinutes = currentTime.getMinutes();
+            const currentTimeInMinutes = currentHour * 60 + currentMinutes;
+
+            // Define los tramos horarios en minutos
+            const tramos = [
+                { tramo: "1ª hora", start: 8 * 60 + 15, end: 9 * 60 + 15 },
+                { tramo: "2ª hora", start: 9 * 60 + 15, end: 10 * 60 + 15 },
+                { tramo: "3ª hora", start: 10 * 60 + 15, end: 11 * 60 + 15 },
+                { tramo: "RECREO", start: 11 * 60 + 15, end: 11 * 60 + 45 },
+                { tramo: "4ª hora", start: 11 * 60 + 45, end: 12 * 60 + 45 },
+                { tramo: "5ª hora", start: 12 * 60 + 45, end: 13 * 60 + 45 },
+                { tramo: "6ª hora", start: 13 * 60 + 45, end: 14 * 60 + 45 },
+            ];
+
+            // Encuentra el tramo actual y el siguiente
+            const tramoActual = tramos.find(tramo =>
+                currentTimeInMinutes >= tramo.start && currentTimeInMinutes < tramo.end
+            );
+
+            const siguienteTramo = tramos.find(tramo => tramo.start > currentTimeInMinutes);
+
+            // Resalta la fila correspondiente si se encuentra un tramo
+            if (tramoActual) {
+                const filas = document.querySelectorAll('tr[data-tramo]');
+                filas.forEach(fila => {
+                    if (fila.getAttribute('data-tramo') === tramoActual.tramo) {
+                        fila.classList.add('tramo-actual');
+                    }
+                });
+            }
+
+            // Calcula el tiempo hasta el siguiente tramo (en milisegundos)
+            if (siguienteTramo) {
+                const siguienteTramoHora = Math.floor(siguienteTramo.start / 60);
+                const siguienteTramoMinuto = siguienteTramo.start % 60;
+
+                const siguienteTramoTiempo = new Date();
+                siguienteTramoTiempo.setHours(siguienteTramoHora, siguienteTramoMinuto, 0, 0);
+
+                const tiempoRestante = siguienteTramoTiempo - currentTime + 60000; // Añade un minuto
+                console.log("Tiempo hasta la recarga automática:", tiempoRestante / 1000, "segundos");
+
+                // Programa la recarga automática
+                setTimeout(() => {
+                    location.reload();
+                }, tiempoRestante);
+            }
+        });
         $(document).ready(function () {
 
 

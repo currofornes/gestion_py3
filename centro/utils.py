@@ -4,17 +4,13 @@ from pathlib import Path
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ObjectDoesNotExist
 
-from absentismo.models import Actuaciones, ProtocoloAbs
-from convivencia.models import Amonestaciones, Sanciones
-from reservas.models import Reservas
-from tde.models import IncidenciasTic
-from .models import Profesores, Departamentos, Alumnos, Cursos, Niveles, CursoAcademico
 from django.core.management import call_command
 from datetime import datetime
 
 
 def importar_profesores(csv_file_path):
     # Obtener o crear el grupo "profesor"
+    from .models import Profesores, Departamentos, Alumnos, Cursos, Niveles, CursoAcademico
     grupo_profesor, _ = Group.objects.get_or_create(name='profesor')
 
     profesores_existentes_dni = {profesor.DNI: profesor for profesor in Profesores.objects.all() if profesor.DNI}
@@ -127,7 +123,7 @@ def importar_profesores(csv_file_path):
 
 
 def importar_alumnos(csv_file_path, borrar_alumnos=False):
-
+    from .models import Alumnos, Cursos
     # Vaciar el campo Unidad de todos los alumnos
     Alumnos.objects.update(Unidad=None)
 
@@ -257,7 +253,7 @@ def importar_alumnos(csv_file_path, borrar_alumnos=False):
 
 
 def importar_cursos(csv_file_path, csv_file_path2):
-
+    from .models import Profesores, Alumnos, Cursos, Niveles
     # Elimina todas las relaciones ManyToMany existentes
     for curso in Cursos.objects.all():
         curso.EquipoEducativo.clear()
@@ -370,6 +366,7 @@ def split_full_name(tutor_name):
 
 
 def asignar_equipo_educativo_seneca(csv_file_path):
+    from .models import Profesores, Cursos
     with open(csv_file_path, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
@@ -404,6 +401,7 @@ def asignar_equipo_educativo_seneca(csv_file_path):
 
 
 def asignar_equipo_educativo_calculohoras(csv_file_path):
+    from .models import Profesores, Cursos
     with open(csv_file_path, newline='') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
         for row in reader:
@@ -441,6 +439,10 @@ def asignar_equipo_educativo_calculohoras(csv_file_path):
 
 def asignar_curso_academico(cursoacademico_id):
     # Actualizar AbsentismoActuaciones
+    from absentismo.models import Actuaciones, ProtocoloAbs
+    from convivencia.models import Amonestaciones, Sanciones
+    from reservas.models import Reservas
+    from tde.models import IncidenciasTic
     Actuaciones.objects.filter(curso_academico_id__isnull=True).update(curso_academico_id=cursoacademico_id)
 
     # Actualizar AbsentismoProtocolabs
@@ -499,6 +501,7 @@ def get_current_academic_year():
     """
     Devuelve el objeto CursoAcademico que representa el curso académico actual.
     """
+    from .models import CursoAcademico
     today = datetime.now()
 
     if today.month >= 9:  # Si estamos en septiembre o después
@@ -509,6 +512,51 @@ def get_current_academic_year():
     return curso_academico_actual
 
 def get_previous_academic_years():
+    from .models import CursoAcademico
     current_year = get_current_academic_year()
     previous_years = CursoAcademico.objects.filter(año_inicio__lt=current_year.año_inicio).order_by('-año_inicio')
     return previous_years
+
+def get_encoding(archivo_csv):
+    content = archivo_csv.read()
+    for encoding in ['utf-8', 'iso-8859-15']:
+        try:
+            decoded = content.decode(encoding)
+            return encoding
+        except UnicodeDecodeError:
+            continue
+    else:
+        raise UnicodeDecodeError("No se pudo detectar la codificación del archivo.")
+
+def get_nivel(nombre_archivo):
+    """
+    :param nombre_archivo: Es un str con uno de estos valores
+        1º ASIR (23-24)_Datos calificaciones.csv,
+        1º SMR (23-24)_Datos calificaciones.csv,
+        2º ASIR (23-24)_Datos calificaciones.csv,
+        2º BTO (23-24)_Datos calificaciones HyCS.csv,
+        2º BTO (23-24)_Datos calificaciones CyT.csv,
+        1º BTO (23-24)_Datos calificaciones HyCS.csv,
+        1º BTO (23-24)_Datos calificaciones CyT.csv,
+        2º SMR (23-24)_Datos calificaciones.csv,
+        4º ESO (23-24)_Datos calificaciones.csv,
+        3º ESO (23-24)_Datos calificaciones.csv,
+        2º ESO (23-24)_Datos calificaciones.csv,
+        1º ESO (23-24)_Datos calificaciones.csv
+
+    :return: Un objeto de tipo centro.models.Niveles con el nivel correspondiente.
+    """
+    from .models import Niveles
+    # ToDo: Comprobar que el nombre de archivo sigue el formato adecuado.
+
+    lst = nombre_archivo.split(' ')
+    curso = lst[0][0]
+    etapa = lst[1]
+    if etapa == 'BTO':
+        modalidad = lst[-1].split('.')[0]
+        abr = f'{curso}º {etapa} {modalidad}'
+    else:
+        abr = f'{curso}º {etapa}'
+
+    nivel = Niveles.objects.filter(Abr=abr).first()
+    return nivel
