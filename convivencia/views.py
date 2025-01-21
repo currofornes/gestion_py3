@@ -58,7 +58,7 @@ def parte(request, tipo, alum_id):
                             form.save()
 
                             amon = form.instance
-                            destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
+                            destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
                             destinatarios.append(amon.IdAlumno.Unidad.Tutor)
                             template = get_template("correo_amonestacion.html")
                             contenido = template.render({'amon': amon})
@@ -88,7 +88,7 @@ def parte(request, tipo, alum_id):
                         form.save()
 
                         sanc = form.instance
-                        destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
+                        destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
                         destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
                         template = get_template("correo_sancion.html")
                         contenido = template.render({'sanc': sanc})
@@ -864,7 +864,7 @@ def parteprofe(request, tipo, alum_id):
 
 
                             amon = form.instance
-                            destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.all())
+                            destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
                             destinatarios.append(amon.IdAlumno.Unidad.Tutor)
                             template = get_template("correo_amonestacion.html")
                             contenido = template.render({'amon': amon})
@@ -889,7 +889,7 @@ def parteprofe(request, tipo, alum_id):
                         form.save()
 
                         sanc = form.instance
-                        destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.all())
+                        destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
                         destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
                         template = get_template("correo_sancion.html")
                         contenido = template.render({'sanc': sanc})

@@ -2,6 +2,7 @@ from collections import OrderedDict, defaultdict
 from sqlite3 import IntegrityError
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
@@ -12,7 +13,7 @@ from django.views.generic import ListView, UpdateView, DeleteView, CreateView
 
 from centro.models import Cursos, Aulas
 from centro.views import group_check_prof, group_check_prof_or_guardia, group_check_je
-from .forms import ItemHorarioForm
+from .forms import ItemHorarioForm, CopiarHorarioForm
 from .models import Profesores, ItemHorario
 
 @login_required(login_url='/')
@@ -308,3 +309,49 @@ def aulas_libres(request):
 
 
     return render(request, 'aulas_libres.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def copiar_horario(request):
+    if request.method == 'POST':
+        form = CopiarHorarioForm(request.POST)
+        if form.is_valid():
+
+            profe_origen = form.cleaned_data['ProfesorOrigen']
+            profe_destino = form.cleaned_data['ProfesorDestino']
+
+            # Copiar horario
+            try:
+                horario_origen = ItemHorario.objects.filter(profesor=profe_origen)
+
+                # Borrar horario del profesor de destino antes de copiar
+                ItemHorario.objects.filter(profesor=profe_destino).delete()
+
+                items_nuevos = []
+                for item in horario_origen:
+                    nuevo_item = ItemHorario(
+                        tramo=item.tramo,
+                        dia=item.dia,
+                        profesor=profe_destino,
+                        unidad=item.unidad,
+                        aula=item.aula,
+                        materia=item.materia
+                    )
+                    items_nuevos.append(nuevo_item)
+
+                ItemHorario.objects.bulk_create(items_nuevos)
+
+                print(f"Horario de {profe_origen} copiado exitosamente a {profe_destino}.")
+                context = {'form': form, 'profe_origen': profe_origen, 'profe_destino': profe_destino, 'exito': True}
+            except ObjectDoesNotExist as e:
+                print(f"Error: {e}")
+                context = {'form': form, 'exito': False, 'error': e}
+
+        else:
+            context = {'form': form, 'exito': False, 'error': form.errors}
+    else:
+        form = CopiarHorarioForm()
+        context = {'form': form}
+
+    return render(request, 'copiar_horario.html', context)
+

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load grupo_tags %}
+{% load static %}
+
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <style>
+        .tramo-actual {
+            background-color: #ffd700; /* Color dorado */
+            font-weight: bold;
+        }
+    </style>
+
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h2>Copiar Horario Profesorado </h2>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="POST" id ="importarHorarioForm">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-12">
+                                    <label for="profesor">Seleccionar Profesor Origen:</label>
+                                    {{ form.ProfesorOrigen }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <label for="profesor">Seleccionar Profesor Destino:</label>
+                                    {{ form.ProfesorDestino }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-2">
+                                    <button type="submit" class="btn btn-primary" id="btnCopiarHorario">Copiar horario completo</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+
+
+            $(".select2_ProfesorOrigen").select2({
+                theme: 'bootstrap4',
+            });
+            $(".select2_ProfesorDestino").select2({
+                theme: 'bootstrap4',
+            });
+
+            $("#btnCopiarHorario").on("click", function (event) {
+            event.preventDefault(); // Evita que el formulario se envíe automáticamente
+
+            Swal.fire({
+                title: "¿Estás seguro?",
+                text: "Se copiará el horario del profesor seleccionado.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí, copiar horario",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $("#importarHorarioForm").submit(); // Envía el formulario si el usuario confirma
+                }
+            });
+        });
+
+        });
+    </script>
+{% endblock %}
