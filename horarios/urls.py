@@ -19,6 +19,8 @@ urlpatterns = [
 
     path('horario/<int:profesor_id>/crear_item/', CrearItemHorarioView.as_view(), name='crear_item_horario'),
 
+    path('copiar_horario/', views.copiar_horario, name='copiar_horario'),
+
 
 
 
