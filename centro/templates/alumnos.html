@@ -64,13 +64,17 @@
 
                                     {% if sanc %}
                                         <tr class="danger">
-                                            {% else %}
+                                    {% elif alum.sancionable %}
+                                        <tr class="bg-warning">
+                                    {% else %}
                                         <tr>
                                     {% endif %}
                                 <td class="text-center">{{ forloop.counter }}</td>
 
 
-                                <td><a href="/convivencia/historial/{{ alum.id }}/">{{ alum.Nombre }}</a> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</td>
+                                <td><a href="/convivencia/historial/{{ alum.id }}/">{{ alum.Nombre }}</a>
+                                    {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}
+                                </td>
 
                                 <td class="text-center">{{ acum }}</td>
                                     <td class="text-center">{{ acumhist }}</td>

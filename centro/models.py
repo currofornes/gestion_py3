@@ -157,15 +157,15 @@ class Alumnos(models.Model):
 
     @property
     def amonestaciones_leves_vigentes(self):
-        return [am for am in self.amonestaciones_set.order_by("Fecha").all() if am.gravedad == "Leve" and am.vigente]
+        return [am for am in self.amonestaciones.order_by("Fecha").all() if am.gravedad == "Leve" and am.vigente]
 
     @property
     def amonestaciones_graves_vigentes(self):
-        return [am for am in self.amonestaciones_set.order_by("Fecha").all() if am.gravedad == "Grave" and am.vigente]
+        return [am for am in self.amonestaciones.order_by("Fecha").all() if am.gravedad == "Grave" and am.vigente]
 
     @property
     def amonestaciones_vigentes(self):
-        return [am for am in self.amonestaciones_set.order_by("Fecha").all() if am.vigente]
+        return [am for am in self.amonestaciones.order_by("Fecha").all() if am.vigente]
 
     @property
     def leves(self):
@@ -189,7 +189,7 @@ class Alumnos(models.Model):
 
     @property
     def amonestacion_entrada_sancionable(self):
-        amonestaciones = [amon for amon in self.amonestaciones_set.filter(
+        amonestaciones = [amon for amon in self.amonestaciones.filter(
             curso_academico=get_current_academic_year()
         ).order_by("Fecha").all() if amon.vigente]
 

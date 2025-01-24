@@ -32,7 +32,7 @@ def parte(request, tipo, alum_id):
     #	return redirect("/")
     if request.method == 'POST':
         if tipo == "amonestacion":
-            print(request.POST)
+            # print(request.POST)
             form = AmonestacionForm(request.POST)
             titulo = "Amonestaciones"
         elif tipo == "sancion":
@@ -1050,12 +1050,15 @@ def alumnadosancionable(request):
                     (Q(Tipo__TipoFalta='G') & Q(Fecha__gt=fecha_tope_graves))
                 )).order_by('Fecha').all()
         )
+        # for am in amonestaciones_sin_caducar:
+        #     print(f'Amonestación {am.gravedad} para {am.IdAlumno.Nombre} el {am.Fecha}')
         alumnado = set(am.IdAlumno for am in amonestaciones_sin_caducar)
         fecha_ultima_sancion = {}
         leves = {}
         graves = {}
         fecha_entrada = {}
         for alumno in alumnado:
+            # print(f'Inicializando contadores de {alumno.Nombre}...')
             fecha_ultima_sancion[alumno] = alumno.ultima_sancion.Fecha if alumno.ultima_sancion is not None else None
             leves[alumno] = 0
             graves[alumno] = 0
@@ -1063,13 +1066,19 @@ def alumnadosancionable(request):
         amonestaciones_vivas = defaultdict(list)
         for amonestacion in amonestaciones_sin_caducar:
             alumno = amonestacion.IdAlumno
-            if (fecha_ultima_sancion[alumno] is not None) and (amonestacion.Fecha > fecha_ultima_sancion[alumno]):
+            # print(f'Viendo si la amonestación {amonestacion.gravedad} para {alumno} del {amonestacion.Fecha} ha sido sancionada...')
+            if (
+                    (fecha_ultima_sancion[alumno] is None) or
+                    (fecha_ultima_sancion[alumno] is not None) and (amonestacion.Fecha > fecha_ultima_sancion[alumno])
+                ):
                 amonestaciones_vivas[alumno].append(amonestacion)
+                # print(f'Amonestación viva encontrada para {alumno.Nombre} de tipo {amonestacion.gravedad}')
                 if amonestacion.gravedad == 'Leve':
                     leves[alumno] += 1
                 elif amonestacion.gravedad == 'Grave':
                     graves[alumno] += 1
                 if ((leves[alumno] + 2 * graves[alumno] >= 6) or (graves[alumno] >= 2)) and not (alumno in fecha_entrada):
+                    # print(f'El alumno {alumno.Nombre} entra en PG el {amonestacion.Fecha}')
                     fecha_entrada[alumno] = amonestacion.Fecha
 
         resultado = []
@@ -1187,8 +1196,6 @@ def historial_vigente(request, alum_id, prof):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def ignorar_propuesta_sancion(request, prop_id):
-    print('Hola caracola')
-    # propuesta = PropuestasSancion(pk=prop_id)
     propuesta = get_object_or_404(PropuestasSancion, pk=prop_id)
     propuesta.ignorar = True
     propuesta.save()
