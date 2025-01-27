@@ -21,17 +21,20 @@
                                 <th>Unidad</th>
                                 <th class="text-center">Leves</th>
                                 <th class="text-center">Graves</th>
-                                <th class="text-center">Total</th>
+                                <th class="text-center">Peso</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
                             {% for alum, l, g, p, prop in alumnado %}
                                 <tr
-                                        {% if p < 6 and g >= 2 %} class="bg-warning" {% endif %}
-                                        {% if p >= 6 and p <= 8 %} class="bg-warning" {% endif %}
-                                        {% if p >= 9 and p <= 12 %} class="bg-info" {% endif %}
-                                        {% if p > 12 %} class="bg-danger" {% endif %}
+                                    {% if 4 <= p and p <= 5 %}
+                                        class="bg-info"
+                                    {% elif 5 < p and p <= 7 %}
+                                        class="bg-warning"
+                                    {% else %}
+                                        class="bg-danger"
+                                    {% endif %}
                                 >
                                     <td>
                                         <a href="/convivencia/historial_vigente/{{ alum.id }}/"><strong class="text-light">{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</a>

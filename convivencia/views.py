@@ -1041,98 +1041,96 @@ def alumnadosancionable(request):
     curso_academico_actual = get_current_academic_year()
     fecha_tope_leves = date.today() - timedelta(days=30)
     fecha_tope_graves = date.today() - timedelta(days=60)
-    if not PropuestasSancion.objects.filter(curso_academico=curso_academico_actual).exists():
-        # La BBDD está vacía, hay que popularla
-        amonestaciones_sin_caducar = list(
-            Amonestaciones.objects.filter(
-                Q(curso_academico=curso_academico_actual) & (
-                    (Q(Tipo__TipoFalta='L') & Q(Fecha__gt=fecha_tope_leves)) |
-                    (Q(Tipo__TipoFalta='G') & Q(Fecha__gt=fecha_tope_graves))
-                )).order_by('Fecha').all()
-        )
-        # for am in amonestaciones_sin_caducar:
-        #     print(f'Amonestación {am.gravedad} para {am.IdAlumno.Nombre} el {am.Fecha}')
-        alumnado = set(am.IdAlumno for am in amonestaciones_sin_caducar)
-        fecha_ultima_sancion = {}
-        leves = {}
-        graves = {}
-        fecha_entrada = {}
-        for alumno in alumnado:
-            # print(f'Inicializando contadores de {alumno.Nombre}...')
-            fecha_ultima_sancion[alumno] = alumno.ultima_sancion.Fecha if alumno.ultima_sancion is not None else None
-            leves[alumno] = 0
-            graves[alumno] = 0
 
-        amonestaciones_vivas = defaultdict(list)
-        for amonestacion in amonestaciones_sin_caducar:
-            alumno = amonestacion.IdAlumno
-            # print(f'Viendo si la amonestación {amonestacion.gravedad} para {alumno} del {amonestacion.Fecha} ha sido sancionada...')
-            if (
-                    (fecha_ultima_sancion[alumno] is None) or
-                    (fecha_ultima_sancion[alumno] is not None) and (amonestacion.Fecha > fecha_ultima_sancion[alumno])
-                ):
-                amonestaciones_vivas[alumno].append(amonestacion)
-                # print(f'Amonestación viva encontrada para {alumno.Nombre} de tipo {amonestacion.gravedad}')
-                if amonestacion.gravedad == 'Leve':
-                    leves[alumno] += 1
-                elif amonestacion.gravedad == 'Grave':
-                    graves[alumno] += 1
-                if ((leves[alumno] + 2 * graves[alumno] >= 6) or (graves[alumno] >= 2)) and not (alumno in fecha_entrada):
-                    # print(f'El alumno {alumno.Nombre} entra en PG el {amonestacion.Fecha}')
-                    fecha_entrada[alumno] = amonestacion.Fecha
+    # Se actualizan los registros de PropuestasSancion en cada llamada. El uso real de la tabla será para poder ignorar
+    # una propuesta y, en un futuro, albergar observaciones.
+    amonestaciones_sin_caducar = list(
+        Amonestaciones.objects.filter(
+            Q(curso_academico=curso_academico_actual) & (
+                (Q(Tipo__TipoFalta='L') & Q(Fecha__gt=fecha_tope_leves)) |
+                (Q(Tipo__TipoFalta='G') & Q(Fecha__gt=fecha_tope_graves))
+            )).order_by('Fecha').all()
+    )
+    alumnado = set(am.IdAlumno for am in amonestaciones_sin_caducar)
+    fecha_ultima_sancion = {}
+    leves = {}
+    graves = {}
+    fecha_entrada = {}
+    for alumno in alumnado:
+        fecha_ultima_sancion[alumno] = alumno.ultima_sancion.Fecha if alumno.ultima_sancion is not None else None
+        leves[alumno] = 0
+        graves[alumno] = 0
 
-        resultado = []
-        for alumno in amonestaciones_vivas:
-            if (leves[alumno] + 2 * graves[alumno] >= 6) or graves[alumno] >= 2:
-                propuesta = PropuestasSancion(
-                    curso_academico=curso_academico_actual,
-                    alumno=alumno,
-                    entrada=fecha_entrada[alumno],
-                    leves=leves[alumno],
-                    graves=graves[alumno],
-                    peso=(leves[alumno] + 2 * graves[alumno])
-                )
+    amonestaciones_vivas = defaultdict(list)
+    for amonestacion in amonestaciones_sin_caducar:
+        alumno = amonestacion.IdAlumno
+        if (
+                (fecha_ultima_sancion[alumno] is None) or
+                (fecha_ultima_sancion[alumno] is not None) and (amonestacion.Fecha > fecha_ultima_sancion[alumno])
+            ):
+            amonestaciones_vivas[alumno].append(amonestacion)
+            if amonestacion.gravedad == 'Leve':
+                leves[alumno] += 1
+            elif amonestacion.gravedad == 'Grave':
+                graves[alumno] += 1
+            if (leves[alumno] + 2 * graves[alumno] >= 4):
+                fecha_entrada[alumno] = amonestacion.Fecha
+
+    resultado = []
+    for alumno in amonestaciones_vivas:
+        if (leves[alumno] + 2 * graves[alumno] >= 4):
+            # Cargar o crear propuesta no cerrada y no ignorada para el alumno en este curso académico
+            propuesta, creado = PropuestasSancion.objects.get_or_create(
+                curso_academico=curso_academico_actual,
+                alumno=alumno,
+                salida=None,
+                ignorar=False,
+                defaults={
+                    'entrada':fecha_entrada[alumno],
+                    'leves':leves[alumno],
+                    'graves':graves[alumno],
+                    'peso':leves[alumno] + 2 * graves[alumno]
+                }
+            )
+            # Actualizar contadores de amonestaciones
+            if not creado:
+                # El registro existe, se actualiza
+                propuesta.leves = leves[alumno]
+                propuesta.graves = graves[alumno]
+                propuesta.peso = leves[alumno] + 2 * graves[alumno]
                 propuesta.save()
-                for amonestacion in amonestaciones_vivas[alumno]:
-                    propuesta.amonestaciones.add(amonestacion)
-                    propuesta.save()
-                resultado.append((alumno, leves[alumno], graves[alumno], leves[alumno] + 2 * graves[alumno], propuesta.id))
-
-    else:
-        # Cargar la información de la BBDD
-        propuestas = PropuestasSancion.objects.filter(
-            Q(curso_academico=curso_academico_actual) & Q(salida__isnull=True) & Q(ignorar=False)
-        ).order_by('-peso').all()
-
-        # Comprobar que el alumno propuesto no haya salido por caducidad sin detectarlo previamente.
-        # Esto se evitará cuando se active django-crontab
-        resultado = []
-        for propuesta in propuestas:
-            amonestaciones_caducadas = [amonestacion for amonestacion
-                                        in propuesta.amonestaciones.order_by('Fecha').all() if amonestacion.caducada]
-            for amonestacion in amonestaciones_caducadas:
-                propuesta.amonestaciones.remove(amonestacion)
-                if amonestacion.gravedad == 'Leve':
-                    propuesta.leves -= 1
-                    propuesta.peso -= 1
-                elif amonestacion.gravedad == 'Grave':
-                    propuesta.graves -= 1
-                    propuesta.peso -= 2
+            # Actualizar amonestaciones asociadas
+            for amonestacion in amonestaciones_vivas[alumno]:
+                propuesta.amonestaciones.add(amonestacion)
                 propuesta.save()
-            if (propuesta.graves < 2) and (propuesta.peso < 6):
+            # Borrar amonestaciones no vigentes
+            for amonestacion in propuesta.amonestaciones.all():
+                if not amonestacion.vigente:
+                    propuesta.amonestaciones.delete(amonestacion)
+
+
+            resultado.append((alumno, leves[alumno], graves[alumno], leves[alumno] + 2 * graves[alumno], propuesta.id))
+        else:
+            propuesta = PropuestasSancion.objects.filter(
+                curso_academico=curso_academico_actual,
+                alumno=alumno,
+                salida=None
+            ).first()
+            if propuesta:
+                # El alumno está propuesto para sanción pero ya han caducado alguno los partes que lo hicieron entrar
+                propuesta.leves = leves[alumno]
+                propuesta.graves = graves[alumno]
+                propuesta.peso = leves[alumno] + 2 * graves[alumno]
                 propuesta.salida = date.today()
-                propuesta.motivo_salida = 'Amonestaciones caducadas'
+                propuesta.motivo_salida = 'Amonestaciones caducadas.'
                 propuesta.save()
-            else:
-                resultado.append((propuesta.alumno, propuesta.leves, propuesta.graves, propuesta.peso, propuesta.id))
 
-
-    resultado.sort(key=lambda x: x[3], reverse=True)
+    resultado.sort(key=lambda x: (x[3], x[2], x[1]), reverse=True)
 
     context = {
-    'alumnado': resultado,
-    'num_resultados': len(resultado),
-    'menu_convivencia': True,
+        'alumnado': resultado,
+        'num_resultados': len(resultado),
+        'menu_convivencia': True,
     }
 
     return render(request, 'alumnadosancionable.html', context)
