@@ -177,7 +177,7 @@ class Alumnos(models.Model):
 
     @property
     def sancionable(self):
-        return self.peso_amonestaciones >= 6
+        return self.peso_amonestaciones >= 4
 
     @property
     def peso_amonestaciones(self):
@@ -186,32 +186,6 @@ class Alumnos(models.Model):
     @property
     def ultima_sancion(self):
         return self.sanciones_set.order_by("Fecha").last()
-
-    @property
-    def amonestacion_entrada_sancionable(self):
-        amonestaciones = [amon for amon in self.amonestaciones.filter(
-            curso_academico=get_current_academic_year()
-        ).order_by("Fecha").all() if amon.vigente]
-
-
-        peso_acumulado = {}
-        leves = 0
-        graves = 0
-        peso = 0
-        result = None
-
-        for amonestacion in amonestaciones:
-            if amonestacion.gravedad == "Leve":
-                leves += 1
-                peso += 1
-            elif amonestacion.gravedad == "Grave":
-                graves += 1
-                peso += 2
-
-            if graves >= 2 or peso >= 6:
-                result = amonestacion
-                break
-        return result
 
     def edad(self, curso_academico):
         fecha_final = date(curso_academico.año_fin, 12, 31)
