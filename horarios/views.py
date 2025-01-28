@@ -3,6 +3,7 @@ from sqlite3 import IntegrityError
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
@@ -148,7 +149,9 @@ def horario_curso_view(request):
 
     if curso_id:
         # Filtrar los horarios por el curso seleccionado y ordenar por día y tramo
-        items_horario = ItemHorario.objects.filter(unidad_id=curso_id).order_by('dia', 'tramo')
+        items_horario = ItemHorario.objects.filter(
+            Q(unidad_id=curso_id) & Q(profesor__Baja=False)
+        ).order_by('dia', 'tramo')
 
         # Obtener el curso y su tutor
         curso = Cursos.objects.filter(id=curso_id).first()
