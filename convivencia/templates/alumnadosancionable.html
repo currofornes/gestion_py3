@@ -13,7 +13,16 @@
                         <h2>Alumnado con amonestaciones vivas pendiente de sanción</h2>
                     </div>
                     <div class="ibox-content">
-
+                        <div class="row">
+                            <form>
+                                <div class="form-group">
+                                    <label class="control-label" for="mostrar_ignoradas">Mostrar propuestas ignoradas</label>
+                                    <input type="checkbox" id="mostrar_ignoradas"
+                                           {% if ver_ignoradas %} checked {% endif %}
+                                    >
+                                </div>
+                            </form>
+                        </div>
                         <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
                             <thead>
                             <tr>
@@ -26,7 +35,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for alum, l, g, p, prop in alumnado %}
+                            {% for alum, l, g, p, prop, ignorada in alumnado %}
                                 <tr
                                     {% if 4 <= p and p <= 5 %}
                                         class="bg-info"
@@ -47,8 +56,11 @@
                                     <td class="text-center">{{ g }}</td>
                                     <td class="text-center">{{ p }}</td>
                                     <td class="text-center">
-{#                                        <a href="/convivencia/ignorar/{{ prop }}" class="btn btn-dark"> Ignorar propuesta </a> </td>#}
-                                        <a href="{% url 'ignorar' prop %}" class="btn btn-dark"> Ignorar propuesta </a>
+                                        {% if not ignorada %}
+                                            <a href="{% url 'ignorar' prop %}" onclick="ignorarPropuesta" class="btn btn-dark"> Ignorar propuesta </a>
+                                        {% else %}
+                                            <a href="{% url 'reactivar' prop %}" onclick="reactivarPropuesta" class="btn btn-dark"> Reactivar propuesta </a>
+                                        {% endif %}
                                 </tr>
                             {% endfor %}
 
@@ -79,30 +91,63 @@
 {% block js %}
     <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
     <script>
+        function ignorarPropuesta(event) {
+            event.preventDefault(); // Evita que el enlace navegue directamente
+            const link = $(this).attr('href'); // Obtener la URL del enlace
+
+            Swal.fire({
+                title: 'Confirmar acción',
+                text: '¿Seguro que desea ignorar esta propuesta de sanción?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ignorar esta propuesta',
+                cancelButtonText: 'Cancelar',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirigir a la URL solo si el usuario confirma
+                    window.location.href = link;
+                }
+            });
+        }
+
+        function reactivarPropuesta(event) {
+            event.preventDefault(); // Evita que el enlace navegue directamente
+            const link = $(this).attr('href'); // Obtener la URL del enlace
+
+            Swal.fire({
+                title: 'Confirmar acción',
+                text: '¿Seguro que desea reactivar esta propuesta de sanción?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Reactivar esta propuesta',
+                cancelButtonText: 'Cancelar',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirigir a la URL solo si el usuario confirma
+                    window.location.href = link;
+                }
+            });
+        }
+    </script>
+
+    <script>
 
         $(document).ready(function () {
-            $('.footable').footable();
+            $('#mostrar_ignoradas').change(function () {
+                // Determinar la URL basada en el estado del checkbox
+                const mostrarIgnoradas = $(this).is(':checked');
+                let url = '';
+                if (mostrarIgnoradas) {
+                    url = '/convivencia/alumnadosancionable/True';
+                }
+                else {
+                    url = '/convivencia/alumnadosancionable/False';
+                }
 
-            // Manejar el evento click en botones "Ignorar propuesta"
-            $('.btn-dark').on('click', function (e) {
-                e.preventDefault(); // Detener la navegación del enlace por defecto
-
-                const link = $(this).attr('href'); // Obtener la URL del enlace
-
-                Swal.fire({
-                    title: 'Confirmar acción',
-                    text: '¿Seguro que desea ignorar esta propuesta de sanción?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ignorar esta propuesta',
-                    cancelButtonText: 'Cancelar',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Si el usuario confirma, redirigir al enlace
-                        window.location.href = link;
-                    }
-                });
+                // Redirigir a la URL correspondiente
+                window.location.href = url;
             });
+            $('.footable').footable();
         });
 
     </script>

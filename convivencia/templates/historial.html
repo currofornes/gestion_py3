@@ -15,7 +15,7 @@
                             <a href="/calendario/amonestaciones/{{ alum.id }}/" class="btn btn-info"><i class="fa fa-calendar"></i> Ver calendario </a>
                             <a href="/convivencia/amonestacion/{{ alum.id }}" class="btn btn-warning"><i class="fa fa-exclamation-triangle"></i> Amonestar </a>
                             {% if user|has_group:"jefatura de estudios" %}
-                                <a href="/convivencia/sancion/{{ alum.id }}" c
+                                <a href="/convivencia/sancion/{{ alum.id }}" class="btn btn-danger"><i class="fa fa-exclamation-triangle"></i> Sancionar </a>
                             {% endif %}
                         </div>
 
