@@ -35,18 +35,28 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for alum, l, g, p, prop, ignorada in alumnado %}
+                            {% for alum, l, g, p, prop, ignorada, movil in alumnado %}
                                 <tr
-                                    {% if 4 <= p and p <= 5 %}
-                                        class="bg-info"
-                                    {% elif 5 < p and p <= 7 %}
-                                        class="bg-warning"
-                                    {% else %}
+                                    {% if movil %}
                                         class="bg-danger"
+                                    {% else %}
+                                        {% if 4 <= p and p <= 5 %}
+                                            class="bg-info"
+                                        {% elif 5 < p and p <= 7 %}
+                                            class="bg-warning"
+                                        {% else %}
+                                            class="bg-danger"
+                                        {% endif %}
                                     {% endif %}
                                 >
                                     <td>
-                                        <a href="/convivencia/historial_vigente/{{ alum.id }}/"><strong class="text-light">{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</a>
+                                        <a href="/convivencia/historial_vigente/{{ alum.id }}/">
+                                            {% if movil %}
+                                                <i class="fa fa-mobile text-light" aria-hidden="true" style="margin-right: 5px;"></i>
+                                            {% endif %}
+                                            <strong class="text-light">{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}
+
+                                        </a>
                                     </td>
                                     <td><a href="/centro/alumnos/{{ alum.Unidad.id }}" class="text-light">{{ alum.Unidad }}</a></td>
                                     <td class="text-center">
@@ -57,9 +67,11 @@
                                     <td class="text-center">{{ p }}</td>
                                     <td class="text-center">
                                         {% if not ignorada %}
-                                            <a href="{% url 'ignorar' prop %}" onclick="ignorarPropuesta" class="btn btn-dark"> Ignorar propuesta </a>
+{#                                            <a href="{% url 'ignorar' prop %}" class="btn btn-dark"> Ignorar propuesta </a>#}
+                                            <input type="button" class="btn btn-dark" value="Ignorar propuesta" onclick="ignorarPropuesta(event, {{ prop }})">
                                         {% else %}
-                                            <a href="{% url 'reactivar' prop %}" onclick="reactivarPropuesta" class="btn btn-dark"> Reactivar propuesta </a>
+{#                                            <a href="{% url 'reactivar' prop %}" class="btn btn-dark"> Reactivar propuesta </a>#}
+                                            <input type="button" class="btn btn-dark" value="Reactivar propuesta" onclick="reactivarPropuesta(event, {{ prop }})"">
                                         {% endif %}
                                 </tr>
                             {% endfor %}
@@ -91,9 +103,11 @@
 {% block js %}
     <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
     <script>
-        function ignorarPropuesta(event) {
+        function ignorarPropuesta(event, prop) {
             event.preventDefault(); // Evita que el enlace navegue directamente
-            const link = $(this).attr('href'); // Obtener la URL del enlace
+            {#const link = $(this).attr('href'); // Obtener la URL del enlace#}
+            const link = `/convivencia/ignorar/${prop}/`;
+            console.log(link);
 
             Swal.fire({
                 title: 'Confirmar acción',
@@ -110,10 +124,11 @@
             });
         }
 
-        function reactivarPropuesta(event) {
+        function reactivarPropuesta(event, prop) {
             event.preventDefault(); // Evita que el enlace navegue directamente
-            const link = $(this).attr('href'); // Obtener la URL del enlace
-
+            {#const link = $(this).attr('href'); // Obtener la URL del enlace#}
+            const link = `/convivencia/reactivar/${prop}/`;
+            console.log(link);
             Swal.fire({
                 title: 'Confirmar acción',
                 text: '¿Seguro que desea reactivar esta propuesta de sanción?',
@@ -129,7 +144,6 @@
             });
         }
     </script>
-
     <script>
 
         $(document).ready(function () {
@@ -147,6 +161,10 @@
                 // Redirigir a la URL correspondiente
                 window.location.href = url;
             });
+
+            {#// Vincular eventos a los enlaces#}
+            {#$('a.ignorar-propuesta').on('click', ignorarPropuesta);#}
+            {#$('a.reactivar-propuesta').on('click', reactivarPropuesta);#}
             $('.footable').footable();
         });
 

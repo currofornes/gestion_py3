@@ -74,3 +74,14 @@ class PropuestasSancionAdmin(admin.ModelAdmin):
             "fields": ("leves", "graves", "peso", "ignorar")
         }),
     )
+
+@admin.register(TiposAmonestaciones)
+class TiposAmonestacionesAdmin(admin.ModelAdmin):
+    list_display = ('TipoAmonestacion', 'TipoFalta')  # Campos que se mostrarán en la lista de objetos
+    search_fields = ('TipoAmonestacion', 'TipoFalta')  # Campos por los que se puede buscar
+    list_filter = ('TipoFalta',)  # Filtros que aparecerán en la barra lateral
+    ordering = (('-TipoFalta', 'TipoAmonestacion'))
+
+    # Si quieres personalizar cómo se muestra el nombre del objeto en el admin
+    def __str__(self):
+        return f"({self.TipoFalta} {self.TipoAmonestacion}"

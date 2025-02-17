@@ -1,3 +1,6 @@
+
+
+
 from collections import defaultdict
 from sqlite3 import IntegrityError
 
@@ -1054,11 +1057,14 @@ def calcular_alumnado_sancionable(curso_academico):
     leves = {}
     graves = {}
     fecha_entrada = {}
+    amon_movil = {}
+    fecha_movil = {}
 
     for alumno in alumnado:
         fecha_ultima_sancion[alumno] = alumno.ultima_sancion.Fecha if alumno.ultima_sancion is not None else None
         leves[alumno] = 0
         graves[alumno] = 0
+        amon_movil[alumno] = 0
 
     amonestaciones_vivas = defaultdict(list)
 
@@ -1066,21 +1072,24 @@ def calcular_alumnado_sancionable(curso_academico):
         alumno = amonestacion.IdAlumno
         if (fecha_ultima_sancion[alumno] is None) or (amonestacion.Fecha > fecha_ultima_sancion[alumno]):
             amonestaciones_vivas[alumno].append(amonestacion)
+            if "móvil" in amonestacion.Tipo.TipoAmonestacion:
+                amon_movil[alumno] += 1
             if amonestacion.gravedad == 'Leve':
                 leves[alumno] += 1
             elif amonestacion.gravedad == 'Grave':
                 graves[alumno] += 1
-            if (leves[alumno] + 2 * graves[alumno] >= 4) and not alumno in fecha_entrada:
+            if ((leves[alumno] + 2 * graves[alumno] >= 4) or amon_movil[alumno] >= 2) and not alumno in fecha_entrada:
                 fecha_entrada[alumno] = amonestacion.Fecha
 
     resultado = {}
     for alumno in amonestaciones_vivas:
-        if (leves[alumno] + 2 * graves[alumno] >= 4):
+        if (leves[alumno] + 2 * graves[alumno] >= 4) or amon_movil[alumno] >= 2:
             resultado[alumno] = {
                 'entrada': fecha_entrada[alumno],
                 'leves': leves[alumno],
                 'graves': graves[alumno],
-                'peso': leves[alumno] + 2 * graves[alumno]
+                'peso': leves[alumno] + 2 * graves[alumno],
+                'móvil': amon_movil[alumno] >= 2
             }
 
     return resultado
@@ -1091,6 +1100,7 @@ def alumnadosancionable(request, ver_ignorados):
     ver_todas = (ver_ignorados == 'True')
     curso_academico_actual = get_current_academic_year()
     resultado = []
+    # Calculo para ver nuevas propuestas
     datos = calcular_alumnado_sancionable(curso_academico_actual)
 
     if not PropuestasSancion.objects.filter(curso_academico=curso_academico_actual).exists():
@@ -1111,15 +1121,42 @@ def alumnadosancionable(request, ver_ignorados):
                     datos[alumno]['leves'],
                     datos[alumno]['graves'],
                     datos[alumno]['peso'],
-                    propuesta.id
+                    propuesta.id,
+                    propuesta.ignorar,
+                    datos[alumno].get('móvil', False)
                 )
             )
     else:
-        # Cargamos todas las propuestas abiertas (son salida)
+        # Cargamos todas las propuestas abiertas (sin salida)
         propuestas = PropuestasSancion.objects.filter(
             curso_academico=curso_academico_actual,
             salida=None
         ).all()
+        alumnos = [propuesta.alumno for propuesta in propuestas]
+        nuevos_alumnos = [alumno for alumno in datos if not alumno in alumnos]
+
+        for alumno in nuevos_alumnos:
+            propuesta = PropuestasSancion(
+                curso_academico=curso_academico_actual,
+                alumno=alumno,
+                leves=datos[alumno]['leves'],
+                graves=datos[alumno]['graves'],
+                peso=datos[alumno]['peso'],
+                entrada=datos[alumno]['entrada']
+            )
+            propuesta.save()
+            resultado.append(
+                (
+                    alumno,
+                    datos[alumno]['leves'],
+                    datos[alumno]['graves'],
+                    datos[alumno]['peso'],
+                    propuesta.id,
+                    propuesta.ignorar,
+                    datos[alumno].get('móvil', False)
+                )
+            )
+
 
         for propuesta in propuestas:
             alumno = propuesta.alumno
@@ -1154,12 +1191,13 @@ def alumnadosancionable(request, ver_ignorados):
                         datos[alumno]['graves'],
                         datos[alumno]['peso'],
                         propuesta.id,
-                        propuesta.ignorar
+                        propuesta.ignorar,
+                        datos[alumno].get('móvil', False)
                     )
                 )
 
 
-    resultado.sort(key=lambda x: (x[3], x[2], x[1]), reverse=True)
+    resultado.sort(key=lambda x: (int(x[6]), x[3], x[2], x[1]), reverse=True)
 
     context = {
         'alumnado': resultado,
@@ -1229,14 +1267,10 @@ def historial_vigente(request, alum_id, prof):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def ignorar_propuesta_sancion(request, prop_id):
-    print("=" * 50)
-    print(request)
-    print("=" * 50)
     propuesta = PropuestasSancion.objects.get(pk=prop_id)
-    print(f'Se ignorará {propuesta}')
     propuesta.ignorar = True
     propuesta.save()
-    return redirect('alumnadosancionable', ver_ignorados='True')
+    return redirect('alumnadosancionable', ver_ignorados='False')
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
