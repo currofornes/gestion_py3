@@ -186,6 +186,49 @@ def horario_curso_view(request):
     }
     return render(request, 'horario_grupo.html', context)
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof_or_guardia, login_url='/')
+def horario_aula_view(request):
+    aula_id = request.GET.get('aula')  # Obtener el ID del curso seleccionado desde el GET
+    aulas = Aulas.objects.all()  # Lista de todos los cursos para el desplegable
+
+    items_horario = None
+    profesores_materias = defaultdict(list)
+
+    if aula_id:
+        # Filtrar los horarios por el curso seleccionado y ordenar por día y tramo
+        items_horario = ItemHorario.objects.filter(
+            Q(aula_id=aula_id) & Q(profesor__Baja=False)
+        ).order_by('dia', 'tramo')
+
+        # Obtener el curso y su tutor
+        # curso = Cursos.objects.filter(id=curso_id).first()
+        # if curso and curso.Tutor:
+        #     tutor = curso.Tutor  # Asignar el tutor del curso
+
+        # Agrupar profesores y materias en el curso
+        for item in items_horario:
+            if item.profesor and item.materia:  # Asegurarse de que hay un profesor y una materia en el ItemHorario
+                profesores_materias[item.profesor].append(item.materia)
+
+    # Crear un diccionario para el horario
+    horario = {tramo: {dia: [] for dia in range(1, 6)} for tramo in range(1, 8)}
+    tramos = ['1ª hora', '2ª hora', '3ª hora', 'RECREO', '4ª hora', '5ª hora', '6ª hora']
+
+    if items_horario:
+        # Rellenar el diccionario con los ítems del horario
+        for item in items_horario:
+            horario[item.tramo][item.dia].append(item)
+
+    context = {
+        'aulas': aulas,
+        'horario': horario,
+        'tramos': tramos,  # Pasar el rango de tramos al contexto
+        'dias': range(1, 6),  # Pasar el rango de días al contexto
+        'menu_horarios': True
+    }
+    return render(request, 'horario_aula.html', context)
+
 class EditarHorarioProfesorView(ListView):
     model = ItemHorario
     template_name = 'editar_horario_profesor.html'
