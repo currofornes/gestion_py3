@@ -1115,12 +1115,17 @@ def alumnadosancionable(request, ver_ignorados):
                 entrada=datos[alumno]['entrada']
             )
             propuesta.save()
+            ultima_amonestacion = Amonestaciones.objects.filter(
+                IdAlumno=alumno,
+                curso_academico=curso_academico_actual
+            ).order_by('-Fecha').first()
             resultado.append(
                 (
                     alumno,
                     datos[alumno]['leves'],
                     datos[alumno]['graves'],
                     datos[alumno]['peso'],
+                    ultima_amonestacion.Fecha,
                     propuesta.id,
                     propuesta.ignorar,
                     datos[alumno].get('móvil', False)
@@ -1145,12 +1150,17 @@ def alumnadosancionable(request, ver_ignorados):
                 entrada=datos[alumno]['entrada']
             )
             propuesta.save()
+            ultima_amonestacion = Amonestaciones.objects.filter(
+                IdAlumno=alumno,
+                curso_academico=curso_academico_actual
+            ).order_by('-Fecha').first()
             resultado.append(
                 (
                     alumno,
                     datos[alumno]['leves'],
                     datos[alumno]['graves'],
                     datos[alumno]['peso'],
+                    ultima_amonestacion.Fecha,
                     propuesta.id,
                     propuesta.ignorar,
                     datos[alumno].get('móvil', False)
@@ -1184,12 +1194,17 @@ def alumnadosancionable(request, ver_ignorados):
 
             # Añadimos el resultado en ambos casos (si la propuesta no está ignorada)
             if ver_todas or not propuesta.ignorar:
+                ultima_amonestacion = Amonestaciones.objects.filter(
+                    IdAlumno=alumno,
+                    curso_academico=curso_academico_actual
+                ).order_by('-Fecha').first()
                 resultado.append(
                     (
                         alumno,
                         datos[alumno]['leves'],
                         datos[alumno]['graves'],
                         datos[alumno]['peso'],
+                        ultima_amonestacion.Fecha,
                         propuesta.id,
                         propuesta.ignorar,
                         datos[alumno].get('móvil', False)
@@ -1197,7 +1212,7 @@ def alumnadosancionable(request, ver_ignorados):
                 )
 
 
-    resultado.sort(key=lambda x: (int(x[6]), x[3], x[2], x[1]), reverse=True)
+    resultado.sort(key=lambda x: (int(x[7]), x[3], x[2], x[1]), reverse=True)
 
     context = {
         'alumnado': resultado,

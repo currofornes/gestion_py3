@@ -31,11 +31,12 @@
                                 <th class="text-center">Leves</th>
                                 <th class="text-center">Graves</th>
                                 <th class="text-center">Peso</th>
+                                <th class="text-center">Última amonestación</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {% for alum, l, g, p, prop, ignorada, movil in alumnado %}
+                            {% for alum, l, g, p, fecha_ultima_amon, prop, ignorada, movil in alumnado %}
                                 <tr
                                     {% if movil %}
                                         class="bg-danger"
@@ -65,6 +66,7 @@
 
                                     <td class="text-center">{{ g }}</td>
                                     <td class="text-center">{{ p }}</td>
+                                    <td class="text-center"> {{ fecha_ultima_amon|date:"d/m/Y" }}</td>
                                     <td class="text-center">
                                         {% if not ignorada %}
 {#                                            <a href="{% url 'ignorar' prop %}" class="btn btn-dark"> Ignorar propuesta </a>#}
