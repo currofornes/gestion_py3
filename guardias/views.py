@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import IntegrityError
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.forms import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -334,7 +334,7 @@ def parteguardias_ajax(request):
         for tramo in range(1, 8):  # Tramos de 1 a 7 (1ª Hora a 6ª Hora más Recreo)
             # Obtener todos los IDs de los profesores asignados en el tramo y materia 'GUARDIAS'
             profesor_ids = item_horarios.filter(
-                tramo=tramo, materia__in=["GUARDIAS", "GUARDIA CONVIVENCIA", "GUARDIA ACE"]
+                Q(tramo=tramo) & Q(materia__in=["GUARDIAS", "GUARDIA CONVIVENCIA", "GUARDIA ACE"]) & Q(profesor__Baja=False)
             ).values_list('profesor', flat=True).distinct()
 
             # Para cada profesor, obtener el tiempo de guardia

@@ -193,7 +193,7 @@ def abrirprotocolo(request, alum_id):
         nuevo_protocolo = ProtocoloAbs.objects.create(
             alumno=alumno,
             tutor=tutor,
-            fecha_apertura=datetime.date.today().strftime('%Y-%m-%d'),  # Asigna la fecha actual
+            fecha_apertura=date.today().strftime('%Y-%m-%d'),  # Asigna la fecha actual
             fecha_cierre=None,
             abierto=True
         )

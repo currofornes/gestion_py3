@@ -62,7 +62,7 @@ def actualizar_alumnado_sancionable(sender, instance, **kwargs):
         leves = alumno.leves
         graves = alumno.graves
         peso = leves + 2 * graves
-        if graves >= 2 or peso >= 6:
+        if peso >= 4:
             propuesta = PropuestasSancion(
                 curso_academico=curso,
                 alumno=alumno,
@@ -75,3 +75,7 @@ def actualizar_alumnado_sancionable(sender, instance, **kwargs):
             for amonestacion in alumno.amonestaciones_vigentes:
                 propuesta.amonestaciones.add(amonestacion)
                 propuesta.save()
+            for amonestacion in propuesta.amonestaciones.all():
+                if not amonestacion.vigente:
+                    propuesta.amonestaciones.delete(amonestacion)
+                    propuesta.save()

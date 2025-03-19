@@ -13,7 +13,16 @@
                         <h2>Alumnado con amonestaciones vivas pendiente de sanción</h2>
                     </div>
                     <div class="ibox-content">
-
+                        <div class="row">
+                            <form>
+                                <div class="form-group">
+                                    <label class="control-label" for="mostrar_ignoradas">Mostrar propuestas ignoradas</label>
+                                    <input type="checkbox" id="mostrar_ignoradas"
+                                           {% if ver_ignoradas %} checked {% endif %}
+                                    >
+                                </div>
+                            </form>
+                        </div>
                         <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
                             <thead>
                             <tr>
@@ -21,20 +30,34 @@
                                 <th>Unidad</th>
                                 <th class="text-center">Leves</th>
                                 <th class="text-center">Graves</th>
-                                <th class="text-center">Total</th>
+                                <th class="text-center">Peso</th>
+                                <th class="text-center">Última amonestación</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {% for alum, l, g, p, prop in alumnado %}
+                            {% for alum, l, g, p, fecha_ultima_amon, prop, ignorada, movil in alumnado %}
                                 <tr
-                                        {% if p < 6 and g >= 2 %} class="bg-warning" {% endif %}
-                                        {% if p >= 6 and p <= 8 %} class="bg-warning" {% endif %}
-                                        {% if p >= 9 and p <= 12 %} class="bg-info" {% endif %}
-                                        {% if p > 12 %} class="bg-danger" {% endif %}
+                                    {% if movil %}
+                                        class="bg-danger"
+                                    {% else %}
+                                        {% if 4 <= p and p <= 5 %}
+                                            class="bg-info"
+                                        {% elif 5 < p and p <= 7 %}
+                                            class="bg-warning"
+                                        {% else %}
+                                            class="bg-danger"
+                                        {% endif %}
+                                    {% endif %}
                                 >
                                     <td>
-                                        <a href="/convivencia/historial_vigente/{{ alum.id }}/"><strong class="text-light">{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</a>
+                                        <a href="/convivencia/historial_vigente/{{ alum.id }}/">
+                                            {% if movil %}
+                                                <i class="fa fa-mobile text-light" aria-hidden="true" style="margin-right: 5px;"></i>
+                                            {% endif %}
+                                            <strong class="text-light">{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}
+
+                                        </a>
                                     </td>
                                     <td><a href="/centro/alumnos/{{ alum.Unidad.id }}" class="text-light">{{ alum.Unidad }}</a></td>
                                     <td class="text-center">
@@ -43,9 +66,15 @@
 
                                     <td class="text-center">{{ g }}</td>
                                     <td class="text-center">{{ p }}</td>
+                                    <td class="text-center"> {{ fecha_ultima_amon|date:"d/m/Y" }}</td>
                                     <td class="text-center">
-{#                                        <a href="/convivencia/ignorar/{{ prop }}" class="btn btn-dark"> Ignorar propuesta </a> </td>#}
-                                        <a href="{% url 'ignorar' prop %}" class="btn btn-dark"> Ignorar propuesta </a>
+                                        {% if not ignorada %}
+{#                                            <a href="{% url 'ignorar' prop %}" class="btn btn-dark"> Ignorar propuesta </a>#}
+                                            <input type="button" class="btn btn-dark" value="Ignorar propuesta" onclick="ignorarPropuesta(event, {{ prop }})">
+                                        {% else %}
+{#                                            <a href="{% url 'reactivar' prop %}" class="btn btn-dark"> Reactivar propuesta </a>#}
+                                            <input type="button" class="btn btn-dark" value="Reactivar propuesta" onclick="reactivarPropuesta(event, {{ prop }})"">
+                                        {% endif %}
                                 </tr>
                             {% endfor %}
 
@@ -76,30 +105,69 @@
 {% block js %}
     <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
     <script>
+        function ignorarPropuesta(event, prop) {
+            event.preventDefault(); // Evita que el enlace navegue directamente
+            {#const link = $(this).attr('href'); // Obtener la URL del enlace#}
+            const link = `/convivencia/ignorar/${prop}/`;
+            console.log(link);
+
+            Swal.fire({
+                title: 'Confirmar acción',
+                text: '¿Seguro que desea ignorar esta propuesta de sanción?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ignorar esta propuesta',
+                cancelButtonText: 'Cancelar',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirigir a la URL solo si el usuario confirma
+                    window.location.href = link;
+                }
+            });
+        }
+
+        function reactivarPropuesta(event, prop) {
+            event.preventDefault(); // Evita que el enlace navegue directamente
+            {#const link = $(this).attr('href'); // Obtener la URL del enlace#}
+            const link = `/convivencia/reactivar/${prop}/`;
+            console.log(link);
+            Swal.fire({
+                title: 'Confirmar acción',
+                text: '¿Seguro que desea reactivar esta propuesta de sanción?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Reactivar esta propuesta',
+                cancelButtonText: 'Cancelar',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirigir a la URL solo si el usuario confirma
+                    window.location.href = link;
+                }
+            });
+        }
+    </script>
+    <script>
 
         $(document).ready(function () {
-            $('.footable').footable();
+            $('#mostrar_ignoradas').change(function () {
+                // Determinar la URL basada en el estado del checkbox
+                const mostrarIgnoradas = $(this).is(':checked');
+                let url = '';
+                if (mostrarIgnoradas) {
+                    url = '/convivencia/alumnadosancionable/True';
+                }
+                else {
+                    url = '/convivencia/alumnadosancionable/False';
+                }
 
-            // Manejar el evento click en botones "Ignorar propuesta"
-            $('.btn-dark').on('click', function (e) {
-                e.preventDefault(); // Detener la navegación del enlace por defecto
-
-                const link = $(this).attr('href'); // Obtener la URL del enlace
-
-                Swal.fire({
-                    title: 'Confirmar acción',
-                    text: '¿Seguro que desea ignorar esta propuesta de sanción?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ignorar esta propuesta',
-                    cancelButtonText: 'Cancelar',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Si el usuario confirma, redirigir al enlace
-                        window.location.href = link;
-                    }
-                });
+                // Redirigir a la URL correspondiente
+                window.location.href = url;
             });
+
+            {#// Vincular eventos a los enlaces#}
+            {#$('a.ignorar-propuesta').on('click', ignorarPropuesta);#}
+            {#$('a.reactivar-propuesta').on('click', reactivarPropuesta);#}
+            $('.footable').footable();
         });
 
     </script>

@@ -32,12 +32,12 @@ urlpatterns = [
 
 	re_path(r'^sancionesactivas$', views.sancionesactivas, name='sancionesactivas'),
 
-	re_path(r'^alumnadosancionable$', views.alumnadosancionable, name='alumnadosancionable'),
+	path('alumnadosancionable/<ver_ignorados>', views.alumnadosancionable, name='alumnadosancionable'),
 
 	re_path(r'^reincorporacionsanciones$', views.sanciones_reincorporacion, name='sanciones_reincorporacion'),
 
-	# re_path(r'^ignorar/(?P<prop_id>[0-9]+)', views.ignorar_propuesta_sancion, name='ignorar'),
-	re_path(r'^ignorar/(?P<prop_id>[0-9]+)/$', views.ignorar_propuesta_sancion, name='ignorar'),
+	path('ignorar/<int:prop_id>/', views.ignorar_propuesta_sancion, name='ignorar'),
+	path('reactivar/<int:prop_id>/', views.reactivar_propuesta_sancion, name='reactivar'),
 
 
 

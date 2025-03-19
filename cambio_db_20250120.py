@@ -39,17 +39,18 @@ with connection.cursor() as cursor:
         cursor.execute(""" DELETE FROM tde_incidenciastic WHERE rowid NOT IN (
                                SELECT MIN(rowid) FROM tde_incidenciastic
                                GROUP BY profesor_id, aula_id, prioridad_id, comentario, curso_academico_id); """)
+
+        cursor.execute(""" DELETE FROM tde_incidenciastic_elementos WHERE incidenciastic_id NOT IN (
+                                SELECT rowid FROM tde_incidenciastic);""")
     finally:
         cursor.execute("PRAGMA foreign_keys = ON;")  # Reactiva restricciones
 
 
 
 # Hacer las migraciones
-apps_names = [app_config.name for app_config in apps.get_app_configs()]
-for name in apps_names:
-    print(f'Calculando migraciones de la app: {name}')
-    subprocess.run(['python', 'manage.py', 'makemigrations', name])
-    subprocess.run(['python', 'manage.py', 'migrate', name])
+print(f'Calculando migraciones')
+subprocess.run(['python', 'manage.py', 'makemigrations'])
+subprocess.run(['python', 'manage.py', 'migrate'])
 
 
 # Copiar los datos relacionados con Análisis de Resultados
@@ -90,3 +91,7 @@ cursor.execute("DETACH DATABASE antigua;")
 conn.close()
 
 print("✅ Datos copiados con éxito.")
+
+# Borrar propuestas de sanción para empezar desde cero
+from convivencia.models import PropuestasSancion
+PropuestasSancion.objects.all().delete()

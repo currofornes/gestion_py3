@@ -41,7 +41,7 @@
                                 class="fa arrow"></span></a>
                         <ul class="nav nav-second-level collapse">
                             {% if user|has_group:"jefatura de estudios" %}
-                                <li><a href="/convivencia/alumnadosancionable">Alumnado sancionable</a></li>
+                                <li><a href="/convivencia/alumnadosancionable/False">Alumnado sancionable</a></li>
                                 <li><a href="/centro/busqueda">Búsqueda general</a></li>
                                 <li><a href="/centro/alumnos">Todos los Grupos</a></li>
                                 <li><a href="/convivencia/show">Resumen</a></li>
@@ -136,6 +136,7 @@
                         {% endif %}
                         <li><a href="/horarios/horarioprofe">Horario Profesorado</a></li>
                         <li><a href="/horarios/horariogrupo">Horario Grupos</a></li>
+                        <li><a href="/horarios/horarioaula">Horario Aulas</a></li>
                         {% if user|has_group:"jefatura de estudios" %}
                             <li><a href="/horarios/aulaslibres">Aulas libres</a></li>
                             <li><a href="/horarios/copiar_horario/">Copiar horario</a></li>

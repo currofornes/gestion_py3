@@ -8,6 +8,8 @@ urlpatterns = [
     re_path(r'^horarioprofe$', views.horario_profesor_view, name='horario_profesor_view'),
     re_path(r'^horariogrupo$', views.horario_curso_view, name='horario_curso_view'),
 
+    path('horarioaula', views.horario_aula_view, name='horario_aula_view'),
+
     re_path(r'^mihorario$', views.mihorario, name='mihorario'),
 
     re_path(r'^aulaslibres$', views.aulas_libres, name='aulas_libres'),

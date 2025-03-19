@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load grupo_tags %}
 
 {% block css %}
     <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
@@ -64,13 +65,17 @@
 
                                     {% if sanc %}
                                         <tr class="danger">
-                                            {% else %}
+                                    {% elif alum.sancionable %}
+                                        <tr class="bg-warning">
+                                    {% else %}
                                         <tr>
                                     {% endif %}
                                 <td class="text-center">{{ forloop.counter }}</td>
 
 
-                                <td><a href="/convivencia/historial/{{ alum.id }}/">{{ alum.Nombre }}</a> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}</td>
+                                <td><a href="/convivencia/historial/{{ alum.id }}/">{{ alum.Nombre }}</a>
+                                    {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}
+                                </td>
 
                                 <td class="text-center">{{ acum }}</td>
                                     <td class="text-center">{{ acumhist }}</td>
@@ -78,11 +83,12 @@
                                     <a class="btn btn-xs btn-warning" href="/convivencia/amonestacion/{{ alum.id }}">Amonestar
                                     </a>
                                 </td>
-
-                                <td class="text-center">
-                                    <a class="btn btn-xs btn-danger" href="/convivencia/sancion/{{ alum.id }}">Sancionar
-                                    </a>
-                                </td>
+                                {% if user|has_group:"jefatura de estudios" %}
+                                    <td class="text-center">
+                                        <a class="btn btn-xs btn-danger" href="/convivencia/sancion/{{ alum.id }}">Sancionar
+                                        </a>
+                                    </td>
+                                {% endif %}
 
                                 </tr>
                                 {% endfor %}

@@ -32,7 +32,7 @@ class IndicadoresAlumnadoAdmin(admin.ModelAdmin):
     list_display = ['curso_acad', 'alumno_nombre', 'nivel', 'conv', 'Modalidad',
                     'EstimacionPromocion', 'EficaciaTransito', 'EvaluacionPositivaTodo', 'EficaciaRepeticion',
                     'IdoneidadCursoEdad', 'AbandonoEscolar']
-
+    search_fields = ['Alumno__Nombre']
     list_filter = ['curso_academico', 'Convocatoria']
     ordering = ['curso_academico', 'Alumno__Nombre', 'Convocatoria']
 
