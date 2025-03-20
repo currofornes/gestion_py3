@@ -4,20 +4,21 @@ import locale
 from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required,user_passes_test
 from xhtml2pdf import pisa
 from io import BytesIO
 
 from absentismo.models import ProtocoloAbs
 from centro.models import Alumnos,Cursos,Profesores
+from centro.utils import get_current_academic_year
 from convivencia.models import Amonestaciones,Sanciones
 from centro.views import ContarFaltas, group_check_je, group_check_prof, is_tutor, ContarFaltasHistorico, \
 	group_check_prof_and_tutor_or_je_or_orientacion
 from datetime import datetime
 from django.core.mail import EmailMultiAlternatives
 
-
+from prevision_plazas_enero import curso_academico_actual
 
 # Create your views here.
 
@@ -75,7 +76,7 @@ def imprimir_historial(request,alum_id,prof):
 	hist=zip(historial,tipo,range(1,len(historial)+1))
 	prof=True if prof=="" else False
 	data={'alum':alum,'historial':hist,'horas':horas,'prof':prof}
-	return imprimir("pdf_historial.html",data,"historial.pdf")
+	return imprimir("pdf_historial.html",data,"historial.pdf", False)
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je,login_url='/')
@@ -189,8 +190,38 @@ def carta_sancion(request,identificador):
 	info={}
 	template = get_template("pdf_contenido_carta_sancion.html")
 	info["contenido"]=template.render(Context(info2).flatten())	
-	return imprimir("pdf_carta.html",info,"carta_sancion.pdf")	
+	return imprimir("pdf_carta.html",info,"carta_sancion.pdf", False)
 
+@login_required(login_url='/')
+@user_passes_test(group_check_je,login_url='/')
+def infoIA(request, alum_id):
+	curso_academico_actual = get_current_academic_year()
+	# Obtener el alumno
+	alumno = get_object_or_404(Alumnos, id=alum_id)
+
+	# Obtener amonestaciones y sanciones del alumno
+	amonestaciones = Amonestaciones.objects.filter(
+		IdAlumno=alumno, curso_academico=curso_academico_actual
+	).order_by("Fecha")
+	sanciones = Sanciones.objects.filter(
+		IdAlumno=alumno, curso_academico=curso_academico_actual
+	).order_by("Fecha")
+
+	# Crear contenido del archivo
+	contenido = "AMONESTACIONES\n"
+	for amonestacion in amonestaciones:
+		fecha_formateada = amonestacion.Fecha.strftime('%d/%m/%Y')
+		contenido += f"{fecha_formateada}: {amonestacion.Tipo.TipoAmonestacion} (conducta {amonestacion.gravedad}). {amonestacion.Comentario}\n"
+
+	contenido += "\nSANCIONES\n"
+	for sancion in sanciones:
+		fecha_formateada = sancion.Fecha.strftime('%d/%m/%Y')
+		contenido += f"{fecha_formateada}: {sancion.Sancion}\n"
+
+	# Crear respuesta con el archivo TXT
+	response = HttpResponse(contenido, content_type='text/plain; charset=utf-8')
+	response['Content-Disposition'] = f'inline; filename="info_{alumno.Nombre}.txt"'
+	return response
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je,login_url='/')
@@ -210,7 +241,7 @@ def imprimir_profesores(request):
 	return imprimir("pdf_"+request.path.split("/")[2]+".html",data,request.path.split("/")[2]+".pdf")
 
 
-def imprimir(temp,data,title):
+def imprimir(temp,data,title,descarga=True):
 	template = get_template(temp)
 	pdf_data = template.render(Context(data).flatten())
 	
@@ -218,7 +249,10 @@ def imprimir(temp,data,title):
 	pdf = BytesIO()
 	
 	response = HttpResponse(pdf.read(),content_type='application/pdf')
-	response['Content-Disposition'] = 'attachment; filename="'+title+'"'
+	if descarga:
+		response['Content-Disposition'] = 'attachment; filename="'+title+'"'
+	else:
+		response['Content-Disposition'] = 'inline; filename="' + title + '"'
 	try:
 		pisa.CreatePDF(pdf_data, dest=response)
 	except:

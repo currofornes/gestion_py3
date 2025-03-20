@@ -1,4 +1,4 @@
-from django.urls import re_path
+from django.urls import re_path, path
 
 from . import views
 
@@ -14,9 +14,11 @@ urlpatterns = [
     re_path(r'^claustro$', views.imprimir_profesores),
     re_path(r'^semana$', views.imprimir_profesores),
     re_path(r'^sanciones/hoy$', views.imprimir_sanciones_hoy),
+    path('infoIA/<int:alum_id>', views.infoIA),
 
     re_path(r'^carta_abs_tutor/(?P<proto_id>[0-9]+)$', views.carta_abs_tutor_familia),
     re_path(r'^carta_abs_ED/(?P<proto_id>[0-9]+)$', views.carta_abs_tutor_ED),
     re_path(r'^carta_abs_familia_ED/(?P<proto_id>[0-9]+)$', views.carta_abs_ED_familia),
+
 
 ]
