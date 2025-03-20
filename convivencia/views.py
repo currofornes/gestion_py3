@@ -1,6 +1,3 @@
-
-
-
 from collections import defaultdict
 from sqlite3 import IntegrityError
 
@@ -14,6 +11,7 @@ from centro.views import group_check_je, group_check_prof
 from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones, PropuestasSancion
 from centro.models import Cursos
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User, Group
 from datetime import datetime, date, timedelta
 from operator import itemgetter
 from django.db.models import Count, Q
@@ -81,6 +79,43 @@ def parte(request, tipo, alum_id):
                                 )
                             except ConnectionRefusedError:
                                 print("Error al enviar el correo")
+
+                            # Enviar amonestaciones graves a JEs
+                            if amon.Tipo.TipoAmonestacion in [
+                                        'Acoso escolar',
+                                        'Agresión física a algún miembro de la comunidad educativa',
+                                        'Amenaza o coacción a algún miembro de la comunidad educativa',
+                                        'Injurias y ofensas hacia miembro del IES',
+                                        'Vejaciones o humillaciones a una persona'
+                                    ]:
+                                print(f'Se ha detectado una amonestación grave de {amon.IdAlumno.Nombre}')
+                                JE = Group.objects.get(name="jefatura de estudios")
+                                JEs = User.objects.filter(groups=JE).all()
+                                destinatarios = list(JEs)
+                                print(destinatarios)
+                                template = get_template("correo_amonestacion_grave.html")
+                                contenido = template.render({'amon': amon})
+
+                                correos = []
+                                for prof in destinatarios:
+                                    print(prof)
+                                    profe = Profesores.objects.filter(user=prof).first()
+                                    correo = profe.Email
+                                    print(profe, correo)
+                                    if correo != "" and 'g.educaand.es' in correo:
+                                        correos.append(correo)
+                                try:
+                                    print(correos)
+                                    send_mail(
+                                        'AMONESTACIÓN GRAVE',
+                                        contenido,
+                                        '41011038.jestudios.edu@juntadeandalucia.es',
+                                        correos,
+                                        fail_silently=False,
+                                    )
+                                except ConnectionRefusedError:
+                                    print("Error al enviar el correo")
+                            ##
                         except IntegrityError:
                             print("Ya existe una amonestación igual")
 
@@ -113,6 +148,8 @@ def parte(request, tipo, alum_id):
                             )
                         except ConnectionRefusedError:
                             print("Error de conexión al enviar el correo")
+
+
                     except IntegrityError:
                         print("Ya existe una sanción igual")
 
