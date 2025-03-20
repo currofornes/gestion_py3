@@ -1078,12 +1078,15 @@ def calcular_alumnado_sancionable(curso_academico):
                 leves[alumno] += 1
             elif amonestacion.gravedad == 'Grave':
                 graves[alumno] += 1
-            if ((leves[alumno] + 2 * graves[alumno] >= 4) or amon_movil[alumno] >= 2) and not alumno in fecha_entrada:
+
+            if (leves[alumno] >= 3 or graves[alumno] >= 1 or amon_movil[alumno] >= 2) and not alumno in fecha_entrada:
+            # if ((leves[alumno] + 2 * graves[alumno] >= 4) or amon_movil[alumno] >= 2) and not alumno in fecha_entrada:
                 fecha_entrada[alumno] = amonestacion.Fecha
 
     resultado = {}
     for alumno in amonestaciones_vivas:
-        if (leves[alumno] + 2 * graves[alumno] >= 4) or amon_movil[alumno] >= 2:
+        # if (leves[alumno] + 2 * graves[alumno] >= 4) or amon_movil[alumno] >= 2:
+        if leves[alumno] >= 3 or graves[alumno] >= 1 or amon_movil[alumno] >= 2:
             resultado[alumno] = {
                 'entrada': fecha_entrada[alumno],
                 'leves': leves[alumno],

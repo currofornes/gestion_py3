@@ -38,28 +38,28 @@
                             <tbody>
                             {% for alum, l, g, p, fecha_ultima_amon, prop, ignorada, movil in alumnado %}
                                 <tr
-                                    {% if movil %}
-                                        class="bg-danger"
-                                    {% else %}
-                                        {% if 4 <= p and p <= 5 %}
-                                            class="bg-info"
-                                        {% elif 5 < p and p <= 7 %}
-                                            class="bg-warning"
-                                        {% else %}
-                                            class="bg-danger"
-                                        {% endif %}
-                                    {% endif %}
+{#                                    {% if movil %}#}
+{#                                        class="bg-danger"#}
+{#                                    {% else %}#}
+{#                                        {% if 4 <= p and p <= 5 %}#}
+{#                                            class="bg-info"#}
+{#                                        {% elif 5 < p and p <= 7 %}#}
+{#                                            class="bg-warning"#}
+{#                                        {% else %}#}
+{#                                            class="bg-danger"#}
+{#                                        {% endif %}#}
+{#                                    {% endif %}#}
                                 >
                                     <td>
                                         <a href="/convivencia/historial_vigente/{{ alum.id }}/">
                                             {% if movil %}
-                                                <i class="fa fa-mobile text-light" aria-hidden="true" style="margin-right: 5px;"></i>
+                                                <i class="fa fa-mobile" aria-hidden="true" style="margin-right: 5px;"></i>
                                             {% endif %}
-                                            <strong class="text-light">{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}
+                                            <strong>{{ alum.Nombre }}</strong> {% if alum.PDC %} (PDC){% endif %} {% if alum.NEAE %} (NEAE){% endif %}
 
                                         </a>
                                     </td>
-                                    <td><a href="/centro/alumnos/{{ alum.Unidad.id }}" class="text-light">{{ alum.Unidad }}</a></td>
+                                    <td><a href="/centro/alumnos/{{ alum.Unidad.id }}">{{ alum.Unidad }}</a></td>
                                     <td class="text-center">
                                         {{ l }}
                                     </td>
@@ -87,8 +87,6 @@
                             </tr>
                             </tfoot>
                         </table>
-
-
                     </div>
                 </div>
             </div>
