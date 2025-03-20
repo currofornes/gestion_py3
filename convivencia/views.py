@@ -88,24 +88,19 @@ def parte(request, tipo, alum_id):
                                         'Injurias y ofensas hacia miembro del IES',
                                         'Vejaciones o humillaciones a una persona'
                                     ]:
-                                print(f'Se ha detectado una amonestación grave de {amon.IdAlumno.Nombre}')
                                 JE = Group.objects.get(name="jefatura de estudios")
                                 JEs = User.objects.filter(groups=JE).all()
                                 destinatarios = list(JEs)
-                                print(destinatarios)
                                 template = get_template("correo_amonestacion_grave.html")
                                 contenido = template.render({'amon': amon})
 
                                 correos = []
                                 for prof in destinatarios:
-                                    print(prof)
                                     profe = Profesores.objects.filter(user=prof).first()
                                     correo = profe.Email
-                                    print(profe, correo)
                                     if correo != "" and 'g.educaand.es' in correo:
                                         correos.append(correo)
                                 try:
-                                    print(correos)
                                     send_mail(
                                         'AMONESTACIÓN GRAVE',
                                         contenido,
