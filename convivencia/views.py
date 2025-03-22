@@ -7,7 +7,7 @@ from django.utils import timezone
 from centro.utils import get_current_academic_year, get_previous_academic_years
 from convivencia.forms import AmonestacionForm, SancionForm, FechasForm, AmonestacionProfeForm, ResumenForm
 from centro.models import Alumnos, Profesores, Niveles, CursoAcademico
-from centro.views import group_check_je, group_check_prof
+from centro.views import group_check_je, group_check_prof, group_check_prof_and_tutor_or_je
 from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones, PropuestasSancion
 from centro.models import Cursos
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -21,6 +21,10 @@ from django.template import Context
 from django.core.mail import send_mail
 from datetime import date
 import time
+
+from prevision_plazas_enero import curso_academico_actual
+
+
 # Create your views here.
 
 # Curro Jul 24: Modifico para que solo pueda usarse por JE
@@ -1329,3 +1333,13 @@ def reactivar_propuesta_sancion(request, prop_id):
     propuesta.ignorar = False
     propuesta.save()
     return redirect('alumnadosancionable', ver_ignorados='True')
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof_and_tutor_or_je, login_url='/')
+def historial_sanciones(request, alum_id):
+    curso_academico_actual = get_current_academic_year()
+    alumno = get_object_or_404(Alumnos, id=alum_id)
+    sanciones = Sanciones.objects.filter(
+        IdAlumno=alumno, curso_academico=curso_academico_actual
+    ).order_by('-Fecha')
+    return render(request, 'historial_sanciones.html', {'alumno': alumno, 'sanciones': sanciones})
