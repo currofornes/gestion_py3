@@ -23,7 +23,8 @@
                                 </div>
                             </form>
                         </div>
-                        <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
+{#                        <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">#}
+                        <table class="table table-striped table-bordered table-hover dataTables-propuestas">
                             <thead>
                             <tr>
                                 <th>Alumno/a</th>
@@ -101,6 +102,7 @@
 {% endblock %}
 
 {% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
     <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
     <script>
         function ignorarPropuesta(event, prop) {
@@ -145,6 +147,8 @@
         }
     </script>
     <script>
+        // Upgrade button class name
+        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
 
         $(document).ready(function () {
             $('#mostrar_ignoradas').change(function () {
@@ -166,6 +170,34 @@
             {#$('a.ignorar-propuesta').on('click', ignorarPropuesta);#}
             {#$('a.reactivar-propuesta').on('click', reactivarPropuesta);#}
             $('.footable').footable();
+
+            $('.dataTables-propuestas').DataTable({
+                language: {
+                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
+                },
+                pageLength: 50,
+                responsive: true,
+                dom: '<"html5buttons"B>lTfgitp',
+                buttons: [
+                    {extend: 'copy'},
+                    {extend: 'csv'},
+                    {extend: 'excel', title: 'Propuestas alumnado sancionable'},
+                    {extend: 'pdf', title: 'Propuestas alumnado sancionable'},
+
+                    {
+                        extend: 'print',
+                        customize: function (win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ]
+
+            });
         });
 
     </script>
