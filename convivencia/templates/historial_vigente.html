@@ -13,6 +13,11 @@
                         <div class="float-right">
                             <a href="/convivencia/historial/{{  alum.id }}/" class="btn btn-success"><i class="fa fa-file"></i> Ver historial completo</a>
                             <a href="/convivencia/amonestacion/{{ alum.id }}" class="btn btn-warning"><i class="fa fa-exclamation-triangle"></i> Amonestar </a>
+                            {% if user|has_group:"jefatura de estudios" or is_tutor %}
+                                <a href="#" class="btn btn-info" data-toggle="modal" data-target="#modalHistorialSanciones">
+                                    <i class="fa fa-history"></i> Ver historial de sanciones
+                                </a>
+                            {% endif %}
                             {% if user|has_group:"jefatura de estudios" %}
                                 <a href="/convivencia/sancion/{{ alum.id }}" class="btn btn-danger"><i class="fa fa-exclamation-triangle"></i> Sancionar </a>
                                 <a href="/pdf/infoIA/{{ alum.id }}" target="_blank" class="btn btn-success"><i class="fa fa-question"></i> Información a TXT </a>
@@ -145,138 +150,25 @@
             </div>
         </div>
 
-{#        {% if user|has_group:"profesor" or user|has_group:"jefatura de estudios" %} <!-- Cambiar a jefatura de estudios y tutor -->#}
-{#            <div class="row">#}
-{#                <div class="col-lg-12">#}
-{#                    <div class="ibox">#}
-{#                        <div class="ibox-title">#}
-{#                            <h2>Historial de Cursos Académicos anteriores</h2>#}
-{#                        </div>#}
-{#                        <div class="ibox-content">#}
-{#                            {% for curso, historial in historial_anteriores.items %}#}
-{##}
-{#                                <div class="panel panel-info">#}
-{#                                    <div class="panel-heading">#}
-{#                                        <h3>{{ curso }}</h3>#}
-{#                                    </div>#}
-{#                                    <div class="panel-body">#}
-{#                                        <table class="footable table table-stripped toggle-arrow-tiny"#}
-{#                                               data-page-size="15">#}
-{#                                            <thead>#}
-{#                                            <tr>#}
-{#                                                <th data-toggle="true">N.</th>#}
-{#                                                <th>Tipo</th>#}
-{#                                                <th>Fecha</th>#}
-{#                                                <th data-hide="all">Comentario</th>#}
-{#                                                <th data-hide="all">Tipo</th>#}
-{#                                                <th data-hide="phone">Tramo horario</th>#}
-{#                                                <th data-hide="phone">Sanción</th>#}
-{#                                                <th data-hide="all">Derivado a Convivencia</th>#}
-{#                                                <th data-hide="all">Comunicado a</th>#}
-{#                                                <th data-hide="all">Fecha comunicación</th>#}
-{#                                                <th data-hide="all">Medio</th>#}
-{#                                                <th data-hide="all">Teléfono</th>#}
-{#                                                <th data-hide="all">Observaciones</th>#}
-{##}
-{#                                            </tr>#}
-{#                                            </thead>#}
-{#                                            <tbody>#}
-{#                                            {% for h,t,n in historial %}#}
-{#                                                <tr>#}
-{#                                                    <td>#}
-{#                                                        {{ n }}#}
-{#                                                    </td>#}
-{#                                                    <td>#}
-{#                                                        {% if t == 'Amonestación' %}#}
-{#                                                            {% if h.Tipo.TipoFalta == 'G' %}#}
-{#                                                            <span class="label label-warning-warning">Amonestación Grave</span>#}
-{#                                                                {% else %}#}
-{#                                                                <span class="label label-warning">Amonestación Leve</span>#}
-{#                                                                {% endif %}#}
-{#                                                        {% elif t == 'Sanción' %}#}
-{#                                                            <span class="label label-danger">{{ t }}</span>#}
-{#                                                        {% endif %}#}
-{##}
-{#                                                    </td>#}
-{#                                                    {% if h.Fecha_fin %}#}
-{#                                                        <td>{{ h.Fecha|date:"d/m/Y" }}#}
-{#                                                            - {{ h.Fecha_fin|date:"d/m/Y" }}</td>#}
-{#                                                    {% else %}#}
-{#                                                        <td>{{ h.Fecha|date:"d/m/Y" }}</td>#}
-{#                                                    {% endif %}#}
-{##}
-{##}
-{##}
-{#                                                    {% if h.Profesor and prof %}#}
-{#                                                        <td><strong>{{ h.Profesor }}#}
-{#                                                            ({{ horas|slice:h.Hora|last }})</strong><br/>{{ h.Comentario }}#}
-{#                                                        </td>#}
-{##}
-{#                                                    {% else %}#}
-{#                                                        <td> {{ h.Comentario }}</td>#}
-{#                                                    {% endif %}#}
-{#                                                    <td>{{ h.Tipo }}</td>#}
-{#                                                    {% if h.Profesor %}#}
-{#                                                        <td>{{ horas|slice:h.Hora|last }}</td>#}
-{#                                                    {% else %}#}
-{#                                                        <td></td>#}
-{#                                                    {% endif %}#}
-{##}
-{#                                                    {% if h.Sancion %}#}
-{#                                                        {% if h.NoExpulsion %}#}
-{#                                                            <td>{{ h.Sancion }}<br/><strong>No expulsión</strong>#}
-{#                                                            </td>#}
-{#                                                        {% else %}#}
-{#                                                            <td>{{ h.Sancion }}</td>#}
-{##}
-{#                                                        {% endif %}#}
-{#                                                    {% else %}#}
-{#                                                        <td></td>#}
-{#                                                    {% endif %}#}
-{##}
-{#                                                    {% if h.DerivadoConvivencia %}#}
-{#                                                        <td>SÍ</td>#}
-{#                                                    {% else %}#}
-{#                                                        <td>NO</td>#}
-{#                                                    {% endif %}#}
-{##}
-{#                                                    <td> {{ h.FamiliarComunicado }}</td>#}
-{#                                                    <td> {{ h.FechaComunicado|date:"d/m/Y" }} {{ h.HoraComunicado }}</td>#}
-{#                                                    <td> {{ h.get_Medio_display }}</td>#}
-{#                                                    <td> {{ h.TelefonoComunicado }}</td>#}
-{#                                                    <td> {{ h.ObservacionComunicado }}</td>#}
-{##}
-{##}
-{#                                                </tr>#}
-{#                                            {% endfor %}#}
-{##}
-{#                                            </tbody>#}
-{#                                            <tfoot>#}
-{#                                            <tr>#}
-{#                                                <td colspan="6">#}
-{#                                                    <ul class="pagination float-right"></ul>#}
-{#                                                </td>#}
-{#                                            </tr>#}
-{#                                            </tfoot>#}
-{#                                        </table>#}
-{##}
-{#                                    </div>#}
-{#                                </div>#}
-{##}
-{##}
-{#                            {% endfor %}#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#        {% endif %}#}
-
-
+        <!-- Modal -->
+        <div class="modal fade" id="modalHistorialSanciones" tabindex="-1" role="dialog" aria-labelledby="historialSancionesLabel">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="historialSancionesLabel">Historial de Sanciones</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="contenidoHistorialSanciones">
+                            <p class="text-center">Cargando historial...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-
-
-
 {% endblock %}
 
 {% block js %}
@@ -284,6 +176,16 @@
 
         $(document).ready(function () {
             $('.footable').footable();
+
+            $('#modalHistorialSanciones').on('show.bs.modal', function () {
+                var alumnoId = "{{ alum.id }}";
+                $("#contenidoHistorialSanciones").html('<p class="text-center">Cargando historial...</p>');
+                $.get('/convivencia/historial_sanciones/' + alumnoId + '/', function (data) {
+                    $("#contenidoHistorialSanciones").html(data);
+                }).fail(function () {
+                    $("#contenidoHistorialSanciones").html('<p class="text-center text-danger">Error al cargar el historial.</p>');
+                });
+            });
         });
 
     </script>

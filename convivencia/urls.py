@@ -38,11 +38,5 @@ urlpatterns = [
 
 	path('ignorar/<int:prop_id>/', views.ignorar_propuesta_sancion, name='ignorar'),
 	path('reactivar/<int:prop_id>/', views.reactivar_propuesta_sancion, name='reactivar'),
-
-
-
-        	
-
-	
-
+	path('historial_sanciones/<int:alum_id>/', views.historial_sanciones, name='historial_sanciones'),
 ]

@@ -1,0 +1,30 @@
+<table class="table table-bordered table-hover text-center align-middle">
+    <thead class="table-primary">
+        <tr>
+            <th>Fecha inicio</th>
+            <th>Fecha final</th>
+            <th>Sanción</th>
+            <th>Sin expulsión</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sancion in sanciones %}
+            <tr>
+                <td>{{ sancion.Fecha|date:"d/m/Y" }}</td>
+                <td>{{ sancion.Fecha_fin|date:"d/m/Y" }}</td>
+                <td>{{ sancion.Sancion }}</td>
+                <td>
+                    {% if sancion.NoExpulsion %}
+                        Sí
+                    {% else %}
+                        No
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4" class="text-center text-muted">No hay sanciones registradas</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

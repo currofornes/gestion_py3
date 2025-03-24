@@ -1,6 +1,3 @@
-
-
-
 from collections import defaultdict
 from sqlite3 import IntegrityError
 
@@ -10,10 +7,11 @@ from django.utils import timezone
 from centro.utils import get_current_academic_year, get_previous_academic_years
 from convivencia.forms import AmonestacionForm, SancionForm, FechasForm, AmonestacionProfeForm, ResumenForm
 from centro.models import Alumnos, Profesores, Niveles, CursoAcademico
-from centro.views import group_check_je, group_check_prof
+from centro.views import group_check_je, group_check_prof, group_check_prof_and_tutor_or_je
 from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones, PropuestasSancion
 from centro.models import Cursos
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User, Group
 from datetime import datetime, date, timedelta
 from operator import itemgetter
 from django.db.models import Count, Q
@@ -23,6 +21,10 @@ from django.template import Context
 from django.core.mail import send_mail
 from datetime import date
 import time
+
+from prevision_plazas_enero import curso_academico_actual
+
+
 # Create your views here.
 
 # Curro Jul 24: Modifico para que solo pueda usarse por JE
@@ -81,6 +83,38 @@ def parte(request, tipo, alum_id):
                                 )
                             except ConnectionRefusedError:
                                 print("Error al enviar el correo")
+
+                            # Enviar amonestaciones graves a JEs
+                            if amon.Tipo.TipoAmonestacion in [
+                                        'Acoso escolar',
+                                        'Agresión física a algún miembro de la comunidad educativa',
+                                        'Amenaza o coacción a algún miembro de la comunidad educativa',
+                                        'Injurias y ofensas hacia miembro del IES',
+                                        'Vejaciones o humillaciones a una persona'
+                                    ]:
+                                JE = Group.objects.get(name="jefatura de estudios")
+                                JEs = User.objects.filter(groups=JE).all()
+                                destinatarios = list(JEs)
+                                template = get_template("correo_amonestacion_grave.html")
+                                contenido = template.render({'amon': amon})
+
+                                correos = []
+                                for prof in destinatarios:
+                                    profe = Profesores.objects.filter(user=prof).first()
+                                    correo = profe.Email
+                                    if correo != "" and 'g.educaand.es' in correo:
+                                        correos.append(correo)
+                                try:
+                                    send_mail(
+                                        'AMONESTACIÓN GRAVE',
+                                        contenido,
+                                        '41011038.jestudios.edu@juntadeandalucia.es',
+                                        correos,
+                                        fail_silently=False,
+                                    )
+                                except ConnectionRefusedError:
+                                    print("Error al enviar el correo")
+                            ##
                         except IntegrityError:
                             print("Ya existe una amonestación igual")
 
@@ -113,6 +147,8 @@ def parte(request, tipo, alum_id):
                             )
                         except ConnectionRefusedError:
                             print("Error de conexión al enviar el correo")
+
+
                     except IntegrityError:
                         print("Ya existe una sanción igual")
 
@@ -1297,3 +1333,13 @@ def reactivar_propuesta_sancion(request, prop_id):
     propuesta.ignorar = False
     propuesta.save()
     return redirect('alumnadosancionable', ver_ignorados='True')
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof_and_tutor_or_je, login_url='/')
+def historial_sanciones(request, alum_id):
+    curso_academico_actual = get_current_academic_year()
+    alumno = get_object_or_404(Alumnos, id=alum_id)
+    sanciones = Sanciones.objects.filter(
+        IdAlumno=alumno, curso_academico=curso_academico_actual
+    ).order_by('-Fecha')
+    return render(request, 'historial_sanciones.html', {'alumno': alumno, 'sanciones': sanciones})
