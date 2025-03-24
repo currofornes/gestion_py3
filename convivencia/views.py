@@ -27,6 +27,60 @@ from prevision_plazas_enero import curso_academico_actual
 
 # Create your views here.
 
+def procesar_amonestacion(amon):
+    destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
+    destinatarios.append(amon.IdAlumno.Unidad.Tutor)
+    template = get_template("correo_amonestacion.html")
+    contenido = template.render({'amon': amon})
+
+    correos = []
+    for prof in destinatarios:
+        correo = Profesores.objects.get(id=prof.id).Email
+        if correo != "":
+            correos.append(correo)
+    try:
+        send_mail(
+            'Nueva amonestación',
+            contenido,
+            '41011038.jestudios.edu@juntadeandalucia.es',
+            correos,
+            fail_silently=False,
+        )
+    except ConnectionRefusedError:
+        print("Error al enviar el correo")
+
+    # Enviar amonestaciones graves a JEs
+    if amon.Tipo.TipoAmonestacion in [
+        'Acoso escolar',
+        'Agresión física a algún miembro de la comunidad educativa',
+        'Amenaza o coacción a algún miembro de la comunidad educativa',
+        'Injurias y ofensas hacia miembro del IES',
+        'Vejaciones o humillaciones a una persona',
+        'Actuaciones perjudiciales para la salud y la integridad'
+    ]:
+        JE = Group.objects.get(name="jefatura de estudios")
+        JEs = User.objects.filter(groups=JE).all()
+        destinatarios = list(JEs)
+        template = get_template("correo_amonestacion_grave.html")
+        contenido = template.render({'amon': amon})
+
+        correos = []
+        for prof in destinatarios:
+            profe = Profesores.objects.filter(user=prof).first()
+            correo = profe.Email
+            if correo != "" and 'g.educaand.es' in correo:
+                correos.append(correo)
+        try:
+            send_mail(
+                'AMONESTACIÓN GRAVE',
+                contenido,
+                '41011038.jestudios.edu@juntadeandalucia.es',
+                correos,
+                fail_silently=False,
+            )
+        except ConnectionRefusedError:
+            print("Error al enviar el correo")
+
 # Curro Jul 24: Modifico para que solo pueda usarse por JE
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
@@ -47,7 +101,6 @@ def parte(request, tipo, alum_id):
             return redirect("/")
 
         if form.is_valid():
-
                 if tipo == "amonestacion":
 
                     # Comprobar si ya existe una amonestación similar para evitar duplicados
@@ -63,68 +116,14 @@ def parte(request, tipo, alum_id):
                             form.save()
 
                             amon = form.instance
-                            destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
-                            destinatarios.append(amon.IdAlumno.Unidad.Tutor)
-                            template = get_template("correo_amonestacion.html")
-                            contenido = template.render({'amon': amon})
+                            procesar_amonestacion(amon)
 
-                            correos = []
-                            for prof in destinatarios:
-                                correo = Profesores.objects.get(id=prof.id).Email
-                                if correo != "":
-                                    correos.append(correo)
-                            try:
-                                send_mail(
-                                    'Nueva amonestación',
-                                    contenido,
-                                    '41011038.jestudios.edu@juntadeandalucia.es',
-                                    correos,
-                                    fail_silently=False,
-                                )
-                            except ConnectionRefusedError:
-                                print("Error al enviar el correo")
-
-                            # Enviar amonestaciones graves a JEs
-                            if amon.Tipo.TipoAmonestacion in [
-                                        'Acoso escolar',
-                                        'Agresión física a algún miembro de la comunidad educativa',
-                                        'Amenaza o coacción a algún miembro de la comunidad educativa',
-                                        'Injurias y ofensas hacia miembro del IES',
-                                        'Vejaciones o humillaciones a una persona',
-                                        'Actuaciones perjudiciales para la salud y la integridad'
-                                    ]:
-                                JE = Group.objects.get(name="jefatura de estudios")
-                                JEs = User.objects.filter(groups=JE).all()
-                                destinatarios = list(JEs)
-                                template = get_template("correo_amonestacion_grave.html")
-                                contenido = template.render({'amon': amon})
-
-                                correos = []
-                                for prof in destinatarios:
-                                    profe = Profesores.objects.filter(user=prof).first()
-                                    correo = profe.Email
-                                    if correo != "" and 'g.educaand.es' in correo:
-                                        correos.append(correo)
-                                try:
-                                    send_mail(
-                                        'AMONESTACIÓN GRAVE',
-                                        contenido,
-                                        '41011038.jestudios.edu@juntadeandalucia.es',
-                                        correos,
-                                        fail_silently=False,
-                                    )
-                                except ConnectionRefusedError:
-                                    print("Error al enviar el correo")
-                            ##
                         except IntegrityError:
                             print("Ya existe una amonestación igual")
 
                 if tipo == "sancion":
-
                     try:
-
                         form.save()
-
                         sanc = form.instance
                         destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
                         destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
@@ -152,9 +151,6 @@ def parte(request, tipo, alum_id):
 
                     except IntegrityError:
                         print("Ya existe una sanción igual")
-
-
-
 
                 return redirect('/centro/alumnos')
     else:
@@ -889,7 +885,6 @@ def parteprofe(request, tipo, alum_id):
             return redirect("/")
 
         if form.is_valid():
-
                 if tipo == "amonestacion":
 
                     # Comprobar si ya existe una amonestación similar para evitar duplicados
@@ -904,83 +899,35 @@ def parteprofe(request, tipo, alum_id):
 
 
                             amon = form.instance
-                            destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
-                            destinatarios.append(amon.IdAlumno.Unidad.Tutor)
-                            template = get_template("correo_amonestacion.html")
-                            contenido = template.render({'amon': amon})
-
-                            correos = []
-                            for prof in destinatarios:
-                                correo = Profesores.objects.get(id=prof.id).Email
-                                if correo != "":
-                                    correos.append(correo)
-                            send_mail(
-                                'Nueva amonestación',
-                                contenido,
-                                '41011038.jestudios.edu@juntadeandalucia.es',
-                                correos,
-                                fail_silently=False,
-                            )
+                            procesar_amonestacion(amon)
                         except IntegrityError:
                             print("Ya existe una amonestación igual")
 
-                if tipo == "sancion":
-                    try:
-                        form.save()
-
-                        sanc = form.instance
-                        destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
-                        destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
-                        template = get_template("correo_sancion.html")
-                        contenido = template.render({'sanc': sanc})
-
-                        correos = []
-                        for prof in destinatarios:
-                            correo = Profesores.objects.get(id=prof.id).Email
-                            if correo != "":
-                                correos.append(correo)
-                        send_mail(
-                            'Nueva sanción',
-                            contenido,
-                            '41011038.jestudios.edu@juntadeandalucia.es',
-                            correos,
-                            fail_silently=False,
-                        )
-                        # Enviar amonestaciones graves a JEs
-                        if amon.Tipo.TipoAmonestacion in [
-                            'Acoso escolar',
-                            'Agresión física a algún miembro de la comunidad educativa',
-                            'Amenaza o coacción a algún miembro de la comunidad educativa',
-                            'Injurias y ofensas hacia miembro del IES',
-                            'Vejaciones o humillaciones a una persona',
-                            'Actuaciones perjudiciales para la salud y la integridad'
-
-                        ]:
-                            JE = Group.objects.get(name="jefatura de estudios")
-                            JEs = User.objects.filter(groups=JE).all()
-                            destinatarios = list(JEs)
-                            template = get_template("correo_amonestacion_grave.html")
-                            contenido = template.render({'amon': amon})
-
-                            correos = []
-                            for prof in destinatarios:
-                                profe = Profesores.objects.filter(user=prof).first()
-                                correo = profe.Email
-                                if correo != "" and 'g.educaand.es' in correo:
-                                    correos.append(correo)
-                            try:
-                                send_mail(
-                                    'AMONESTACIÓN GRAVE',
-                                    contenido,
-                                    '41011038.jestudios.edu@juntadeandalucia.es',
-                                    correos,
-                                    fail_silently=False,
-                                )
-                            except ConnectionRefusedError:
-                                print("Error al enviar el correo")
-                        ##
-                    except IntegrityError:
-                        print("Ya existe una sanción igual")
+                # Un profe sin perfil JE no puede procesar sanción
+                # if tipo == "sancion":
+                #     try:
+                #         form.save()
+                #
+                #         sanc = form.instance
+                #         destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
+                #         destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
+                #         template = get_template("correo_sancion.html")
+                #         contenido = template.render({'sanc': sanc})
+                #
+                #         correos = []
+                #         for prof in destinatarios:
+                #             correo = Profesores.objects.get(id=prof.id).Email
+                #             if correo != "":
+                #                 correos.append(correo)
+                #         send_mail(
+                #             'Nueva sanción',
+                #             contenido,
+                #             '41011038.jestudios.edu@juntadeandalucia.es',
+                #             correos,
+                #             fail_silently=False,
+                #         )
+                #     except IntegrityError:
+                #         print("Ya existe una sanción igual")
                 return redirect('/centro/misalumnos')
     else:
         if tipo == "amonestacion":
