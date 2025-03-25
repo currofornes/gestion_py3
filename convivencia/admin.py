@@ -9,8 +9,8 @@ from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones, P
 class AmonestacionesAdmin(admin.ModelAdmin):
     #date_hierarchy = 'Fecha_nacimiento'
     actions_selection_counter=False
-    list_filter = ['Fecha','Profesor']
-    list_display = ["Fecha","IdAlumno","unidad","Comentario"]
+    list_filter = ['Fecha', 'Profesor', 'Tipo__TipoFalta', 'Tipo__TipoAmonestacion']
+    list_display = ["Fecha", "IdAlumno", "unidad", "Tipo", "Comentario"]
     icon_name = 'sentiment_very_dissatisfied'
 
     def unidad(self, obj):
@@ -19,7 +19,7 @@ class AmonestacionesAdmin(admin.ModelAdmin):
     unidad.admin_order_field = "IdAlumno__Unidad"
      
      
-    search_fields = ['Comentario']
+    search_fields = ['IdAlumno__Nombre', 'IdAlumno__Unidad', 'Tipo__TipoAmonestacion', 'Tipo__TipoFalta', 'Comentario']
 
 @admin.register(Sanciones)
 class SancionesAdmin(admin.ModelAdmin):
