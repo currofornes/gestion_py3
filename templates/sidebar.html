@@ -124,6 +124,14 @@
                             <li><a href="/carga_archivos/RegAlum/">Carga de datos adicionales de alumnado desde Séneca</a></li>
                             <li><a href="/carga_archivos/calificaciones/">Carga de calificaciones desde Séneca</a></li>
                             <li><a href="/carga_archivos/admision/">Carga de datos de admisión</a></li>
+
+                            <li><a href="/centro/importar_materias/">Importar Materias por Nivel</a></li>
+                            <li><a href="/centro/importar_materias_impartidas/">Importar Materias Impartidas</a></li>
+                            <li><a href="/centro/importar_matriculas_materias/">Importar Matrículas-Materias</a></li>
+                            <li><a href="/centro/importar_libros/">Importar Libros de Texto</a></li>
+                            <li><a href="/centro/ver_matriculas/">Ver Matrículas importadas</a></li>
+                            <li><a href="/centro/materias_impartidas/">Ver Materias impartidas</a></li>
+                            <li><a href="/centro/ver_libros/">Ver Libros de Texto</a></li>
                         </ul>
                     </li>
                 {% endif %}
@@ -162,6 +170,30 @@
 
                             <li><a href="/guardias/ver-guardias">Ausencias Profesorado</a></li>
 
+                        {% endif %}
+                    </ul>
+                </li>
+
+                <li class="{% if menu_glt %} active{% endif %}">
+                    <a href="#"><i class="fa fa-book"></i> <span class="nav-label">G.L.T.</span><span
+                            class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level collapse">
+
+                        {% if user|has_group:"profesor" %}
+
+                            <li><a href="/centro/revisar-libros">Revisar Libros</a>
+                            </li>
+                            <li><a href="/centro/mis-revisiones-libros">Mis Revisiones</a>
+                            </li>
+
+                        {% endif %}
+
+
+                        {% if user|has_group:"jefatura de estudios" %}
+                            <li><a href="/centro/revision-libros">Revision Libros (JE)</a>
+                            </li>
+                            <li><a href="/centro/resumen-revisiones">Resumen revisiones</a>
+                            </li>
                         {% endif %}
                     </ul>
                 </li>

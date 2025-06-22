@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Revisión de libros - {{ libro }} ({{ momento }})</h2>
+<form method="post">
+    {% csrf_token %}
+    <table>
+        <thead>
+            <tr><th>Alumno</th><th>Estado</th><th>Observaciones</th></tr>
+        </thead>
+        <tbody>
+        {% for alumno, form in alumnos_forms %}
+            <tr>
+                <td>{{ alumno }}</td>
+                <td>{{ form.estado }}</td>
+                <td>{{ form.observaciones }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit">Guardar revisión</button>
+</form>
+{% endblock %}

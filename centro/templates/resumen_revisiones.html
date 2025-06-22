@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/select2/select2.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+    <div id="dynamic-content">
+
+        <div class="row animated fadeInRight">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h2>Revisiones de libros existentes</h2>
+                    </div>
+                    <div class="ibox-content">
+
+                        <div class="widget style1 azul-bg">
+                        
+                            <div class="row mb-12">
+                                <div class="col-md-12">
+                                    <label>Curso Académico:</label>
+                                    <select id="filtro-cursoacademico" class="form-control select2">
+                                        <option value="">Todos</option>
+                                        {% for ca in cursosacademicos %}
+                                            <option value="{{ ca }}">{{ ca }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label>Profesor:</label>
+                                    <select id="filtro-profesor" class="form-control select2">
+                                        <option value="">Todos</option>
+                                        {% for p in profesores %}
+                                            <option value="{{ p }}">{{ p }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Curso:</label>
+                                    <select id="filtro-curso" class="form-control select2">
+                                        <option value="">Todos</option>
+                                        {% for c in cursos %}
+                                            <option value="{{ c }}">{{ c }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Materia:</label>
+                                    <select id="filtro-materia" class="form-control select2">
+                                        <option value="">Todas</option>
+                                        {% for m in materias %}
+                                            <option value="{{ m }}">{{ m }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Libro:</label>
+                                    <select id="filtro-libro" class="form-control select2">
+                                        <option value="">Todos</option>
+                                        {% for l in libros %}
+                                            <option value="{{ l }}">{{ l }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Momento:</label>
+
+                                    <select id="filtro-momento" class="form-control select2">
+                                        <option value="">Todos</option>
+                                        {% for mo in momentos %}
+                                            <option value="{{ mo }}">{{ mo }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered table-hover dataTables-revisiones">
+                                <thead>
+                                <tr>
+                                    <th>Profesor</th>
+                                    <th>Fecha</th>
+                                    <th>Curso</th>
+                                    <th>Materia</th>
+                                    <th>Libro</th>
+                                    <th>Momento</th>
+                                    <th>C. Académico</th>
+                                    <th>Alumnos/as Revisados</th>
+
+                                    <th>Acción</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for r in resumen %}
+                                    <tr>
+                                        <td>{{ r.profesor }}</td>
+                                        <td>{{ r.fecha|date:"d/m/Y" }}</td>
+                                        <td>{{ r.curso }}</td>
+                                        <td>{{ r.materia }}</td>
+                                        <td>{{ r.libro.titulo }}</td>
+                                        <td>{{ r.momento }}</td>
+                                        <td>{{ r.curso_academico }}</td>
+                                        <td>{{ r.revisados }} / {{ r.matriculados }}</td>
+
+                                        <td>
+                                            <a href="{% url 'detalle_revision' r.id %}" class="btn btn-sm btn-primary">
+                                                Ver
+                                            </a>
+                                            
+                                            <a href="{% url 'editar_revision_libros' r.id %}" class="btn btn-warning btn-sm">
+                                                Editar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+{% endblock %}
+
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+    <script>
+
+        // Upgrade button class name
+        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
+
+        $(document).ready(function () {
+
+            $(".select2").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un valor",
+                allowClear: true
+            });
+
+
+            var tabla = $('.dataTables-revisiones').DataTable({
+                language: {
+                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
+                },
+                pageLength: 50,
+                responsive: true,
+                dom: '<"html5buttons"B>lTfgitp',
+                buttons: [
+                    {extend: 'copy'},
+                    {extend: 'csv'},
+                    {extend: 'excel', title: 'Alumnos'},
+                    {extend: 'pdf', title: 'Alumnos'},
+
+                    {
+                        extend: 'print',
+                        customize: function (win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ]
+
+            });
+
+
+            // Filtro por columna usando select externo
+            function filtrarColumna(colIndex, selectorId) {
+                $(selectorId).on('change', function () {
+                    var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    tabla.column(colIndex).search(val ? '^' + val + '$' : '', true, false).draw();
+                });
+            }
+
+            filtrarColumna(0, '#filtro-profesor');  // Profesor
+            filtrarColumna(2, '#filtro-curso');     // Curso
+            filtrarColumna(3, '#filtro-materia');   // Materia
+            filtrarColumna(4, '#filtro-libro');     // Libro
+            filtrarColumna(5, '#filtro-momento');   // Momento
+            filtrarColumna(6, '#filtro-cursoacademico');   // Curso Académico
+
+        });
+
+    </script>
+{% endblock %}

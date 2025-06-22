@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Importar matrículas por materia</h2>
+
+  <form method="post" enctype="multipart/form-data" class="form">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="nivel">Selecciona el nivel del CSV:</label>
+      <select name="nivel" id="nivel" class="form-control" required>
+        <option value="">-- Selecciona un nivel --</option>
+        <option value="1º ESO">1º ESO</option>
+        <option value="2º ESO">2º ESO</option>
+        <option value="3º ESO">3º ESO</option>
+        <option value="4º ESO">4º ESO</option>
+        <option value="1º BACH">1º BACH</option>
+        <option value="2º BACH">2º BACH</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="csv_matriculas">Archivo CSV:</label>
+      <input type="file" name="csv_matriculas" id="csv_matriculas" accept=".csv" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Importar Matrículas</button>
+  </form>
+
+  {% if messages %}
+    <hr>
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+    
+    {% if resumen %}
+    <hr>
+    <h3>Resultado de la importación</h3>
+
+    <h4 style="color:green">Nuevas matrículas creadas ({{ resumen.nuevas|length }}):</h4>
+    <ul>
+      {% for n in resumen.nuevas %}
+        <li>{{ n }}</li>
+      {% endfor %}
+    </ul>
+
+    <h4 style="color:blue">Matrículas ya existentes ({{ resumen.existentes|length }}):</h4>
+    <ul>
+      {% for e in resumen.existentes %}
+        <li>{{ e }}</li>
+      {% endfor %}
+    </ul>
+
+    <h4 style="color:red">Errores o materias no encontradas ({{ resumen.errores|length }}):</h4>
+    <ul>
+      {% for error in resumen.errores %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+    
+{% endblock %}

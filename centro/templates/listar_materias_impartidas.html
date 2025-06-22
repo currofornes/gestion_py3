@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Materias Impartidas por Curso</h2>
+
+  <form method="get" class="mb-3">
+    <label for="curso" class="form-label">Filtrar por curso:</label>
+    <select name="curso" id="curso" class="form-select" onchange="this.form.submit()">
+      <option value="">-- Todos los cursos --</option>
+      {% for curso in cursos_disponibles %}
+        <option value="{{ curso.id }}" {% if curso.id == curso_seleccionado %}selected{% endif %}>
+          {{ curso.Curso }}
+        </option>
+      {% endfor %}
+    </select>
+  </form>
+
+  {% if materias_agrupadas %}
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>Curso</th>
+          <th>Materia</th>
+          <th>Profesores</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in materias_agrupadas %}
+          <tr>
+            <td>{{ item.curso.Curso }}</td>
+            <td>{{ item.materia.nombre }}</td>
+            <td>
+              <ul class="mb-0">
+                {% for profe in item.profesores %}
+                  <li>{{ profe }}</li>
+                {% endfor %}
+              </ul>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No hay materias impartidas registradas.</p>
+  {% endif %}
+</div>
+{% endblock %}

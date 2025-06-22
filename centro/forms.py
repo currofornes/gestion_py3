@@ -1,5 +1,5 @@
 from django import forms
-from centro.models import Cursos, Departamentos, Areas, Profesores
+from centro.models import Cursos, Departamentos, Areas, Profesores, MomentoRevisionLibros, RevisionLibroAlumno
 
 
 class UnidadForm(forms.Form):
@@ -80,3 +80,54 @@ class AsignarProfesoresDepartamentoForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
         label="Selecciona los profesores"
     )
+
+
+class SeleccionRevisionForm(forms.Form):
+    profesor = forms.ModelChoiceField(queryset=None)
+    momento = forms.ModelChoiceField(queryset=MomentoRevisionLibros.objects.all())
+    materia = forms.ModelChoiceField(queryset=None)
+    libro = forms.ModelChoiceField(queryset=None)
+
+    def __init__(self, *args, **kwargs):
+        profesores_qs = kwargs.pop('profesores_qs')
+        materias_qs = kwargs.pop('materias_qs')
+        libros_qs = kwargs.pop('libros_qs')
+        super().__init__(*args, **kwargs)
+        self.fields['profesor'].queryset = profesores_qs
+        self.fields['materia'].queryset = materias_qs
+        self.fields['libro'].queryset = libros_qs
+
+        self.fields['profesor'].widget.attrs.update({'class': 'form-control select2_Profesor'})
+        self.fields['momento'].widget.attrs.update({'class': 'form-control select2_Momento'})
+        self.fields['materia'].widget.attrs.update({'class': 'form-control select2_Materia'})
+        self.fields['libro'].widget.attrs.update({'class': 'form-control select2_Libro'})
+
+class SeleccionRevisionProfeForm(forms.Form):
+    momento = forms.ModelChoiceField(queryset=MomentoRevisionLibros.objects.all())
+    materia = forms.ModelChoiceField(queryset=None)
+    libro = forms.ModelChoiceField(queryset=None)
+
+    def __init__(self, *args, **kwargs):
+        profesor = kwargs.pop('profesor')
+        materias_qs = kwargs.pop('materias_qs')
+        libros_qs = kwargs.pop('libros_qs')
+        super().__init__(*args, **kwargs)
+
+        self.profesor = profesor  # por si lo necesitas en clean() o save()
+
+        self.fields['materia'].queryset = materias_qs
+        self.fields['libro'].queryset = libros_qs
+
+        self.fields['momento'].widget.attrs.update({'class': 'form-control select2_Momento'})
+        self.fields['materia'].widget.attrs.update({'class': 'form-control select2_Materia'})
+        self.fields['libro'].widget.attrs.update({'class': 'form-control select2_Libro'})
+
+class RevisionLibroAlumnoForm(forms.ModelForm):
+    class Meta:
+        model = RevisionLibroAlumno
+        fields = ['estado', 'observaciones']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['estado'].widget.attrs.update({'class': 'form-control'})
+        self.fields['observaciones'].widget.attrs.update({'class': 'form-control'})

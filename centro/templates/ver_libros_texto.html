@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Libros de texto por nivel</h2>
+
+    <form method="get" class="mb-4">
+        <div class="form-group">
+            <label for="nivel">Selecciona un nivel:</label>
+            <select name="nivel" id="nivel" class="form-control" required>
+                <option value="">-- Elige un nivel --</option>
+                {% for n in niveles %}
+                    <option value="{{ n.id }}" {% if nivel_seleccionado and n.id == nivel_seleccionado.id %}selected{% endif %}>
+                        {{ n }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Ver libros</button>
+    </form>
+
+    {% if libros %}
+        <hr>
+        <h4>Libros en {{ nivel_seleccionado }}</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Materia</th>
+                    <th>Título</th>
+                    <th>Editorial</th>
+                    <th>ISBN</th>
+                    <th>Año Impl.</th>
+                    <th>Importe</th>
+                    <th>Digital</th>
+                    <th>Cheque libro</th>
+                    <th>Otro material</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for libro in libros %}
+                    <tr>
+                        <td>{{ libro.materia.nombre }}</td>
+                        <td>{{ libro.titulo }}</td>
+                        <td>{{ libro.editorial }}</td>
+                        <td>{{ libro.isbn }}</td>
+                        <td>{{ libro.anyo_implantacion }}</td>
+                        <td>{{ libro.importe_estimado }} €</td>
+                        <td>{{ libro.es_digital|yesno:"Sí,No" }}</td>
+                        <td>{{ libro.incluir_en_cheque_libro|yesno:"Sí,No" }}</td>
+                        <td>{{ libro.es_otro_material|yesno:"Sí,No" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% elif nivel_seleccionado %}
+        <p class="text-muted">No hay libros registrados para este nivel.</p>
+    {% endif %}
+</div>
+{% endblock %}

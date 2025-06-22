@@ -225,3 +225,112 @@ class InfoAlumnos(models.Model):
         verbose_name = "Información Adicional de un Alumno"
         verbose_name_plural = "Información Adicional del Alumnado"
         unique_together = ('curso_academico', 'Alumno')
+
+
+class Materia(models.Model):
+    nombre = models.CharField(max_length=100)  # Nombre completo de la materia
+    abr = models.CharField(max_length=20, blank=True)                  # Abreviatura (ej. "MAT")
+    nombre_horarios = models.CharField(max_length=100, blank=True)  # Para uso futuro en horarios
+    horas = models.PositiveSmallIntegerField(default=0)    # Número de horas semanales
+    nivel = models.ForeignKey('Niveles', on_delete=models.CASCADE)  # Nivel educativo (1º ESO, etc.)
+
+    def __str__(self):
+        return f"{self.abr} - {self.nombre}"
+
+    class Meta:
+        verbose_name = "Materia"
+        verbose_name_plural = "Materias"
+        ordering = ['nivel__Abr', 'abr']
+
+class MateriaImpartida(models.Model):
+    profesor = models.ForeignKey(Profesores, on_delete=models.CASCADE)
+    materia = models.ForeignKey(Materia, on_delete=models.CASCADE)
+    curso = models.ForeignKey(Cursos, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.profesor} imparte {self.materia} en {self.curso}"
+
+    class Meta:
+        verbose_name = "Materia impartida"
+        verbose_name_plural = "Materias impartidas"
+        unique_together = ('profesor', 'materia', 'curso')
+        ordering = ['curso__Nivel__Abr', 'curso__Curso', 'materia__abr']
+
+class MatriculaMateria(models.Model):
+    alumno = models.ForeignKey(Alumnos, on_delete=models.CASCADE)
+    materia_impartida = models.ForeignKey(MateriaImpartida, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.alumno.Nombre} matriculado en {self.materia_impartida.materia.nombre} ({self.materia_impartida.curso})"
+
+    class Meta:
+        verbose_name = "Matrícula de materia"
+        verbose_name_plural = "Matrículas de materias"
+        unique_together = ('alumno', 'materia_impartida')
+
+
+class LibroTexto(models.Model):
+    materia = models.ForeignKey('Materia', on_delete=models.CASCADE, related_name='libros')
+    nivel = models.ForeignKey('Niveles', on_delete=models.CASCADE, related_name='libros_texto')
+
+    isbn = models.CharField("ISBN/EAN", max_length=20, blank=True)
+    editorial = models.CharField(max_length=200, blank=True)
+    titulo = models.CharField(max_length=300, blank=True)
+    anyo_implantacion = models.PositiveIntegerField(null=True, blank=True)
+    importe_estimado = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+
+    es_digital = models.BooleanField(default=False)
+    incluir_en_cheque_libro = models.BooleanField(default=False)
+    es_otro_material = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.materia.nombre} - {self.titulo or 'Sin título'}"
+
+
+class MomentoRevisionLibros(models.Model):
+    nombre = models.CharField(max_length=100)
+    orden = models.PositiveIntegerField(default=0)
+    estados = models.ManyToManyField('EstadoLibro', related_name='momentos')
+
+    class Meta:
+        ordering = ['orden']
+
+    def __str__(self):
+        return self.nombre
+
+class EstadoLibro(models.Model):
+    nombre = models.CharField(max_length=100)
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['orden']
+
+    def __str__(self):
+        return self.nombre
+
+class RevisionLibro(models.Model):
+    profesor = models.ForeignKey('Profesores', on_delete=models.CASCADE)
+    materia = models.ForeignKey('Materia', on_delete=models.CASCADE)
+    curso = models.ForeignKey('Cursos', on_delete=models.CASCADE)
+    libro = models.ForeignKey('LibroTexto', on_delete=models.CASCADE)
+    momento = models.ForeignKey('MomentoRevisionLibros', on_delete=models.CASCADE)
+    fecha = models.DateField(auto_now_add=True)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('profesor', 'curso', 'materia', 'libro', 'momento', 'fecha', 'curso_academico')
+
+    def __str__(self):
+        return f"{self.profesor} - {self.curso} - {self.materia} - {self.libro} - {self.momento} ({self.fecha})"
+
+class RevisionLibroAlumno(models.Model):
+    revision = models.ForeignKey('RevisionLibro', on_delete=models.CASCADE, related_name='detalles')
+    alumno = models.ForeignKey('Alumnos', on_delete=models.CASCADE)
+    estado = models.ForeignKey('EstadoLibro', on_delete=models.CASCADE)
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('revision', 'alumno')
+
+    def __str__(self):
+        return f"{self.revision} - {self.alumno} - {self.estado} ({self.observaciones})"

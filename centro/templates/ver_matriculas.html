@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Consultar matrícula de materias</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="curso">Selecciona un curso:</label>
+            <select name="curso" id="curso" class="form-control" required>
+                <option value="">-- Selecciona un curso --</option>
+                {% for c in cursos %}
+                    <option value="{{ c.id }}" {% if curso_seleccionado and c.id == curso_seleccionado.id %}selected{% endif %}>{{ c.Curso }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Ver matrículas</button>
+    </form>
+
+    {% if datos %}
+        <hr>
+        <h3>Alumnos y materias en {{ curso_seleccionado.Curso }}</h3>
+        {% for dato in datos %}
+            <div class="card my-3">
+                <div class="card-header">
+                    {{ dato.alumno.Nombre }}
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for materia, profesores in dato.materias_agrupadas.items %}
+                            <li class="list-group-item">
+                                <strong>{{ materia }}:</strong>
+                                {% if profesores %}
+                                    {{ profesores|join:"; " }}
+                                {% else %}
+                                    <em>Sin profesor asignado</em>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

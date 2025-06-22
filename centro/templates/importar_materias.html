@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<h2>Importar materias por nivel</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for nivel in niveles %}
+        <div style="margin-bottom: 1em;">
+            <label><strong>{{ nivel.Nombre }}</strong>:</label>
+            <input type="file" name="csv_nivel_{{ nivel.id }}" accept=".csv">
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Importar materias</button>
+</form>
+
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}

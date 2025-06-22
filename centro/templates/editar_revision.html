@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+   <link href="{% static 'css/plugins/select2/select2.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <h2>Edición de revisión de libros</h2>
+
+    <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                        <h2>Detalle de la revisión</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                        <div class="col-sm-6 col-lg-2">
+                            <div class="widget style1 navy-bg">
+
+                                    <div>
+                                        <span> Profesor/a </span>
+                                        <h4 class="font-bold">{{ revision.profesor }}</h4>
+                                    </div>
+        
+                            </div>
+                        </div><!-- end col -->
+                            
+                            <div class="col-sm-6 col-lg-2">
+                            <div class="widget style1 navy-bg">
+
+                                    <div>
+                                        <span> Fecha revisión </span>
+                                        <h4 class="font-bold">{{ revision.fecha|date:"d/m/Y" }}</h4>
+                                    </div>
+        
+                            </div>
+                        </div><!-- end col -->
+                            
+                            <div class="col-sm-6 col-lg-2">
+                            <div class="widget style1 navy-bg">
+
+                                    <div>
+                                        <span> Curso </span>
+                                        <h4 class="font-bold">{{ revision.curso }}</h4>
+                                    </div>
+        
+                            </div>
+                        </div><!-- end col -->
+                            
+                            <div class="col-sm-6 col-lg-2">
+                            <div class="widget style1 navy-bg">
+
+                                    <div>
+                                        <span> Materia </span>
+                                        <h4 class="font-bold">{{ revision.materia }}</h4>
+                                    </div>
+        
+                            </div>
+                        </div><!-- end col -->
+                            
+                            
+                            <div class="col-sm-6 col-lg-2">
+                            <div class="widget style1 navy-bg">
+
+                                    <div>
+                                        <span> Libro </span>
+                                        <h4 class="font-bold">{{ revision.libro.titulo }}</h4>
+                                    </div>
+        
+                            </div>
+                        </div><!-- end col -->
+                            
+                            
+                            <div class="col-sm-6 col-lg-2">
+                            <div class="widget style1 navy-bg">
+
+                                    <div>
+                                        <span> Momento </span>
+                                        <h4 class="font-bold">{{ revision.momento }}</h4>
+                                    </div>
+        
+                            </div>
+                        </div><!-- end col -->
+                            
+                            
+                           
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <hr>
+
+    <h3>Estados de los alumnos</h3>
+
+<form method="post" action="{% url 'guardar_revision_libros' %}">
+    {% csrf_token %}
+    <input type="hidden" name="revision_id" value="{{ revision.id }}">
+    <input type="hidden" name="profesor" value="{{ revision.profesor.id }}">
+    <input type="hidden" name="curso" value="{{ revision.curso.id }}">
+    <input type="hidden" name="materia" value="{{ revision.materia.id }}">
+    <input type="hidden" name="libro" value="{{ revision.libro.id }}">
+    <input type="hidden" name="momento" value="{{ revision.momento.id }}">
+
+    <table class="table table-striped table-sm">
+        <thead>
+        <tr>
+            <th>Alumno</th>
+            {% for estado in estados %}
+                <th class="text-center">{{ estado.nombre }}</th>
+            {% endfor %}
+            <th>Observaciones</th>
+            <th class="text-center">Acción</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for rev_alumno in alumnos_revisionados %}
+            <tr data-alumno-id="{{ rev_alumno.alumno.id }}">
+                <td>{{ rev_alumno.alumno.Nombre }}</td>
+                {% for estado in estados %}
+                    <td class="text-center">
+                        <input type="radio"
+                           name="estado_{{ rev_alumno.alumno.id }}"
+                           value="{{ estado.id }}"
+                           class="estado-radio i-checks"
+                           data-alumno-id="{{ rev_alumno.alumno.id }}"
+                           data-estado-id="{{ estado.id }}"
+                           {% if rev_alumno.estado and rev_alumno.estado.id == estado.id %}data-checked="true"{% endif %}>
+                    </td>
+                {% endfor %}
+                <td>
+                    <input type="text"
+                       name="observaciones_{{ rev_alumno.alumno.id }}"
+                       class="form-control form-control-sm"
+                       placeholder="Observaciones"
+                       value="{{ rev_alumno.observaciones }}">
+                </td>
+                <td class="text-center">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary limpiar-radio"
+                            data-alumno-id="{{ rev_alumno.alumno.id }}">
+                        Limpiar
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="text-center mt-3">
+    <button type="submit" class="btn btn-primary">Actualizar revisión</button>
+    <a href="{% url 'mis_revisiones' %}" class="btn btn-secondary ms-2">Cancelar</a>
+</div>
+</form>
+
+
+
+
+{% endblock %}
+
+
+{% block js %}    
+<script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+<script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+<script>
+$(function() {
+
+        $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+        
+        // Marcar los radios con data-checked="true"
+        $('.i-checks[data-checked="true"]').each(function () {
+            $(this).iCheck('check');
+        });
+        
+        $('.limpiar-radio').on('click', function () {
+    const alumnoId = $(this).data('alumno-id');
+    $(`input[name="estado_${alumnoId}"]`).iCheck('uncheck');
+  });
+  
+
+});
+</script>
+{% endblock %}
