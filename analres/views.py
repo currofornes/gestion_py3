@@ -274,7 +274,8 @@ def recalcular_indicadores(request):
                         'AbandonoEscolar': None
                     }
                 )
-                indicadores.EstimacionPromocion = estimacion_promocion.calcular(calificaciones[alumno], nivel=info_alumno.Nivel)
+                if convocatoria != 'Ord':
+                    indicadores.EstimacionPromocion = estimacion_promocion.calcular(calificaciones[alumno], nivel=info_alumno.Nivel)
                 if info_alumno.Nivel.Abr == "1º ESO":
                     indicadores.EficaciaTransito = eficacia_transito.calcular(calificaciones[alumno])
                 if "ESO" in info_alumno.Nivel.Abr:

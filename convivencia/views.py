@@ -22,9 +22,6 @@ from django.core.mail import send_mail
 from datetime import date
 import time
 
-from prevision_plazas_enero import curso_academico_actual
-
-
 # Create your views here.
 
 def procesar_amonestacion(amon):

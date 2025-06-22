@@ -12,7 +12,7 @@ from django.http import JsonResponse
 
 from centro.models import Alumnos, InfoAlumnos, CursoAcademico, Centros, Niveles
 from centro.utils import get_encoding
-from analres.models import Calificaciones
+from analres.models import Calificaciones, IndicadoresAlumnado
 from .forms import CargaCalificacionesSeneca, CargaRegAlumSeneca, CargaAdmisionSeneca
 
 
@@ -46,6 +46,8 @@ def calificaciones(request):
                                     calificaciones_alumno['Curso Academico'] = curso_academico.nombre
                                     calificaciones_alumno['Convocatoria'] = convocatoria
                                     calificaciones_alumno['nombre_archivo'] = nombre_archivo_csv
+                                    if convocatoria == 'ORD':
+                                        calificaciones_alumno['Promoción'] = row['Resultado de la promoción']
                                     data['nro_registros'] += 1
                                     data['datos'].append(calificaciones_alumno)
                 return JsonResponse(data)
@@ -76,7 +78,7 @@ def calificaciones_procesar_datos(request):
         nivel = get_nivel(data['nombre_archivo'])
 
         for key, val in data.items():
-            if key not in ['Alumno/a', 'Unidad', 'Curso Academico', 'Convocatoria', 'nombre_archivo']:
+            if key not in ['Alumno/a', 'Unidad', 'Curso Academico', 'Convocatoria', 'nombre_archivo', 'Resultado de la promoción']:
                 if val:
                     calif = val
                     error = False
@@ -106,6 +108,18 @@ def calificaciones_procesar_datos(request):
                     if not creado:
                         calificacion.Calificacion = calif
                         calificacion.save()
+            if key == 'Resultado de la promoción':
+                indicador_prom, creado = IndicadoresAlumnado.objects.get_or_create(
+                    Alumno=alumno,
+                    curso_academico=curso_academico,
+                    Convocatoria=convocatoria,
+                    defaults={
+                        'EstimacionPromocion': data['Resultado de la promoción'] in ('PRO', 'TIT')
+                    }
+                )
+                if not creado:
+                    indicador_prom.EstimacionPromocion = data['Resultado de la promoción']
+                    indicador_prom.save()
 
         return JsonResponse({'status': 'success'})
     else:
