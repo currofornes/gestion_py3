@@ -284,6 +284,8 @@ def ContarFaltasHistorico(lista_id):
     return contar
 
 
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def importar_materias(request: HttpRequest):
     niveles = Niveles.objects.all()
 
@@ -358,6 +360,8 @@ def decode_file(file):
     raise UnicodeDecodeError("No se pudo leer el archivo con ninguna codificación válida.")
 
 
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def importar_materias_impartidas(request):
     if request.method == 'POST' and 'csv_materias_impartidas' in request.FILES:
         csv_file = request.FILES['csv_materias_impartidas']
@@ -437,6 +441,8 @@ def quitar_tildes(texto):
         if unicodedata.category(c) != 'Mn'
     )
 
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def importar_matriculas_materias(request):
     if request.method == "POST" and 'csv_matriculas' in request.FILES:
         nivel = request.POST.get('nivel')
@@ -526,6 +532,8 @@ def importar_matriculas_materias(request):
     return render(request, 'importar_matriculas_materias.html')
 
 
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def ver_matriculas(request):
     cursos = Cursos.objects.all().order_by("Curso")
     datos = []
@@ -566,6 +574,9 @@ def ver_matriculas(request):
         "datos": datos
     })
 
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def listar_materias_impartidas(request):
     cursos_disponibles = Cursos.objects.order_by('Nivel__Abr', 'Curso')
     curso_id = request.GET.get('curso')
@@ -595,6 +606,8 @@ def listar_materias_impartidas(request):
     }
     return render(request, 'listar_materias_impartidas.html', context)
 
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def importar_libros_texto(request):
     if request.method == "POST" and 'csv_libros' in request.FILES:
         nivel_id = request.POST.get('nivel')
@@ -667,7 +680,8 @@ def importar_libros_texto(request):
         'niveles': Niveles.objects.all()
     })
 
-
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def ver_libros_texto(request):
     niveles = Niveles.objects.all()
     libros = []
@@ -688,6 +702,8 @@ def ver_libros_texto(request):
         'nivel_seleccionado': nivel_seleccionado,
     })
 
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def seleccionar_revision_view(request):
     profesores_qs = Profesores.objects.filter(Baja=False)
 
@@ -704,6 +720,8 @@ def seleccionar_revision_view(request):
     })
 
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def revisar_libros(request):
     profesor = request.user.profesor
 
@@ -721,6 +739,8 @@ def revisar_libros(request):
         'momentos': MomentoRevisionLibros.objects.all()
     })
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def revisar_libros_view(request, profesor_id, momento_id, materia_id, libro_id):
     profesor = get_object_or_404(Profesores, pk=profesor_id)
     momento = get_object_or_404(MomentoRevisionLibros, pk=momento_id)
@@ -748,17 +768,23 @@ def revisar_libros_view(request, profesor_id, momento_id, materia_id, libro_id):
         'alumnos': alumnos,
     })
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def revision_exitosa_view(request):
     return render(request, 'revision_exitosa.html')
 
 
-
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def obtener_materias_ajax(request):
     profesor_id = request.GET.get('profesor_id')
     materias = Materia.objects.filter(materiaimpartida__profesor_id=profesor_id).distinct()
     data = [{'id': m.id, 'nombre': str(m)} for m in materias]
     return JsonResponse(data, safe=False)
 
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def obtener_libros_ajax(request):
     materia_id = request.GET.get('materia_id')
     libros = LibroTexto.objects.filter(materia_id=materia_id)
@@ -766,12 +792,17 @@ def obtener_libros_ajax(request):
     return JsonResponse(data, safe=False)
 
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def get_cursos_profesor(request):
     profesor_id = request.GET.get('profesor_id')
     cursos = Cursos.objects.filter(materiaimpartida__profesor_id=profesor_id).distinct()
     data = [{'id': curso.id, 'nombre': str(curso)} for curso in cursos]
     return JsonResponse(data, safe=False)
 
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def get_materias_profesor_curso(request):
     profesor_id = request.GET.get('profesor_id')
     curso_id = request.GET.get('curso_id')
@@ -780,6 +811,9 @@ def get_materias_profesor_curso(request):
     data = [{'id': m.id, 'nombre': str(m)} for m in materias]
     return JsonResponse(data, safe=False)
 
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def get_libros_materia(request):
     materia_id = request.GET.get('materia_id')
     libros = LibroTexto.objects.filter(materia_id=materia_id)
@@ -787,7 +821,8 @@ def get_libros_materia(request):
     return JsonResponse(data, safe=False)
 
 
-
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def revision_libros(request, profesor_id, momento_id, materia_id, libro_id):
     # Obtener MateriaImpartida concreta
     materia_impartida = MateriaImpartida.objects.filter(
@@ -816,6 +851,8 @@ def revision_libros(request, profesor_id, momento_id, materia_id, libro_id):
     return render(request, 'revision_libros.html', contexto)
 
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def get_tabla_revision(request):
     profesor_id = request.GET.get('profesor_id')
     curso_id = request.GET.get('curso_id')
@@ -859,6 +896,8 @@ def get_tabla_revision(request):
         'momento': momento,
     })
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def guardar_revision_libros(request):
 
     if request.method == 'POST':
@@ -927,7 +966,8 @@ def guardar_revision_libros(request):
 
     return redirect('mis_revisiones')
 
-
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
 def resumen_revisiones(request):
     revisiones = RevisionLibro.objects.select_related(
         'profesor', 'materia', 'libro', 'momento', 'curso_academico'
@@ -978,6 +1018,8 @@ def resumen_revisiones(request):
 
     return render(request, 'resumen_revisiones.html', context)
 
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def detalle_revision(request, revision_id):
     revision = get_object_or_404(
         RevisionLibro.objects.select_related(
@@ -997,7 +1039,8 @@ def detalle_revision(request, revision_id):
         'fecha': revision.fecha
     })
 
-
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def mis_revisiones(request):
     profesor = request.user.profesor
     curso_academico_actual = get_current_academic_year()
@@ -1061,7 +1104,8 @@ def mis_revisiones(request):
 
     return render(request, 'mis_revisiones.html', context)
 
-
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
 def editar_revision_libros(request, revision_id):
     revision = get_object_or_404(RevisionLibro, id=revision_id)
     estados = revision.momento.estados.all().order_by('orden')
