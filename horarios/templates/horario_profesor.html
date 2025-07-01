@@ -16,6 +16,12 @@
             background-color: #ffd700; /* Color dorado */
             font-weight: bold;
         }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
     </style>
 
     <div class="wrapper wrapper-content animated fadeInRight">
@@ -62,14 +68,14 @@
                                 {% if horario %}
                                     <div class="table-responsive">
                                         <table class="table table-bordered">
-                                            <thead>
+                                            <thead style="position: sticky;top: 0; z-index: 100; ">
                                             <tr class="text-center" style="border: 3px solid #EBEBEB;">
-                                                <th class="bg-success">TRAMO</th>
-                                                <th class="bg-success">LUNES</th>
-                                                <th class="bg-success">MARTES</th>
-                                                <th class="bg-success">MIÉRCOLES</th>
-                                                <th class="bg-success">JUEVES</th>
-                                                <th class="bg-success">VIERNES</th>
+                                                <th class="bg-success header">TRAMO</th>
+                                                <th class="bg-success header">LUNES</th>
+                                                <th class="bg-success header">MARTES</th>
+                                                <th class="bg-success header">MIÉRCOLES</th>
+                                                <th class="bg-success header">JUEVES</th>
+                                                <th class="bg-success header">VIERNES</th>
                                             </tr>
                                             </thead>
                                             <tbody>

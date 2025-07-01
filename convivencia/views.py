@@ -199,6 +199,7 @@ def historial(request, alum_id, prof):
 
     for curso in cursos_anteriores:
         amon_anteriores = Amonestaciones.objects.filter(IdAlumno_id=alum_id, curso_academico=curso).order_by('Fecha')
+
         sanc_anteriores = Sanciones.objects.filter(IdAlumno_id=alum_id, curso_academico=curso).order_by('Fecha')
 
         historial_curso = list(amon_anteriores) + list(sanc_anteriores)
@@ -209,6 +210,7 @@ def historial(request, alum_id, prof):
 
         if hist_anteriores:
             historial_anteriores[curso] = hist_anteriores
+
 
     prof = True if prof == "" else False
 
