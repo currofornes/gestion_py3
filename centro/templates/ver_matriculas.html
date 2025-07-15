@@ -1,47 +1,169 @@
 {% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Consultar matrícula de materias</h2>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="curso">Selecciona un curso:</label>
-            <select name="curso" id="curso" class="form-control" required>
-                <option value="">-- Selecciona un curso --</option>
-                {% for c in cursos %}
-                    <option value="{{ c.id }}" {% if curso_seleccionado and c.id == curso_seleccionado.id %}selected{% endif %}>{{ c.Curso }}</option>
-                {% endfor %}
-            </select>
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Consultar matrícula de materias</h4>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary mt-2">Ver matrículas</button>
-    </form>
+    
+        <div class="row mb-3">
+            <div class="col-lg-12">
 
-    {% if datos %}
-        <hr>
-        <h3>Alumnos y materias en {{ curso_seleccionado.Curso }}</h3>
-        {% for dato in datos %}
-            <div class="card my-3">
-                <div class="card-header">
-                    {{ dato.alumno.Nombre }}
-                </div>
-                <div class="card-body">
-                    <ul class="list-group">
-                        {% for materia, profesores in dato.materias_agrupadas.items %}
-                            <li class="list-group-item">
-                                <strong>{{ materia }}:</strong>
-                                {% if profesores %}
-                                    {{ profesores|join:"; " }}
-                                {% else %}
-                                    <em>Sin profesor asignado</em>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
+                <div class="card">
+                    <h5 class="card-header">Selecciona unidad y curso académico:</h5>
+                    <div class="card-body">
+                        <form method="post" class="form-horizontal">
+                            {% csrf_token %}
+                            <div class="form-group row">
+                                <div class="col-lg-5">
+                                    <label for="id_curso">Unidad:</label>
+                                    <select name="curso" class="form-control select2_curso" id="id_curso">
+                                        {% for curso in cursos %}
+                                            <option value="{{ curso.id }}" {% if curso_seleccionado and curso.id == curso_seleccionado.id %}selected{% endif %}>{{ curso.Curso }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-lg-5">
+                                    <label for="id_CursoAcademico">Curso Académico:</label>
+                                    <select name="CursoAcademico" class="form-control select2_cursoacademico"
+                                            id="id_CursoAcademico">
+                                        {% for c in cursosacademicos %}
+                                            <option value="{{ c.id }}"
+                                                    {% if cursoacademico_seleccionado and c.id == cursoacademico_seleccionado.id %}selected{% endif %}>
+                                                {{ c }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-lg-2">
+                                    <button type="submit" class="btn btn-primary mt-3">Ver Matrículas</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        {% endfor %}
-    {% endif %}
-</div>
+        </div>
+    
+        <div class="row">
+            <div class="col-12">
+            
+                {% if datos %}
+                    <div class="card">
+                        <div class="card-header d-block border-light justify-content-between">
+                            <h3 class="card-title mb-1">Alumnos y materias en {{ curso_seleccionado.Curso }}</h3>
+                        </div>
+                    
+                        <div class="card-body">
+                        
+                            {% for dato in datos %}
+                                <div class="card my-3">
+                                    <div class="card-header">
+                                        <h4 class="card-title text-secondary">{{ dato.alumno.Nombre }}</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group">
+                                            {% for materia, profesores in dato.materias_agrupadas.items %}
+                                                <li class="list-group-item">
+                                                    <strong>{{ materia }}:</strong>
+                                                    {% if profesores %}
+                                                        {{ profesores|join:"; " }}
+                                                    {% else %}
+                                                        <em>Sin profesor asignado</em>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div> <!-- end card-body-->
+                    </div>
+
+                {% elif curso_seleccionado %}
+                    <div class="card">
+                        <div class="card-header d-block border-light justify-content-between">
+                            <h3 class="card-title mb-1">Alumnos y materias en {{ curso_seleccionado.Curso }}</h3>
+                        </div>
+
+                        <div class="card-body">
+                            <p class="text-muted">No hay matrículas registradas.</p>
+                        </div> <!-- end card-body-->
+                    </div>
+                {% endif %}
+            </div>
+        </div><!-- end col -->
+    </div><!-- end row -->
+
 {% endblock %}
+
+{% block js %}
+
+
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <script>
+
+
+        $(document).ready(function () {
+            /*
+            function handleSelectChange(selectorClass, triggerValue) {
+                const selectElement = $(selectorClass);
+                selectElement.on('select2:close', function () {
+                    if (selectElement.find('option').length === 1) {
+                        setFormTrigger(triggerValue);
+                        $('#unidadForm').submit();
+                    }
+                });
+                selectElement.on('change', function () {
+                    setFormTrigger(triggerValue);
+                    $('#unidadForm').submit();
+                });
+            }
+
+            handleSelectChange(".select2_unidad", "Unidad");
+
+            function setFormTrigger(trigger) {
+                document.getElementById("id_FormTrigger").value = trigger;
+            }
+
+
+            $(".select2_unidad").select2({
+                theme: 'bootstrap4',
+            });
+            */
+
+
+            $(".select2_curso").select2({
+                theme: 'bootstrap4',
+                placeholder: 'Selecciona un nivel'
+            });
+
+            $(".select2_cursoacademico").select2({
+                theme: 'bootstrap4',
+                placeholder: 'Selecciona un curso académico'
+            });
+
+
+        });
+
+    </script>
+{% endblock %}
+

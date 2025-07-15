@@ -509,6 +509,7 @@ def get_current_academic_year():
     else:  # Si estamos antes de septiembre, el curso académico actual comenzó el año anterior
         curso_academico_actual = CursoAcademico.objects.get(año_inicio=today.year - 1)
 
+
     return curso_academico_actual
 
 def get_previous_academic_years():

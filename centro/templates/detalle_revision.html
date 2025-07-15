@@ -1,106 +1,123 @@
 {% extends "base.html" %}
 {% load static %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
 
 {% block css %}
-    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+
 {% endblock %}
 
 {% block content %}
 
-    <div id="dynamic-content">
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox">
-                    <div class="ibox-title">
-                        <h2>Detalle de la revisión</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <div class="row">
-                        <div class="col-sm-6 col-lg-2">
-                            <div class="widget style1 navy-bg">
-
-                                    <div>
-                                        <span> Profesor/a </span>
-                                        <h4 class="font-bold">{{ profesor }}</h4>
-                                    </div>
-        
-                            </div>
-                        </div><!-- end col -->
-                            
-                            <div class="col-sm-6 col-lg-2">
-                            <div class="widget style1 navy-bg">
-
-                                    <div>
-                                        <span> Fecha revisión </span>
-                                        <h4 class="font-bold">{{ fecha|date:"d/m/Y" }}</h4>
-                                    </div>
-        
-                            </div>
-                        </div><!-- end col -->
-                            
-                            <div class="col-sm-6 col-lg-2">
-                            <div class="widget style1 navy-bg">
-
-                                    <div>
-                                        <span> Curso </span>
-                                        <h4 class="font-bold">{{ curso }}</h4>
-                                    </div>
-        
-                            </div>
-                        </div><!-- end col -->
-                            
-                            <div class="col-sm-6 col-lg-2">
-                            <div class="widget style1 navy-bg">
-
-                                    <div>
-                                        <span> Materia </span>
-                                        <h4 class="font-bold">{{ materia }}</h4>
-                                    </div>
-        
-                            </div>
-                        </div><!-- end col -->
-                            
-                            
-                            <div class="col-sm-6 col-lg-2">
-                            <div class="widget style1 navy-bg">
-
-                                    <div>
-                                        <span> Libro </span>
-                                        <h4 class="font-bold">{{ libro.titulo }}</h4>
-                                    </div>
-        
-                            </div>
-                        </div><!-- end col -->
-                            
-                            
-                            <div class="col-sm-6 col-lg-2">
-                            <div class="widget style1 navy-bg">
-
-                                    <div>
-                                        <span> Momento </span>
-                                        <h4 class="font-bold">{{ momento }}</h4>
-                                    </div>
-        
-                            </div>
-                        </div><!-- end col -->
-                            
-                            
-                           
-                        </div>
-
-                    </div>
-                </div>
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Detalle de la revisión</h4>
             </div>
         </div>
 
-        <div class="row animated fadeInRight">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h2>Alumnos/as</h2>
-                    </div>
-                    <div class="ibox-content">
+
+        <div class="row">
+
+
+            <div class="col-12">
+
+                <div class="card">
+                            <div class="card-body">
+                                <div class="row row-cols-xxl-6 row-cols-md-3 row-cols-1 g-3 align-items-center">
+                                    <div class="col">
+                                        <div class="card border-0 bg-success bg-opacity-10 shadow-none mb-0">
+                                            <div class="card-body">
+                                                <h5 title="Number of Orders">Profesor/a</h5>
+                                                <div class="d-flex align-items-center gap-2 my-3">
+
+                                                    <h4 class="mb-0">{{ profesor }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <div class="card border-0 bg-success bg-opacity-10 shadow-none mb-0">
+                                            <div class="card-body">
+                                                <h5 title="Number of Orders">Fecha revisión</h5>
+                                                <div class="d-flex align-items-center gap-2 my-3">
+
+                                                    <h4 class="mb-0">{{ fecha|date:"d/m/Y" }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <div class="card border-0 bg-success bg-opacity-10 shadow-none mb-0">
+                                            <div class="card-body">
+                                                <h5 title="Number of Orders">Curso</h5>
+                                                <div class="d-flex align-items-center gap-2 my-3">
+
+                                                    <h4 class="mb-0">{{ curso }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col">
+                                        <div class="card border-0 bg-success bg-opacity-10 shadow-none mb-0">
+                                            <div class="card-body">
+                                                <h5 title="Number of Orders">Materia</h5>
+                                                <div class="d-flex align-items-center gap-2 my-3">
+
+                                                    <h4 class="mb-0">{{ materia }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col">
+                                        <div class="card border-0 bg-success bg-opacity-10 shadow-none mb-0">
+                                            <div class="card-body">
+                                                <h5 title="Number of Orders">Libro</h5>
+                                                <div class="d-flex align-items-center gap-2 my-3">
+
+                                                    <h4 class="mb-0">{{ libro.titulo }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col">
+                                        <div class="card border-0 bg-success bg-opacity-10 shadow-none mb-0">
+                                            <div class="card-body">
+                                                <h5 title="Number of Orders">Momento</h5>
+                                                <div class="d-flex align-items-center gap-2 my-3">
+
+                                                    <h4 class="mb-0">{{ momento }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div><!-- end row -->
+                            </div> <!-- end card-body-->
+                        </div> <!-- end card-->
+
+
+
+
+
+                <div class="card">
+
+                    <div class="card-body">
+
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered table-hover dataTables-revision">
                                 <thead>
@@ -122,74 +139,114 @@
                             </table>
                         </div>
                     
-                    <a href="{% url 'resumen_revisiones' %}" class="btn btn-secondary btn-sm">Volver al resumen</a>
-
-
+                        <a href="{% url 'resumen_revisiones' %}" class="btn btn-secondary btn-sm">Volver al resumen</a>
                     </div>
+                
+                
                 </div>
             </div>
-        </div>
 
-    </div>
+        </div><!-- end col -->
+
+
+        
+
+    </div><!-- end row -->
+
 
 
 {% endblock %}
 
-
 {% block js %}
-    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+
     <script>
 
-        // Upgrade button class name
-        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
-
         $(document).ready(function () {
- 
 
             $('.dataTables-revision').DataTable({
-                language: {
-                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                },
-                pageLength: 50,
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
                 responsive: true,
-                dom: '<"html5buttons"B>lTfgitp',
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
                 buttons: [
-                    {extend: 'copy'},
-                    {extend: 'csv'},
-                    {extend: 'excel', title: 'Alumnos'},
-                    {extend: 'pdf', title: 'Alumnos'},
-
                     {
-                        extend: 'print',
-                        customize: function (win) {
-                            $(win.document.body).addClass('white-bg');
-                            $(win.document.body).css('font-size', '10px');
-
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                        }
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
                     }
-                ]
+                ],
 
+                order: [[0, 'asc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
             });
+
+            
 
         });
 
     </script>
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -6,6 +6,7 @@ from collections import defaultdict
 
 import unicodedata
 from django.contrib import messages
+from django.core.checks.urls import check_url_settings
 from django.db.models import Q, Count
 from django.forms import modelformset_factory
 from django.http import HttpResponseForbidden, FileResponse, HttpRequest, HttpResponse, JsonResponse
@@ -14,7 +15,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.timezone import now
 
 from centro.models import Alumnos, Cursos, Departamentos, Profesores, Niveles, Materia, MateriaImpartida, \
-    MatriculaMateria, LibroTexto, MomentoRevisionLibros, RevisionLibroAlumno, EstadoLibro, RevisionLibro
+    MatriculaMateria, LibroTexto, MomentoRevisionLibros, RevisionLibroAlumno, EstadoLibro, RevisionLibro, CursoAcademico
 from centro.utils import get_current_academic_year, get_previous_academic_years
 from convivencia.models import Amonestaciones, Sanciones
 from centro.forms import UnidadForm, DepartamentosForm, UnidadProfeForm, UnidadesProfeForm, SeleccionRevisionForm, \
@@ -536,17 +537,21 @@ def importar_matriculas_materias(request):
 @user_passes_test(group_check_je, login_url='/')
 def ver_matriculas(request):
     cursos = Cursos.objects.all().order_by("Curso")
+    cursosacademicos = CursoAcademico.objects.all().order_by("nombre")
     datos = []
     curso_seleccionado = None
+    cursoacademico_seleccionado = None
 
     if request.method == "POST":
         curso_id = request.POST.get("curso")
-        if curso_id:
+        cursoacademico_id = request.POST.get('CursoAcademico')
+        if curso_id and cursoacademico_id:
             curso_seleccionado = Cursos.objects.get(id=curso_id)
+            cursoacademico_seleccionado = CursoAcademico.objects.get(id=cursoacademico_id)
             alumnos = curso_seleccionado.alumnos_set.all().order_by("Nombre")
 
             for alumno in alumnos:
-                matriculas = MatriculaMateria.objects.filter(alumno=alumno)
+                matriculas = MatriculaMateria.objects.filter(alumno=alumno, curso_academico=cursoacademico_id)
                 materias_agrupadas = {}
 
                 for mat in matriculas:
@@ -571,6 +576,8 @@ def ver_matriculas(request):
     return render(request, "ver_matriculas.html", {
         "cursos": cursos,
         "curso_seleccionado": curso_seleccionado,
+        "cursoacademico_seleccionado": cursoacademico_seleccionado,
+        "cursosacademicos" : cursosacademicos,
         "datos": datos
     })
 
@@ -580,10 +587,15 @@ def ver_matriculas(request):
 def listar_materias_impartidas(request):
     cursos_disponibles = Cursos.objects.order_by('Nivel__Abr', 'Curso')
     curso_id = request.GET.get('curso')
+    cursoacademico_id = request.GET.get('CursoAcademico')
     registros = MateriaImpartida.objects.select_related('materia', 'curso', 'profesor')
+    cursos_academicos = CursoAcademico.objects.order_by('nombre')
 
-    if curso_id:
-        registros = registros.filter(curso_id=curso_id)
+    cursoacademico_seleccionado = None
+
+    if curso_id and cursoacademico_id:
+        registros = registros.filter(curso_id=curso_id, curso_academico_id=cursoacademico_id)
+        cursoacademico_seleccionado = CursoAcademico.objects.get(id=cursoacademico_id)
 
     materias_agrupadas = []
 
@@ -602,7 +614,9 @@ def listar_materias_impartidas(request):
     context = {
         'materias_agrupadas': materias_agrupadas,
         'cursos_disponibles': cursos_disponibles,
-        'curso_seleccionado': int(curso_id) if curso_id else None
+        'curso_seleccionado': int(curso_id) if curso_id else None,
+        'cursosacademicos': cursos_academicos,
+        'cursoacademico_seleccionado' : cursoacademico_seleccionado
     }
     return render(request, 'listar_materias_impartidas.html', context)
 
@@ -686,20 +700,29 @@ def ver_libros_texto(request):
     niveles = Niveles.objects.all()
     libros = []
 
-    nivel_id = request.GET.get('nivel')
+    nivel_id = request.GET.get('Nivel')
+    cursoacademico_id = request.GET.get('CursoAcademico')
     nivel_seleccionado = None
+    cursoacademico_seleccionado = None
 
-    if nivel_id:
+    cursos_academicos = CursoAcademico.objects.order_by('nombre')
+
+    if nivel_id and cursoacademico_id:
         try:
             nivel_seleccionado = Niveles.objects.get(id=nivel_id)
-            libros = LibroTexto.objects.filter(nivel=nivel_seleccionado).select_related('materia').order_by('materia__nombre')
-        except Niveles.DoesNotExist:
+            cursoacademico_seleccionado = CursoAcademico.objects.get(id=cursoacademico_id)
+            libros = LibroTexto.objects.filter(nivel=nivel_seleccionado, curso_academico=cursoacademico_seleccionado).select_related('materia').order_by('materia__nombre')
+        except Niveles.DoesNotExist or CursoAcademico.DoesNotExist:
             nivel_seleccionado = None
+            cursoacademico_seleccionado = None
+
 
     return render(request, 'ver_libros_texto.html', {
         'niveles': niveles,
         'libros': libros,
         'nivel_seleccionado': nivel_seleccionado,
+        'cursoacademico_seleccionado': cursoacademico_seleccionado,
+        'cursosacademicos' : cursos_academicos
     })
 
 @login_required(login_url='/')

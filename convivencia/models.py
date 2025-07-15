@@ -33,7 +33,6 @@ class Amonestaciones(models.Model):
 	medios = (
 		('1', 'Teléfono'),
 		('2', 'PASEN'),
-		('3', 'Otro'),
 	)
 
 	IdAlumno = models.ForeignKey('centro.Alumnos', related_name='amonestaciones',null=True,on_delete=models.SET_NULL)

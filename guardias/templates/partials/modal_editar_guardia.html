@@ -1,0 +1,52 @@
+<div class="modal fade modal-editar-guardia" id="modaleditarguardia-{{ tramo }}" tabindex="-1" role="dialog"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h2 class="modal-title">Editar guardia confirmada</h2>
+                <p class="fw-semibold">Ante cualquier cambio, los tiempos de guardia se recalcularán.</p>
+            </div>
+            <div class="modal-body">
+
+
+                <div class="form-group">
+                    <h4><label for="profesor-ausente">Añadir nuevo/a profesor/a de guardia:</label>
+                    </h4>
+
+                                        <div class="input-group">
+                                            <select id="profesores-guardia-{{ tramo }}" class="form-control select-profesor" style="min-width: 0">
+                                                <option value="" selected disabled>Seleccione un profesor/a</option>
+                                                <!-- Opción vacía -->
+                                                {% for profesor in profesores_guardia %}
+                                                    <option value="{{ profesor.id }}">{{ profesor.nombre }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        <button type="button" id="agregarprofe" class="btn btn-primary">Añadir</button>
+
+                                        </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="profesoresTable" class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Profesor/a</th>
+                            <th>Tiempo asignado (minutos)</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody id="profesoresContainer">
+                        <!-- Las filas se agregarán dinámicamente aquí -->
+                        </tbody>
+                    </table>
+                </div>
+                <hr>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-bs-dismiss="modal">Cancelar
+                </button>
+                <button id="btn-editar-guardias" type="button" class="btn btn-primary">Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

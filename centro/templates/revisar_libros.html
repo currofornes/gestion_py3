@@ -1,28 +1,41 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
 
 {% block css %}
-   <link href="{% static 'css/plugins/select2/select2.min.css' %}" rel="stylesheet">
-<link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+
 {% endblock %}
 
-
-
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Revisión de libros (Programa G.L.T.)</h4>
+            </div>
+        </div>
+
+        <form id="seleccion-form" method="post" action="{% url 'guardar_revision_libros' %}">
         <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h2>Revisión Libros (Programa G.L.T.)</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <h4>Profesor/a: {{ form.profesor }}</h4>
-                        <br/>
-                        <form id="seleccion-form" method="post" action="{% url 'guardar_revision_libros' %}">
-                            {% csrf_token %}
-            
-                            <!-- Mostrar errores no asociados a campos específicos -->
+            <div class="col-12">
+                <div class="card">
+
+                    <div class="card-body">
+                    
+                    <h4 class="card-title mb-2">Profesor/a: {{ form.profesor }}</h4>
+                    
+                    {% csrf_token %}
+
+                    <!-- Mostrar errores no asociados a campos específicos -->
                             {% if form.non_field_errors %}
                                 <div class="alert alert-danger">
                                     <ul>
@@ -32,81 +45,104 @@
                                     </ul>
                                 </div>
                             {% endif %}
+                        <div class="row g-2">
 
-                            
-                            <div class="form-group row">
-                                
-                                <label class="col-lg-1 col-form-label">Curso:</label>
-                                <div class="col-lg-2">
-                                    <select id="curso-select" name="curso" class="form-control select2_Curso">
+                            <div class="mb-3 col-md-3">
+                                <label class="form-label">Unidad:</label>
+                                <select id="curso-select" name="curso" class="form-control select2_Curso">
                                       <option value="">---------</option>
                                     </select>
-                                </div>
-                                
-                                <label class="col-lg-1 col-form-label">{{ form.materia.label_tag }}</label>
-                                <div class="col-lg-2">
-                                    {{ form.materia }}
-                                </div>
-                                
-                                <label class="col-lg-1 col-form-label">{{ form.libro.label_tag }}</label>
-                                <div class="col-lg-2">
-                                    {{ form.libro }}
-                                </div>
-                                
-                                <label class="col-lg-1 col-form-label">{{ form.momento.label_tag }}</label>
-                                <div class="col-lg-2">
-                                    {{ form.momento }}
-                                </div>
-
                             </div>
 
-                            <br/>
-                            <div id="tabla-revision"></div>
-                            <br/>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
-                            <a href="{% url 'mis_revisiones' %}" class="btn btn-secondary">Cancelar</a>
-                        </form>
-                        <br/><br/>
-
-                        <!-- Sección para mostrar errores del formulario -->
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                <ul>
-                                    {% for field, errors in form.errors.items %}
-                                        <li>{{ field }}: {{ errors }}</li>
-                                    {% endfor %}
-                                </ul>
+                            <div class="mb-3 col-md-3">
+                                <label class="form-label">Materia:</label>
+                                {{ form.materia }}
                             </div>
-                        {% endif %}
-                    </div>
+
+                      
+                            <div class="mb-3 col-md-3">
+                                <label class="form-label">Libro:</label>
+                                {{ form.libro }}
+                            </div>
+
+                            <div class="mb-3 col-md-3">
+                                <label class="form-label">Momento:</label>
+                                {{ form.momento }}
+                            </div>
+
+
+
+                        </div>
+                    </div> <!-- end card-body-->
+
+                </div>
+                <div class="card-footer border-0">
+
                 </div>
             </div>
-        </div>
-    </div>
 
-    
+
+            <div class="col-12">
+
+                <div class="card">
+
+                    <div class="card-body">
+
+                        <div id="tabla-revision"></div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                            <a href="{% url 'mis_revisiones' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </form>
+
+
+    </div><!-- end row -->
+
+
 
 {% endblock %}
-{% block js %}    
-<script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
-<script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
-<script>
-$(function() {
-    
-    actualizarCursos({{ profesor.id }});
-    
-    
-    $(".select2_Curso").select2({
+
+{% block js %}
+
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".select2_Curso").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona un curso",
                 allowClear: false
             });
     
-    $(".select2_Profesor").select2({
-                theme: 'bootstrap4',
-                placeholder: "Selecciona un profesor/a",
-                allowClear: false
-            });
+
     
     $(".select2_Materia").select2({
                 theme: 'bootstrap4',
@@ -125,10 +161,9 @@ $(function() {
                 placeholder: "Selecciona un libro",
                 allowClear: false
             });
-    
-    
-    
-  function actualizarCursos(profesor_id) {
+
+
+            function actualizarCursos(profesor_id) {
     $.get('/centro/ajax/get_cursos_profesor/', { profesor_id }, function(data) {
       const $curso = $('#curso-select');
       $curso.empty().append('<option value="">---------</option>');
@@ -164,15 +199,12 @@ $(function() {
         profesor_id, curso_id, materia_id, libro_id, momento_id
       }, function(html) {
         $('#tabla-revision').html(html);
-        $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            });
+
         
         $('.limpiar-radio').on('click', function () {
     const alumnoId = $(this).data('alumno-id');
-    $(`input[name="estado_${alumnoId}"]`).iCheck('uncheck');
-  });
+    $(`input[name="estado_${alumnoId}"]`).prop('checked', false);
+});
       });
     } else {
       $('#tabla-revision').empty();
@@ -196,6 +228,12 @@ $(function() {
   });
 
   $('#id_libro, #id_momento').change(cargarTabla);
-});
-</script>
+  
+  actualizarCursos({{ profesor.id }});
+
+
+        });
+
+    </script>
 {% endblock %}
+

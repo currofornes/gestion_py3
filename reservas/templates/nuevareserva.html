@@ -1,234 +1,260 @@
 {% extends "base.html" %}
-
 {% load static %}
-
-{% block css %}
-    <link href="{% static 'css/plugins/touchspin/jquery.bootstrap-touchspin.min.css' %}" rel="stylesheet">
-{% endblock %}
-
+{% load grupo_tags %}
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+
+{% endblock %}
+
+
+
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h2>Nueva Reserva</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <h4>Profesor/a: {{ profesor }}</h4>
-                        <br/>
-                        <form action="/reservas/reserva" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="tramos_seleccionados" id="tramos_seleccionados">
-
-                            <!-- Mostrar errores no asociados a campos específicos -->
-                            {% if form.non_field_errors %}
-                                <div class="alert alert-danger">
-                                    <ul>
-                                        {% for error in form.non_field_errors %}
-                                            <li>{{ error }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                            {% endif %}
-
-                            <div class="form-group row">
-                                <label class="col-lg-1 col-form-label">{{ form.tipo.label_tag }}</label>
-                                <div class="col-lg-2">
-                                    <div class="inline-radio" style="padding: 5px 0;">
-                                        {% for radio in form.tipo %}
-                                            <label class="radio-inline">
-                                                {{ radio.tag }}
-                                                {{ radio.choice_label }}
-                                            </label>
-                                        {% endfor %}
-                                    </div>
-                                    {% if form.tipo.help_text %}
-                                        <span class="help-block">{{ form.tipo.help_text }}</span>
-                                    {% endif %}
-                                    {% for error in form.tipo.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <label class="col-lg-1 col-form-label"
-                                       id="label-reservable">{{ form.Reservable.label_tag }}</label>
-                                <div class="col-lg-4">
-                                    <select name="Reservable" id="id_Reservable" class="form-control select2_Reservable"
-                                            data-url="{% url 'filter_reservables' %}">
-                                        {% for reservable in form.Reservable.field.queryset %}
-                                            <option value="{{ reservable.id }}">{{ reservable.Nombre }}</option>
-                                        {% endfor %}
-                                    </select>
-
-                                    {% if form.Reservable.help_text %}
-                                        <span class="help-block">{{ form.Reservable.help_text }}</span>
-                                    {% endif %}
-                                    {% for error in form.Reservable.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <label class="col-lg-1 col-form-label">{{ form.Fecha.label_tag }}</label>
-                                <div class="col-lg-3">
-                                    {{ form.Fecha }}
-                                    {% if form.Fecha.help_text %}
-                                        <span class="help-block">{{ form.Fecha.help_text }}</span>
-                                    {% endif %}
-                                    {% for error in form.Fecha.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-
-                            </div>
-
-                            <div class="panel panel-info" id="TramosHorarios">
-                                <div class="panel-heading">
-                                    <i class="fa fa-info-circle"></i> Selecciona uno o varios tramos horarios
-                                    disponibles
-                                </div>
-                                <div class="panel-body">
-                                    <div class="row align-self-center">
 
 
-                                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
-                                            <button type="button" data-reference="1"
-                                                    class="tramo btn btn-lg btn-light border border-secondary"
-                                                    data-toggle="tooltip"
-                                                    data-placement="top" title="">1ª Hora
-                                            </button>
-                                        </div>
-                                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
-                                            <button type="button" data-reference="2"
-                                                    class="tramo btn btn-lg btn-light border border-secondary"
-                                                    data-toggle="tooltip"
-                                                    data-placement="top" title="">2ª Hora
-                                            </button>
-                                        </div>
-                                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
-                                            <button type="button" data-reference="3"
-                                                    class="tramo btn btn-lg btn-light border border-secondary"
-                                                    data-toggle="tooltip"
-                                                    data-placement="top" title="">3ª Hora
-                                            </button>
-                                        </div>
-                                        <div class="col-12 text-center" style="margin-top: 15px;">
-                                            <button type="button" data-reference="4"
-                                                    class="tramo btn btn-lg btn-light border border-secondary"
-                                                    style="width:80%" data-toggle="tooltip"
-                                                    data-placement="top" title="">
-                                                Recreo
-                                            </button>
-                                        </div>
-                                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
-                                            <button type="button" data-reference="5"
-                                                    class="tramo btn btn-lg btn-light border border-secondary"
-                                                    data-toggle="tooltip"
-                                                    data-placement="top" title="">4ª Hora
-                                            </button>
-                                        </div>
-                                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
-                                            <button type="button" data-reference="6"
-                                                    class="tramo btn btn-lg btn-light border border-secondary"
-                                                    data-toggle="tooltip"
-                                                    data-placement="top" title="">5ª Hora
-                                            </button>
-                                        </div>
-                                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
-                                            <button type="button" data-reference="7"
-                                                    class="tramo btn btn-lg btn-light border border-secondary"
-                                                    data-toggle="tooltip"
-                                                    data-placement="top" title="">6ª Hora
-                                            </button>
-                                        </div>
-
-
-                                    </div>
-                                </div>
-
-                            </div>
-
-
-                            <div class="form-group row" id="row-periodicidad">
-                                <label class="col-lg-1 col-form-label">Periodicidad: </label>
-                                <div class="col-lg-2">
-                                    <div class="inline-radio" style="padding: 5px 0;">
-                                        {% for radio in form.periodicidad %}
-                                            <label class="radio-inline">
-                                                {{ radio.tag }}
-                                                {{ radio.choice_label }}
-                                            </label>
-                                        {% endfor %}
-                                    </div>
-                                    {% if form.periodicidad.help_text %}
-                                        <span class="help-block">{{ form.periodicidad.help_text }}</span>
-                                    {% endif %}
-                                    {% for error in form.periodicidad.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <!--<div id="num_semanas_container" style="display: none" class="col-lg-9">-->
-                                <label class="col-lg-2 col-form-label" id="label-semanas"
-                                       style="display: none">{{ form.num_semanas.label_tag }}</label>
-                                <div class="col-lg-2" id="field-semanas" style="display: none">
-                                    {{ form.num_semanas }}
-                                    {% if form.num_semanas.help_text %}
-                                        <span class="help-block">{{ form.num_semanas.help_text }}</span>
-                                    {% endif %}
-                                    {% for error in form.num_semanas.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <!--</div>-->
-
-
-                            </div>
-
-
-                            <br/>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
-                            <a href="{% url 'misreservas' %}" class="btn btn-secondary">Cancelar</a>
-                        </form>
-                        <br/><br/>
-
-                        <!-- Sección para mostrar errores del formulario -->
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                <ul>
-                                    {% for field, errors in form.errors.items %}
-                                        <li>{{ field }}: {{ errors }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Nueva reserva</h4>
             </div>
         </div>
+
+        <form id="main-form" action="/reservas/reserva" method="post"
+              class="bg-light-subtle rounded border p-3">
+            {% csrf_token %}
+            <input type="hidden" name="tramos_seleccionados" id="tramos_seleccionados">
+            <div class="row mb-3">
+                <div class="col-lg-12">
+
+
+                    <div class="row g-2">
+
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label">{{ form.tipo.label_tag }}</label>
+                            <div class="mb-2">
+                                {% for radio in form.tipo %}
+                                    <div class="form-check fs-xxl form-check-inline">
+                                        {{ radio.tag }}
+
+                                        <label class="form-check-label fs-base"
+                                               for="{{ radio.id_for_label }}">
+                                            {{ radio.choice_label }}
+                                        </label>
+
+                                    </div>
+                                {% endfor %}
+
+                                {% if form.tipo.help_text %}
+                                    <span class="help-block">{{ form.tipo.help_text }}</span>
+                                {% endif %}
+                                {% for error in form.tipo.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+
+                            </div>
+                        </div>
+
+                        <div class="mb-3 col-md-6">
+                            <label id="label-reservable" class="form-label">Recurso:</label>
+                            <select name="Reservable" id="id_Reservable"
+                                    class="form-control select2_Reservable"
+                                    data-url="{% url 'filter_reservables' %}">
+                                {% for reservable in form.Reservable.field.queryset %}
+                                    <option value="{{ reservable.id }}">{{ reservable.Nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+                        <div class="mb-3 col-md-3">
+                            <label class="form-label">Fecha:</label>
+                            <div class="date-search">
+                                {{ form.Fecha }}
+                                {% if form.Fecha.help_text %}
+                                    <span class="help-block">{{ form.Fecha.help_text }}</span>
+                                {% endif %}
+                                {% for error in form.Fecha.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </div>
+
+
     </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header border-light text-bg-info">
+                    <i class="ti ti-info-circle"></i> Selecciona uno o varios tramos horarios disponibles
+
+                </div>
+
+                <div class="card-body" id="TramosHorarios">
+
+                    <div class="row align-self-center">
+
+
+                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
+                            <button type="button" data-reference="1"
+                                    class="tramo btn btn-outline-dark"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top" title="">1ª Hora
+                            </button>
+                        </div>
+                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
+                            <button type="button" data-reference="2"
+                                    class="tramo btn btn-outline-dark"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top" title="">2ª Hora
+                            </button>
+                        </div>
+                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
+                            <button type="button" data-reference="3"
+                                    class="tramo btn btn-outline-dark"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top" title="">3ª Hora
+                            </button>
+                        </div>
+                        <div class="col-12 text-center" style="margin-top: 15px;">
+                            <button type="button" data-reference="4"
+                                    class="tramo btn btn-outline-dark"
+                                    style="width:80%" data-bs-toggle="tooltip"
+                                    data-bs-placement="top" title="">
+                                Recreo
+                            </button>
+                        </div>
+                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
+                            <button type="button" data-reference="5"
+                                    class="tramo btn btn-outline-dark"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top" title="">4ª Hora
+                            </button>
+                        </div>
+                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
+                            <button type="button" data-reference="6"
+                                    class="tramo btn btn-outline-dark"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top" title="">5ª Hora
+                            </button>
+                        </div>
+                        <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
+                            <button type="button" data-reference="7"
+                                    class="tramo btn btn-outline-dark"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top" title="">6ª Hora
+                            </button>
+                        </div>
+
+
+                    </div>
+
+                </div> <!-- end card-body-->
+
+            </div>
+
+        </div>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body" id="row-periodicidad">
+                    <div class="row g-2">
+
+                        <div class="mb-3 col-md-3">
+                            <label class="col-form-label">Periodicidad: </label>
+                            <div class="mb-2">
+
+                                {% for radio in form.periodicidad %}
+                                    <div class="form-check fs-xxl form-check-inline">
+                                        {{ radio.tag }}
+
+                                        <label class="form-check-label fs-base"
+                                               for="{{ radio.id_for_label }}">
+                                            {{ radio.choice_label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+                        </div>
+
+                        <div class="mb-3 col-md-3" id="semanas">
+                            <label class="col-form-label" id="label-semanas"
+                            >{{ form.num_semanas.label_tag }}</label>
+
+                            <div class="mb-2" id="field-semanas">
+                                {{ form.num_semanas }}
+                                {% if form.num_semanas.help_text %}
+                                    <span class="help-block">{{ form.num_semanas.help_text }}</span>
+                                {% endif %}
+                                {% for error in form.num_semanas.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="{% url 'misreservas' %}" class="btn btn-secondary">Cancelar</a>
+
+                </div> <!-- end card-body-->
+
+            </div>
+
+        </div>
+
+
+    </div><!-- end col -->
+
+    </form>
+    </div><!-- end row -->
+
 {% endblock %}
 
 {% block js %}
 
-    <script src="{% static 'js/plugins/touchspin/jquery.bootstrap-touchspin.min.js' %}"></script>
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
 
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
 
     <script>
-
         $(document).ready(function () {
-
-            const tooltipTriggerList = document.querySelectorAll('[data-toggle="tooltip"]')
-            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
-            $(".touchspin1").TouchSpin({
-                min: 1,
-                max: 50,
-                step: 1,
-                buttondown_class: 'btn btn-white',
-                buttonup_class: 'btn btn-white'
-            });
-
             $(".select2_Reservable").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona un recurso/espacio",
@@ -242,12 +268,12 @@
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
-                language: "es",
-                startDate: new Date()
+                language: "es"
             }).on('changeDate', function (e) {
                 $('#TramosHorarios').show();
                 $('#row-periodicidad').show();
             });
+
 
             // Función para cargar los reservables según el tipo seleccionado
             function cargarReservables(tipo_id) {
@@ -283,37 +309,36 @@
             }
 
 
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            }).on('ifChecked', function (event) {
-                var tipo_id = $(this).val();
-                cargarReservables(tipo_id);
-            });
-
-            // Inicializar radio buttons de periodicidad
-            $('.i-checks2').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            }).on('ifChecked', function () {
-                var periodicidad = $(this).val();
-                if (periodicidad === 'semanal') {
-                    $('#label-semanas').show();
-                    $('#field-semanas').show();
-                } else {
-                    $('#label-semanas').hide();
-                    $('#field-semanas').hide();
+            $('input[name="tipo"]').on('change', function () {
+                if ($(this).is(':checked')) {
+                    var tipo_id = $(this).val();
+                    cargarReservables(tipo_id);
                 }
             });
+
+
+            $('.form-periodicidad').on('change', function () {
+                if ($(this).is(':checked')) {
+                    var periodicidad = $(this).val();
+                    if (periodicidad === 'semanal') {
+                        $('#semanas').show();
+
+                    } else {
+                        $('#semanas').hide();
+
+                    }
+                }
+            });
+
 
             // Mostrar/ocultar el campo de número de semanas según la opción seleccionada al cargar la página
             var periodicidad_inicial = $('input[name="periodicidad"]:checked').val();
             if (periodicidad_inicial === 'semanal') {
-                $('#label-semanas').show();
-                $('#field-semanas').show();
+                $('#semanas').show();
+
             } else {
-                $('#label-semanas').hide();
-                $('#field-semanas').hide();
+                $('#semanas').hide();
+
             }
 
             // Trigger the change event on page load to load the default reservables
@@ -356,9 +381,9 @@
 
                                     // Condición para mostrar u ocultar el tooltip
                                     if (disponibilidad.existe_reserva) {
-                                        $(this).prop('disabled', true).addClass('btn-danger').removeClass('btn-light');
+                                        $(this).prop('disabled', true).addClass('btn-danger').removeClass('btn-outline-dark');
                                     } else {
-                                        $(this).prop('disabled', false).addClass('btn-light').removeClass('btn-danger');
+                                        $(this).prop('disabled', false).addClass('btn-outline-dark').removeClass('btn-danger');
                                     }
 
                                     // Condición para mostrar u ocultar el tooltip
@@ -401,17 +426,17 @@
                 if ($('.tramo[data-reference="' + n + '"]').val() == "") {
                     if ($('.tramo[data-reference="' + n + '"]').hasClass("btn-danger")) {
                         $('.tramo[data-reference="' + n + '"]').val('deseleccionado');
-                        $('.tramo[data-reference="' + n + '"]').attr("class", "tramo btn btn-lg btn-light border border-secondary");
+                        $('.tramo[data-reference="' + n + '"]').attr("class", "tramo btn btn-outline-dark");
                     } else {
                         $('.tramo[data-reference="' + n + '"]').val('seleccionado');
-                        $('.tramo[data-reference="' + n + '"]').attr("class", "btn btn-lg btn-danger tramo");
+                        $('.tramo[data-reference="' + n + '"]').attr("class", "btn btn-danger tramo");
                     }
                 } else if ($('.tramo[data-reference="' + n + '"]').val() == "deseleccionado") {
                     $('.tramo[data-reference="' + n + '"]').val('seleccionado');
-                    $('.tramo[data-reference="' + n + '"]').attr("class", "btn btn-lg btn-danger tramo");
+                    $('.tramo[data-reference="' + n + '"]').attr("class", "btn btn-danger tramo");
                 } else {
                     $('.tramo[data-reference="' + n + '"]').val('deseleccionado');
-                    $('.tramo[data-reference="' + n + '"]').attr("class", "tramo btn btn-lg btn-light border border-secondary");
+                    $('.tramo[data-reference="' + n + '"]').attr("class", "tramo btn btn-outline-dark");
                 }
 
                 // Actualizar el campo oculto con los tramos seleccionados
@@ -430,8 +455,6 @@
                 }
             });
 
-
         });
-
     </script>
 {% endblock %}

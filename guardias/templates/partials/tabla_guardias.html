@@ -1,8 +1,11 @@
 {% load static %}
 {% load custom_tags %}
+
 {% block css %}
-<link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
-<link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+
+
+
+<link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
 <style>
 .swal2-container {
     z-index: 2080 !important;
@@ -15,96 +18,9 @@
 {% endblock %}
 
 {% if item_guardias %}
-<div class="modal inmodal fade modal-editar-guardia" id="modaleditarguardia-{{ tramo }}" tabindex="-1" role="dialog" aria-hidden="true">
-   <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span
-               aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-            </button>
-            <h4 class="modal-title">Editar guardia confirmada</h4>
-            <p class="font-bold">Ante cualquier cambio, los tiempos de guardia se recalcularán.</p>
-         </div>
-         <div class="modal-body">
-            <div class="form-group">
-               <h4><label for="profesor-ausente">Añadir nuevo/a profesor/a de guardia:</label>
-               </h4>
-               <div class="input-group">
-                  <select id="profesores-guardia-{{ tramo }}" class="form-control select-profesor">
-                     <option value="" selected disabled>Seleccione un profesor/a</option>
-                     <!-- Opción vacía -->
-                     {% for profesor in profesores_guardia %}
-                     <option value="{{ profesor.id }}">{{ profesor.nombre }}</option>
-                     {% endfor %}
-                  </select>
-                  <div class="profesores-guardia-container"></div>
-                  <span class="input-group-append"> <button type="button" id="agregarprofe" class="btn btn-primary">Añadir
-                  </button> </span>
-               </div>
-            </div>
-            <div class="table-responsive">
-               <table id="profesoresTable" class="table table-bordered">
-                  <thead>
-                     <tr>
-                        <th>Profesor/a</th>
-                        <th>Tiempo asignado (minutos)</th>
-                        <th>Acciones</th>
-                     </tr>
-                  </thead>
-                  <tbody id="profesoresContainer">
-                     <!-- Las filas se agregarán dinámicamente aquí -->
-                  </tbody>
-               </table>
-            </div>
-            <hr>
-         </div>
-         <div class="modal-footer">
-            <button type="button" class="btn btn-white" data-dismiss="modal">Cancelar
-            </button>
-            <button id="btn-editar-guardias" type="button" class="btn btn-primary">Guardar
-            </button>
-         </div>
-      </div>
-   </div>
-</div>
 
-<div class="modal inmodal fade modal-confirmar-guardia" id="modalconfirmarguardia-{{ tramo }}" tabindex="-1" role="dialog" aria-hidden="true">
-   <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span
-               aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-            </button>
-            <h4 class="modal-title">Confirmar guardia</h4>
-            <p class="font-bold">Confirma que los tiempos asignados a cada profesor/a son los correctos, o ajústalos si es necesario.</p>
-            <p class="font-bold">Ten en cuenta que el tiempo total NO debe superar los 60 minutos.</p>
-         </div>
-         <div class="modal-body">
 
-            <div class="table-responsive">
-               <table id="profesoresTable" class="table table-bordered table-striped">
-                  <thead>
-                     <tr>
-                        <th>Profesor/a</th>
-                        <th>Tiempo asignado (minutos)</th>
-                     </tr>
-                  </thead>
-                  <tbody id="profesoresContainer">
-                     <!-- Las filas se agregarán dinámicamente aquí -->
-                  </tbody>
-               </table>
-            </div>
-            <hr>
-         </div>
-         <div class="modal-footer">
-            <button type="button" class="btn btn-white" data-dismiss="modal">Cancelar
-            </button>
-            <button id="btn-confirmar-guardias" type="button" class="btn btn-primary">Confirmar
-            </button>
-         </div>
-      </div>
-   </div>
-</div>
+
 
 <div class="table-responsive">
    <table id="tabla_tramo_{{ tramo }}" class="table table-striped tabla-guardias tabla-tramo">
@@ -130,15 +46,22 @@
             <td></td>
             <td></td>
             {% else %}
-            <td class="text-center"><i class="fa fa-eye" style="cursor: pointer;" aria-hidden="true" data-toggle="popover" data-placement="right" data-content="{{ guardia.Tarea }}"></i></td>
+            <td class="text-center">
+            {% if guardia.Tarea %}
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-icon" data-bs-placement="top" data-bs-toggle="popover" data-bs-trigger="focus" data-bs-content="{{ guardia.Tarea }}" title="Tarea">
+                                        <i class="ti ti-eye fs-lg"></i>
+                                    </button>
+            {% endif %}
+
+            </td>
             <td style="width: 30%;">
                {% if guardia.ProfesorConfirma %}
                <!-- Si la guardia está confirmada, mostrar labels en lugar del select -->
                {% for profesor_data in guardia.profesor_tiempos  %}
-               <span class="label label-primary">{{ profesor_data.profesor.Apellidos }}, {{ profesor_data.profesor.Nombre }} ({{ profesor_data.tiempo_asignado }} m)</span>
+               <span class="badge badge-label text-bg-secondary">{{ profesor_data.profesor.Apellidos }}, {{ profesor_data.profesor.Nombre }} ({{ profesor_data.tiempo_asignado }} m)</span>
                {% endfor %}
                {% else %}
-               <select id="select-profesores-{{ guardia.id }}" style="width: 100% !important;" class="select2 form-control" multiple="multiple">
+               <select id="select-profesores-{{ guardia.id }}" style="width: 100% !important;" class="select2 form-control select2-multiple" multiple="multiple">
                   {% for profesor in profesores_guardia %}
                   <option value="{{ profesor.id }}">{{ profesor.nombre }}</option>
                   {% endfor %}
@@ -147,15 +70,15 @@
             </td>
             {% if guardia.ProfesorConfirma %}
                 <td class="text-center">
-                    <span class="label label-info">{{ guardia.ProfesorConfirma }}</span>
+                    <span class="badge badge-label text-bg-info">{{ guardia.ProfesorConfirma }}</span>
                 </td>
-                <td class="text-center" style="vertical-align: middle;"><button type="button" class="btn btn-warning btn-xs editar-guardia-btn" href="#modal" data-toggle="modal" data-target="#modaleditarguardia-{{ tramo }}"
+                <td class="text-center" style="vertical-align: middle;"><button type="button" class="btn btn-warning btn-sm editar-guardia-btn" href="#modal" data-bs-toggle="modal" data-bs-target="#modaleditarguardia-{{ tramo }}"
                data-item-guardia-id="{{ guardia.id }}" data-guardia="{{ guardia_data }}">Editar</button></td>
             {% else %}
                 <td class="text-center">
-                    <button type="button" class="btn btn-warning btn-xs confirmar-guardia-btn"
+                    <button type="button" id="abrirModalConfirmarGuardia" class="btn btn-warning btn-sm confirmar-guardia-btn"
                   data-item-guardia-id="{{ guardia.id }}"
-                  data-profesor-confirma-id="{{ profesor_confirma.id }}" href="#modal" data-toggle="modal" data-target="#modalconfirmarguardia-{{ tramo }}">Confirmar</button>
+                  data-profesor-confirma-id="{{ profesor_confirma.id }}" href="#modal" data-bs-toggle="modal" data-bs-target="#modalconfirmarguardia-{{ tramo }}">Confirmar</button>
                 </td>
                 <td></td>
             {% endif %}
@@ -168,19 +91,29 @@
 {% else %}
 <div class="ibox text-center">
    <div class="ibox-content">
-      <i class="fa fa-thumbs-o-up fa-3x" aria-hidden="true"></i>
-      <h2>No hay guardias registradas a esta hora.</h2>
+      <i class="ti ti-thumb-up fs-80" aria-hidden="true"></i>
+      <h2 style="font-weight: 100;">No hay guardias registradas a esta hora.</h2>
       <h3>No olvides dar una vuelta por el edificio para asegurarte.</h3>
    </div>
 </div>
 {% endif %}
+
+
+
+{% include "partials/modal_confirmar_guardia.html" %}
+
+{% include "partials/modal_editar_guardia.html" %}
+
+
+
 {% block js %}
-<script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
-<script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+<!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+<!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
 <script>
    $(document).ready(function () {
 
-       $('[data-toggle="popover"]').popover()
 
        // Obtener el token CSRF desde las cookies
        function getCookie(name) {
@@ -200,14 +133,6 @@
 
        const csrftoken = getCookie('csrftoken');
 
-       $('.i-checks').iCheck({
-           checkboxClass: 'icheckbox_square-green',
-           radioClass: 'iradio_square-green',
-       });
-
-       $(".select2").select2({
-           theme: 'bootstrap4',
-       });
 
 
         $('.confirmar-guardia-btn').off('click');
@@ -326,7 +251,7 @@
                                <input type="number" class="form-control tiempo-input" value="${tiempoAsignado}" min="0" max="60">
                            </td>
                            <td>
-                               <button class="btn btn-danger btn-xs borrar-btn">Borrar</button>
+                               <button class="btn btn-danger btn-sm borrar-btn">Borrar</button>
                            </td>
                        </tr>
                    `;
@@ -344,12 +269,16 @@
            });
 
            // Inicializar Select2 solo en los selects dentro de modales con la clase modal-editar-guardia
+/*
            modal.find('.select-profesor').select2({
                width: 'resolve',
                placeholder: 'Selecciona un profesor/a',
-               theme: 'bootstrap4',
-               allowClear: true
+
            });
+
+ */
+
+
        });
 
 
@@ -410,7 +339,7 @@
                        <tr data-profesor-id="${profesorId}">
                            <td>${profesorNombre}</td>
                            <td><input type="number" class="form-control tiempo-input" value="0" min="0" max="60"></td>
-                           <td><button class="btn btn-danger btn-xs borrar-btn">Borrar</button></td>
+                           <td><button class="btn btn-danger btn-sm borrar-btn">Borrar</button></td>
                        </tr>
                    `;
                    // Añadir la fila a la tabla
@@ -672,10 +601,6 @@
             }
 
        });
-
-
-
-
 
    });
 

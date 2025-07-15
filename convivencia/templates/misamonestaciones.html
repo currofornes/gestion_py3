@@ -1,63 +1,85 @@
 {% extends "base.html" %}
+{% load static %}
 {% load grupo_tags %}
-{% load custom_tags %}
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+{% endblock %}
+
+
+
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox">
-                    <div class="ibox-title">
-                        <h2>Mis Amonestaciones</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <h3>Profesor/a: <strong>{{ profesor }}</strong></h3>
-                        {% if historial_actual %}
-
-                            <br/>
-                            <br/>
 
 
-                            <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
-                                <thead>
-                                <tr>
-                                    <th data-toggle="true">N.</th>
-                                    <th>Alumno/a</th>
-                                    <th>Unidad</th>
-                                    <th>Tipo</th>
-                                    <th>Fecha</th>
-                                    <th data-hide="all">Comentario</th>
-                                    <th data-hide="all">Tipo</th>
+        <div class="container-fluid">
+            <div class="page-title-head d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="fs-sm text-uppercase fw-bold m-0">Mis Amonestaciones</h4>
+                </div>
+            </div>
 
-                                    <th data-hide="phone">Tramo horario</th>
-                                    <th data-hide="all">Derivado a Convivencia</th>
-                                    <th data-hide="all">Comunicado a</th>
-                                    <th data-hide="all">Fecha comunicación</th>
-                                    <th data-hide="all">Medio</th>
-                                    <th data-hide="all">Teléfono</th>
-                                    <th data-hide="all">Observaciones</th>
 
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for h,t,n in historial_actual %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header border-light justify-content-between">
+                            <h3 class="card-title mb-1">Profesor/a: <strong>{{ profesor }}</strong></h3>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            {% if historial_actual %}
+                                <table id="child-rows-data" class="table table-striped dt-responsive align-middle mb-0">
+                                    <thead class="thead-sm text-uppercase fs-xxs">
                                     <tr>
-                                        <td>
-                                            {{ n }}
+                                        <th></th>
+                                        <th>N.</th>
+                                        <th>Alumno/a</th>
+                                        <th>Unidad</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha</th>
+                                        <th>Tramo Horario</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    {% for h,t,n in historial_actual %}
+                                        <tr data-profesor="{{ h.Profesor|default:'' }}"
+                                            data-hora="{{ horas|slice:h.Hora|last }}"
+                                            data-comentario="{{ h.Comentario }}"
+                                            data-tipo="{{ h.Tipo }}"
+                                            data-derivado="{{ h.DerivadoConvivencia|yesno:"SÍ,NO" }}"
+                                            data-familiar="{{ h.FamiliarComunicado }}"
+                                            data-fecha="{{ h.FechaComunicado|date:"d/m/Y" }}"
+                                            data-hora-comunicado="{{ h.HoraComunicado }}"
+                                            data-medio="{{ h.get_Medio_display }}"
+                                            data-telefono="{{ h.TelefonoComunicado }}"
+                                            data-observacion="{{ h.ObservacionComunicado }}"
+                                            data-id="{{ h.id }}">
+                                        <td class=" dt-control dt-child-rows-btn dtr-control"><i
+                                            class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>
                                         </td>
-                                        <td>{{ h.IdAlumno.Nombre }} {% if h.IdAlumno.PDC %} (PDC){% endif %} {% if h.IdAlumno.NEAE %} (NEAE){% endif %}</td>
+                                        <td class="sorting_1">{{ n }}</td>
+                                        <td>{{ h.IdAlumno.Nombre }} {% if h.IdAlumno.PDC %} (PDC){% endif %}
+                                            {% if h.IdAlumno.NEAE %} (NEAE){% endif %}</td>
                                         <td>{{ h.IdAlumno.Unidad }}</td>
                                         <td>
+
                                             {% if t == 'Amonestación' %}
                                                 {% if h.Tipo.TipoFalta == 'G' %}
-                                                <span class="label label-warning-warning">Amonestación Grave</span>
-                                                    {% else %}
-                                                    <span class="label label-warning">Amonestación Leve</span>
-                                                    {% endif %}
+                                                    <span class="badge badge-label text-bg-warning-warning">Amonestación Grave</span>
+                                                {% else %}
+                                                    <span class="badge badge-label text-bg-warning">Amonestación Leve</span>
+                                                {% endif %}
                                             {% elif t == 'Sanción' %}
-                                                <span class="label label-danger">{{ t }}</span>
+                                                <span class="badge badge-label text-bg-danger">Sanción</span>
                                             {% endif %}
 
                                         </td>
@@ -68,72 +90,198 @@
                                         {% endif %}
 
 
-
-                                        {% if h.Profesor and prof %}
-                                            <td><strong>{{ h.Profesor }}
-                                                ({{ horas|slice:h.Hora|last }})</strong><br/>{{ h.Comentario }}
-                                            </td>
-
-                                        {% else %}
-                                            <td> {{ h.Comentario }}</td>
-                                        {% endif %}
-
-                                        <td>{{ h.Tipo }}</td>
-
                                         {% if h.Profesor %}
                                             <td>{{ horas|slice:h.Hora|last }}</td>
                                         {% else %}
                                             <td></td>
                                         {% endif %}
 
-                                        {% if h.DerivadoConvivencia %}
-                                            <td>SÍ</td>
-                                        {% else %}
-                                            <td>NO</td>
-                                        {% endif %}
-                                        <td> {{ h.FamiliarComunicado }}</td>
-                                        <td> {{ h.FechaComunicado|date:"d/m/Y" }} {{ h.HoraComunicado }}</td>
-                                        <td> {{ h.get_Medio_display }}</td>
-                                        <td> {{ h.TelefonoComunicado }}</td>
-                                        <td> {{ h.ObservacionComunicado }}</td>
+                                        </tr>
+                                    {% endfor %}
+
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p>No tienes amonestaciones :)</p>
+                            {% endif %}
 
 
-                                    </tr>
-                                {% endfor %}
-
-                                </tbody>
-                                <tfoot>
-                                <tr>
-                                    <td colspan="6">
-                                        <ul class="pagination float-right"></ul>
-                                    </td>
-                                </tr>
-                                </tfoot>
-                            </table>
-                        {% else %}
-                            <p>No tienes amonestaciones :)</p>
-                        {% endif %}
-
+                        </div> <!-- end card-body-->
 
                     </div>
+                    <div class="card-footer border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div data-table-pagination-info="projects"></div>
+                            <div data-table-pagination></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-
-    </div>
-
-
-
+            </div><!-- end col -->
+        </div><!-- end row -->
 
 {% endblock %}
 
 {% block js %}
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
     <script>
-
         $(document).ready(function () {
-            $('.footable').footable();
-        });
 
+            const tabla = $('#child-rows-data').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
+                columns: [
+                    {
+                        className: 'dt-control dt-child-rows-btn',
+                        orderable: false,
+                        data: null,
+                        defaultContent: '<i class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>'
+                    }, null, null, null, null, null, null,
+                ],
+                order: [[1, 'asc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+            });
+
+            // Add event listener for opening and closing details
+            tabla.on('click', 'td.dt-control', function (e) {
+
+                let tr = e.target.closest('tr');
+                let row = tabla.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                } else {
+                    let datos = tr.dataset;
+                    // Open this row
+                    row.child(format(datos)).show();
+                }
+            });
+
+
+            function format(data) {
+                // `d` is the original data object for the row
+                return (
+
+                    '<div class="row align-items-center" style="margin-top: 5px;">' +
+                    '<div class="col-md-12">' +
+                    '<h5 class="fs-base mb-1">Comentario:</h5>' +
+                    `<div>${data.comentario || 'Sin comentario'}</div>` +
+                    '</div>' +
+                    '</div>' +
+
+                    '<div class="row align-items-center" style="margin-top: 5px;">' +
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Profesor/a:</h5>' +
+                    '<div>' + `${data.profesor}` + '</div>' +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Tipo:</h5>' +
+                    `<span class="badge badge-label ${data.status === 'Bullish' ? 'badge-soft-success' : 'badge-soft-danger'}">${data.tipo}</span>` +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Aula convivencia:</h5>' +
+                    `<div>${data.derivado}</div>` +
+                    '</div>' +
+                    '</div>' +
+
+
+                    '<div class="row align-items-center" style="margin-top: 5px;">' +
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Comunicado a:</h5>' +
+                    '<div>' + `${data.familiar}` + '</div>' +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Fecha comunicación:</h5>' +
+                    '<div>' + `${data.fecha} ${data.horaComunicado || ''}` + '</div>' +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Medio:</h5>' +
+                    `<div>${data.medio}</div>` +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Observaciones:</h5>' +
+                    `<div>${data.observacion}</div>` +
+                    '</div>' +
+                    '</div>'
+                );
+            }
+        });
     </script>
 {% endblock %}

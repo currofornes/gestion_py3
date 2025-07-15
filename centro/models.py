@@ -191,6 +191,13 @@ class Alumnos(models.Model):
         fecha_final = date(curso_academico.año_fin, 12, 31)
         return (fecha_final - self.Fecha_nacimiento).years
 
+    @property
+    def edad_actual(self):
+        hoy = date.today()
+        nacimiento = self.Fecha_nacimiento
+        edad = hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day))
+        return edad
+
     class Meta:
         verbose_name = "Alumno"
         verbose_name_plural = "Alumnos"
@@ -233,6 +240,7 @@ class Materia(models.Model):
     nombre_horarios = models.CharField(max_length=100, blank=True)  # Para uso futuro en horarios
     horas = models.PositiveSmallIntegerField(default=0)    # Número de horas semanales
     nivel = models.ForeignKey('Niveles', on_delete=models.CASCADE)  # Nivel educativo (1º ESO, etc.)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.abr} - {self.nombre}"
@@ -246,6 +254,7 @@ class MateriaImpartida(models.Model):
     profesor = models.ForeignKey(Profesores, on_delete=models.CASCADE)
     materia = models.ForeignKey(Materia, on_delete=models.CASCADE)
     curso = models.ForeignKey(Cursos, on_delete=models.CASCADE)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.profesor} imparte {self.materia} en {self.curso}"
@@ -259,6 +268,7 @@ class MateriaImpartida(models.Model):
 class MatriculaMateria(models.Model):
     alumno = models.ForeignKey(Alumnos, on_delete=models.CASCADE)
     materia_impartida = models.ForeignKey(MateriaImpartida, on_delete=models.CASCADE)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.alumno.Nombre} matriculado en {self.materia_impartida.materia.nombre} ({self.materia_impartida.curso})"
@@ -282,9 +292,10 @@ class LibroTexto(models.Model):
     es_digital = models.BooleanField(default=False)
     incluir_en_cheque_libro = models.BooleanField(default=False)
     es_otro_material = models.BooleanField(default=False)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.materia.nombre} - {self.titulo or 'Sin título'}"
+        return f"{self.titulo or 'Sin título'}"
 
 
 class MomentoRevisionLibros(models.Model):

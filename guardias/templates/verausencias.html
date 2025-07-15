@@ -1,120 +1,267 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block css %}
-    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
-
-    <style>
-        .swal2-container {
-            z-index: 2080 !important;
-        }
-
-        .swal2-backdrop-show {
-            z-index: 2075 !important;
-        }
-    </style>
-{% endblock %}
+{% load grupo_tags %}
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+
+{% endblock %}
+
+
+
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h2>Listado de Ausencias</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered dataTables-ausencias"
-                                   style="border-collapse: separate !important;">
-                                <thead>
-                                <tr>
-                                    <td class="text-center"><strong>Fecha</strong></td>
-                                    <td class="text-center"><strong>Día semana</strong></td>
-                                    <td class="text-center"><strong>Profesor</strong></td>
-                                    <td class="text-center"><strong>Tramos ausente</strong></td>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for a in datos_agrupados %}
-                                    <tr class="text-center">
-                                        <td style="vertical-align: middle;">{{ a.fecha }}</td>
-                                        <td style="vertical-align: middle;">{{ a.diasemana }}</td>
-                                        <td style="vertical-align: middle;">{{ a.profesor }}</td>
-                                        <!-- Añadimos el profesor -->
-                                        <td style="vertical-align: middle;">
-                                            <button class="btn btn-info"
-                                                    onclick="mostrarDetalles(this, '{{ a.fecha }}', '{{ a.profesor_id }}', '{{ a.profesor }}')">{{ a.tramos_ausente }}
-                                                tramo/s
-                                            </button>
-                                        </td>
-                                        <td>
-
-                                            <button class="btn btn-danger eliminar-itemguardia"
-                                                    data-fecha="{{ a.fecha }}"
-                                                    data-profesor="{{ a.profesor }}"
-                                                    data-profesorid="{{ a.profesor_id }}">Borrar
-                                            </button>
 
 
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Listado de ausencias del profesorado</h4>
             </div>
         </div>
 
-    </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+
+
+                    <div class="card-body">
+
+                        <table class="table table-striped table-bordered table-hover dt-responsive align-middle mb-0 dataTables-ausencias">
+                            <thead class="thead-sm text-uppercase fs-xxs">
+
+                            <tr>
+                                <th class="text-center">Fecha</th>
+                                <th class="text-center">Día semana</th>
+                                <th class="text-center">Profesor/a</th>
+                                <th class="text-center">Tramos ausente</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+
+
+                            </thead>
+                            <tbody>
+                            {% for a in datos_agrupados %}
+                                <tr class="text-center">
+                                    <td style="vertical-align: middle;">{{ a.fecha }}</td>
+                                    <td style="vertical-align: middle;">{{ a.diasemana }}</td>
+                                    <td style="vertical-align: middle;">{{ a.profesor }}</td>
+                                    <!-- Añadimos el profesor -->
+                                    <td style="vertical-align: middle;">
+                                        <button class="btn btn-info"
+                                                onclick="mostrarDetalles(this, '{{ a.fecha }}', '{{ a.profesor_id }}', '{{ a.profesor }}')">{{ a.tramos_ausente }}
+                                            tramo/s
+                                        </button>
+                                    </td>
+                                    <td>
+
+                                        <button class="btn btn-danger eliminar-itemguardia"
+                                                data-fecha="{{ a.fecha }}"
+                                                data-profesor="{{ a.profesor }}"
+                                                data-profesorid="{{ a.profesor_id }}">Borrar
+                                        </button>
+
+
+                                    </td>
+                                </tr>
+                            {% endfor %}
+
+
+                            </tbody>
+                        </table>
+
+
+                    </div> <!-- end card-body-->
+
+                </div>
+                <div class="card-footer border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div data-table-pagination-info="projects"></div>
+                        <div data-table-pagination></div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end col -->
+    </div><!-- end row -->
 
     <!-- Modal para mostrar los detalles -->
-    <div id="detallesModal" class="modal inmodal fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg modal-xxl">
+    <div id="detallesModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h5 class="modal-title">Detalles de las Ausencias</h5>
-                    <h3>Fecha: <span id="fecha-modal"></span></h3>
-                    <h3>Profesor: <span id="profesor-modal"></span></h3> <!-- Añadimos el profesor al modal -->
+
+                <div class="modal-header text-center">
+                    <h2 class="modal-title">Detalles de las Ausencias</h2>
+                    <h4 class="fw-semibold">Fecha: <span id="fecha-modal"></span></h4>
+                    <h4 class="text-secondary">Profesor/a: <span id="profesor-modal"></span></h4>
+                    <!-- Añadimos el profesor al modal -->
                 </div>
+
                 <div class="modal-body">
                     <div id="detallesContenido"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
+
+
+    <div class="modal fade" id="modalausencia" tabindex="-1" role="dialog"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h2 class="modal-title">Notificación Nueva ausencia</h2>
+                    <p class="fw-semibold">Esta ausencia quedará registrada en el parte de guardias.</p>
+                </div>
+                <div class="modal-body">
+
+                    <h4>Profesor/a ausente: <strong>{{ profesor }}</strong></h4>
+
+                    <div class="form-group mt-3" id="data_2">
+                        <h5><label class="fw-semibold">Selecciona una fecha:</label></h5>
+
+                        <div class="input-group date">
+                            <span class="input-group-text" id="basic-addon1"><i class="ti ti-calendar"></i></span>
+                            <input type="text"
+                                   class="form-control" autocomplete="off" aria-label="Fecha"
+                                   aria-describedby="basic-addon1"
+                                   id="fecha-ausencia"/>
+                        </div>
+                    </div>
+
+                    <div id="horario-items">
+                        <!-- Aquí se mostrarán los items de horario devueltos por AJAX -->
+                    </div>
+
+                    <hr>
+                    <p>Selecciona una fecha y <strong>MARCA</strong> los tramos en los que te vas a
+                        ausentar. Una vez marcado, se habilita el campo para describir la tarea que
+                        deben realizar los alumnos.</p>
+                    <p>Si la fila del tramo aparece sombreada en <strong
+                            style="background-color: #f6ccba;">ROJO</strong>, es porque la ausencia
+                        ese día y en ese tramo ya fue registrada anteriormente.</p>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-bs-dismiss="modal">Cancelar
+                    </button>
+                    <button id="guardar-ausencias" type="button" class="btn btn-primary">Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="modal fade" id="modaleditarausencia" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h2 class="modal-title">Modificar ausencia</h2>
+                    <p class="fw-semibold">Esta ausencia quedará modificada en el parte de guardias.</p>
+                </div>
+
+                <div class="modal-body">
+                    <h4>Profesor/a ausente: <strong>{{ profesor }}</strong></h4>
+
+                    <div id="horario-items-modificar">
+                        <!-- Aquí se mostrarán los items de horario devueltos por AJAX -->
+                    </div>
+
+                    <hr>
+                    <p>Asegúrate de <strong>MARCAR</strong> solo los tramos en los que te vas a
+                        ausentar. Una vez marcado, se habilita el campo para describir la tarea que
+                        deben realizar los alumnos.</p>
+                    <p><strong>IMPORTANTE: </strong>Los tramos que no estén marcados serán <strong>ELIMINADOS </strong>
+                        del parte de guardias.</p>
+
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-bs-dismiss="modal">Cancelar
+                    </button>
+                    <button id="editar-ausencias" type="button" class="btn btn-primary">Modificar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
-    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
-    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
 
     <script>
-        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
 
-        let botonActivador;
-        var numTramos = 0;
+        jQuery.extend(jQuery.fn.dataTable.ext.type.order, {
+            "date-eu-pre": function (date) {
+                // Si la fecha está vacía o mal formada, devolvemos valor alto para dejarla al final
+                if (!date || date.trim() === '') {
+                    return 0;
+                }
+
+                const eu_date = date.split('/');
+                // dd/mm/yyyy → yyyy+mm+dd como número
+                return (eu_date[2] + eu_date[1] + eu_date[0]) * 1;
+            },
+            "date-eu-asc": function (a, b) {
+                return a - b;
+            },
+            "date-eu-desc": function (a, b) {
+                return b - a;
+            }
+        });
 
 
         $(document).ready(function () {
 
 
-            $('#detallesModal').on('hidden.bs.modal', function () {
-                botonActivador.text(`${numTramos} tramo/s`);
-            });
+            let botonActivador;
+            var numTramos = 0;
+
 
             $('.eliminar-itemguardia').on('click', function () {
                 const fecha = $(this).data('fecha');
@@ -170,7 +317,71 @@
                 });
             });
 
-            $('#detallesModal').on('click', '.eliminar-itemguardia-tramo', function(event) {
+            $('.dataTables-ausencias').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
+                columnDefs: [
+                    {
+                        targets: 0, // primera columna
+                        type: 'date-eu'
+                    }
+                ],
+
+                order: [[0, 'desc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+            });
+
+            $('#detallesModal').on('click', '.eliminar-itemguardia-tramo', function (event) {
                 event.preventDefault();  // Evitar el envío del formulario automáticamente
                 const fecha = $(this).data('fecha');
                 const profesorId = $(this).data('profesor');
@@ -247,59 +458,23 @@
             });
 
 
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
+            $('#detallesModal').on('hidden.bs.modal', function () {
+                const $modal = $(this);
+                const $boton = $modal.data('boton');
+                const numTramos = $modal.data('numTramos');
+
+                if ($boton && typeof numTramos !== 'undefined') {
+                    $boton.text(`${numTramos} tramo/s`);
+                }
             });
 
-            $('.dataTables-ausencias').DataTable({
-                language: {
-                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                },
-                pageLength: 50,
-                order: [[0, 'desc']], // Ordenar por la primera columna (Fecha)
-                scrollX: false,
-                scrollCollapse: true,
-                responsive: true,
-                dom: '<"html5buttons"B>lTfgitp',
-                columnDefs: [
-                    {
-                        targets: 0, // Índice de la columna de fecha
-                        type: 'date', // Define el tipo de la columna como fecha
-                        render: function (data, type, row) {
-                            if (type === 'sort') {
-                                // Convertir dd/mm/YYYY a YYYY-MM-DD para ordenación
-                                let parts = data.split('/');
-                                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                            }
-                            return data; // Retornar el dato original para visualización
-                        }
-                    }
-                ],
-                buttons: [
-                    {extend: 'copy'},
-                    {extend: 'csv'},
-                    {extend: 'excel', title: 'Ausencias'},
-                    {extend: 'pdf', title: 'Ausencias'},
-
-                    {
-                        extend: 'print',
-                        customize: function (win) {
-                            $(win.document.body).addClass('white-bg');
-                            $(win.document.body).css('font-size', '10px');
-
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                        }
-                    }
-                ]
-            });
 
         });
 
+
         function mostrarDetalles(boton, fecha, profesor_id, profesor) {
             botonActivador = $(boton);
+            const $boton = $(boton);
             const fechaFormato = fecha.split('-').reverse().join('/');
             const profesorId = profesor_id;
             const profesorFormato = profesor;
@@ -311,7 +486,7 @@
                     'profesor': profesorId
                 },
                 success: function (data) {
-                    let detallesHtml = `<div class="table-responsive ibox">
+                    let detallesHtml = `<div class="table-responsive">
                                         <table class="table table-striped" id="tabla-detalles">
                                             <thead>
                                             <tr>
@@ -333,7 +508,7 @@
                         let profesoresGuardia = '';
 
                         item.profesores_guardia.forEach(function (profesor) {
-                            profesoresGuardia += `<span class="label label-primary">${profesor}</span><br>`;
+                            profesoresGuardia += `<span class="badge badge-label text-bg-primary">${profesor}</span><br>`;
                         });
 
 
@@ -343,8 +518,8 @@
                                 <td style="vertical-align: middle;">${item.unidad}</td>
                                 <td style="vertical-align: middle;">${item.aula}</td>
                                 <td style="vertical-align: middle;">${profesoresGuardia}</td>
-                                <td style="vertical-align: middle;">${item.profesor_notifica}</td>
-                                <td style="vertical-align: middle;">${item.profesor_confirma}</td>
+                                <td style="vertical-align: middle;"><span class="badge badge-label text-bg-secondary">${item.profesor_notifica}</span></td>
+                                <td style="vertical-align: middle;"><span class="badge badge-label text-bg-info">${item.profesor_confirma}</span></td>
                                 <td style="vertical-align: middle;">
                                     <button class="btn btn-danger eliminar-itemguardia-tramo"
                                                     data-fecha=${fecha}
@@ -365,6 +540,9 @@
                     $('#fecha-modal').html(fechaFormato);
                     $('#profesor-modal').html(profesorFormato);
 
+                    $('#detallesModal').data('boton', $boton);
+                    $('#detallesModal').data('numTramos', data.length);
+
                     $('#detallesModal').modal('show');
                 },
                 error: function () {
@@ -373,9 +551,11 @@
             });
         }
 
-        function refrescarDetalles(fecha, profesor_id, boton) {
+        function refrescarDetalles(fecha, profesor_id) {
             const profesorId = profesor_id;
-            const botonTramos = boton;
+
+
+            const $boton = $('#detallesModal').data('boton');
 
             $.ajax({
                 url: "{% url 'obtener_itemguardia_por_fecha_y_profe' %}",
@@ -384,7 +564,7 @@
                     'profesor': profesorId
                 },
                 success: function (data) {
-                    let detallesHtml = `<div class="table-responsive ibox">
+                    let detallesHtml = `<div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
                                             <tr>
@@ -406,7 +586,7 @@
                         let profesoresGuardia = '';
 
                         item.profesores_guardia.forEach(function (profesor) {
-                            profesoresGuardia += `<span class="label label-primary">${profesor}</span><br>`;
+                            profesoresGuardia += `<span class="badge badge-label text-bg-primary">${profesor}</span><br>`;
                         });
 
 
@@ -416,8 +596,8 @@
                                 <td style="vertical-align: middle;">${item.unidad}</td>
                                 <td style="vertical-align: middle;">${item.aula}</td>
                                 <td style="vertical-align: middle;">${profesoresGuardia}</td>
-                                <td style="vertical-align: middle;">${item.profesor_notifica}</td>
-                                <td style="vertical-align: middle;">${item.profesor_confirma}</td>
+                                <td style="vertical-align: middle;"><span class="badge badge-label text-bg-secondary">${item.profesor_notifica}</span></td>
+                                <td style="vertical-align: middle;"><span class="badge badge-label text-bg-info">${item.profesor_confirma}</span></td>
                                 <td style="vertical-align: middle;">
                                     <button class="btn btn-danger eliminar-itemguardia-tramo"
                                                     data-fecha=${fecha}
@@ -435,6 +615,9 @@
                     $('#detallesContenido').html(detallesHtml);
 
                     numTramos = data.length;
+
+                    $('#detallesModal').data('boton', $boton);
+                    $('#detallesModal').data('numTramos', data.length);
                 },
                 error: function () {
                     alert('Error al obtener los detalles.');

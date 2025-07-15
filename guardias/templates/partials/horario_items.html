@@ -1,13 +1,12 @@
 {% load static %}
 
 {% block css %}
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
 
 {% endblock %}
 
 {% if items_horario %}
 
-    <h4>Día seleccionado: <span>{{ fecha }}</span></h4><br>
+    <h5 class="fw-semibold mb-2 mt-2 text-center">Día seleccionado: <span>{{ fecha }}</span></h5>
     <div class="table-responsive">
         <table class="table table-striped">
             <thead>
@@ -27,7 +26,12 @@
                 class="{% if item.guardia_exists %}disabled{% endif %}"
                     {% if item.guardia_exists %}data-toggle="tooltip" data-placement="top" title="Este tramo ya está registrado en el parte de guardia"{% endif %}>
                     <td style="vertical-align: middle;">
-                        <input type="checkbox" class="i-checks seleccion" name="input[]" data-tramo="{{ item.tramo }}">
+
+                        <div class="form-check fs-xl mb-2">
+                            <input type="checkbox" class="form-check-input mt-1 seleccion" name="input[]" data-tramo="{{ item.tramo }}">
+                        </div>
+
+
                     </td>
                     <td style="vertical-align: middle;">{{ item.tramo }}</td>
                     <td style="vertical-align: middle;">{{ item.materia }}</td>
@@ -50,25 +54,20 @@
 
 {% block js %}
 
-    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
     <script>
         $(document).ready(function () {
 
             $('[data-toggle="tooltip"]').tooltip();
 
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            }).on('ifChecked', function (event) {
-                // Cuando el checkbox se marca
+            $(document).on('change', '.form-check-input', function () {
                 var row = $(this).closest('tr'); // Encuentra la fila actual
-                var tareaInput = row.find('.tarea-input'); // Encuentra el campo de tarea en esa fila
-                tareaInput.prop('disabled', false); // Habilita el campo de texto
-            }).on('ifUnchecked', function (event) {
-                // Cuando el checkbox se desmarca
-                var row = $(this).closest('tr'); // Encuentra la fila actual
-                var tareaInput = row.find('.tarea-input'); // Encuentra el campo de tarea en esa fila
-                tareaInput.prop('disabled', true); // Deshabilita el campo de texto
+                var tareaInput = row.find('.tarea-input'); // Encuentra el campo de texto asociado
+
+                if ($(this).is(':checked')) {
+                    tareaInput.prop('disabled', false); // Habilita el input si está marcado
+                } else {
+                    tareaInput.prop('disabled', true); // Lo deshabilita si está desmarcado
+                }
             });
         });
 

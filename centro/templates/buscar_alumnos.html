@@ -1,166 +1,122 @@
 {% extends "base.html" %}
 {% load static %}
+{% load grupo_tags %}
 
-{% block css %}
-    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
-{% endblock %}
+{% block title %}Centro{% endblock %}
+
 
 {% block content %}
 
-    <div id="dynamic-content">
+    <div class="container-fluid">
+
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Búsqueda general de alumnado</h4>
+            </div>
+        </div>
 
         <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox">
-                    <div class="ibox-title">
-                        <h2>Búsqueda general de alumnos/as</h2>
-                    </div>
-                    <div class="ibox-content">
-                        {% if resultados %}
-                            <h3>
-                                {{ num_resultados }} resultado/s encontrado/s para: <span class="text-navy">“{{ query }}”</span>
-                            </h3>
-                            <small>Tiempo búsqueda ({{ tiempo_busqueda }} segundos)</small>
-                        {% endif %}
-                        <div class="search-form">
-
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-block">
+                        <div class="text-center w-md-75 w-xl-50 mx-auto py-3">
                             <form method="post" action="{% url 'busqueda' %}">
                                 {% csrf_token %}
-                                <div class="input-group mb-3">
-                                    <input type="text" name="q" class="form-control"
-                                           placeholder="Buscar por Nombre, DNI, NIE o email"
-                                           value="{{ query }}" aria-label="Buscar por Nombre, DNI, NIE o email"
-                                           aria-describedby="button-addon2">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-primary" type="submit" id="button-addon2">Buscar</button>
-                                    </div>
+                                <div class="app-search app-search-pill input-group mb-3 rounded-pill">
+
+                                    <input type="text" name="q"
+                                           class="form-control bg-light-subtle border-light py-2 fw-semibold"
+                                           value="{{ query }}" placeholder="Buscar por Nombre, DNI, NIE o email...">
+                                    <i data-lucide="search" class="app-search-icon text-muted"></i>
+                                    <button class="btn btn-secondary" type="submit">Buscar</button>
+
                                 </div>
                             </form>
-
                         </div>
-                        <div class="hr-line-dashed"></div>
+                    </div>
 
+                    <div class="card-header border-light justify-content-between">
+                        <h4 class="fst-italic text-muted mb-0">
+                            Encontrados <span class="fw-bold badge badge-soft-danger">{{ num_resultados }}</span>
+                            resultados para <span class="text-dark">"{{ query }}"</span>
+                            <small>Tiempo búsqueda ({{ tiempo_busqueda }} segundos)</small>
+                        </h4>
 
-                        <!-- Resultados de búsqueda -->
-                        {% if resultados %}
-                            <h2>Resultados de la búsqueda</h2>
-                            <ul>
-                                {% for alumno in resultados %}
+                    </div>
 
-                                    <div class="forum-item active">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <a href="/convivencia/historial/{{ alumno.id }}/" class="forum-item-title">{{ alumno.Nombre }} {% if alumno.PDC %} (PDC){% endif %} {% if alumno.NEAE %} (NEAE){% endif %}</a>
-                                                <div class="forum-sub-title">Fecha de
-                                                    nacimiento: {{ alumno.Fecha_nacimiento|date:"d/m/Y" }}
-                                                </div>
+                    <div class="card-body p-0">
+                        {% for alumno in resultados %}
+                            <div class="border-bottom border-dashed px-4 py-3">
+                                <div class="forum-item active">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <h4 class="fs-md mb-1">
+                                                <a href="/convivencia/historial/{{ alumno.id }}/"
+                                                   class="forum-item-title">{{ alumno.Nombre }} {% if alumno.PDC %}
+                                                    (PDC){% endif %} {% if alumno.NEAE %} (NEAE){% endif %}</a>
+
+                                            </h4>
+                                            <div class="forum-sub-title">Fecha de
+                                                nacimiento: {{ alumno.Fecha_nacimiento|date:"d/m/Y" }}
                                             </div>
-                                            <div class="col-md-2 forum-info">
-                                        <span class="views-number">
+                                        </div>
+                                    
+                                        <div class="col-md-2 forum-info">
+                                        <h4 class="link-dark fw-semibold lh-sm d-block">
+                                            {{ alumno.edad_actual }} años
+                                        </h4>
+                                            <div class="text-muted text-uppercase mb-2 fw-semibold">
+                                                <p>Edad actual</p>
+                                            </div>
+                                        </div>
+                                    
+                                        <div class="col-md-2 forum-info">
+                                        <h4 class="link-dark fw-semibold lh-sm d-block">
                                             {% if alumno.Unidad %}
                                                 {{ alumno.Unidad }}
                                             {% else %}
                                                 Sin asignar
                                             {% endif %}
-                                        </span>
-                                                <div>
-                                                    <small>Unidad</small>
-                                                </div>
+                                        </h4>
+                                            <div class="text-muted text-uppercase mb-2 fw-semibold">
+                                                <p>Unidad</p>
                                             </div>
-                                            <div class="col-md-2 forum-info">
-                                        <span class="views-number">
+                                        </div>
+                                        <div class="col-md-2 forum-info">
+                                        <h4 class="link-dark fw-semibold lh-sm d-block">
                                             {% if alumno.DNI %}
                                                 {{ alumno.DNI }}
                                             {% else %}
                                                 - - -
                                             {% endif %}
-                                        </span>
-                                                <div>
-                                                    <small>DNI</small>
-                                                </div>
+                                        </h4>
+                                            <div>
+                                                <p class="text-muted text-uppercase mb-2 fw-semibold">DNI</p>
                                             </div>
-                                            <div class="col-md-2 forum-info">
-                                        <span class="views-number">
+                                        </div>
+                                        <div class="col-md-2">
+                                        <h4 class="link-dark fw-semibold lh-sm d-block">
                                             {% if alumno.NIE %}
                                                 {{ alumno.NIE }}
                                             {% else %}
                                                 - - -
                                             {% endif %}
-                                        </span>
-                                                <div>
-                                                    <small>NIE</small>
-                                                </div>
+                                        </h4>
+                                            <div>
+                                                <p class="text-muted text-uppercase mb-2 fw-semibold">NIE</p>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        {% endfor %}
 
-                                {% endfor %}
-                            </ul>
-                        {% elif query %}
-                            <p>No se encontraron resultados para la búsqueda "{{ query }}".</p>
-                        {% else %}
-
-                            <p>Empieza a buscar</p>
-                        {% endif %}
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
+                    </div> <!-- end card-body-->
+                </div> <!-- end card-->
+            </div> <!-- end col-->
+        </div> <!-- end row-->
 
     </div>
-
-
-{% endblock %}
-
-{% block js %}
-    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
-    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
-    <script>
-
-        // Upgrade button class name
-        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
-
-        $(document).ready(function () {
-            $(".select2_unidad").select2({
-                theme: 'bootstrap4',
-            });
-
-            $('.dataTables-alumnos').DataTable({
-                language: {
-                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                },
-                pageLength: 50,
-                responsive: true,
-                dom: '<"html5buttons"B>lTfgitp',
-                buttons: [
-                    {extend: 'copy'},
-                    {extend: 'csv'},
-                    {extend: 'excel', title: 'Alumnos'},
-                    {extend: 'pdf', title: 'Alumnos'},
-
-                    {
-                        extend: 'print',
-                        customize: function (win) {
-                            $(win.document.body).addClass('white-bg');
-                            $(win.document.body).css('font-size', '10px');
-
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                        }
-                    }
-                ],
-                columnDefs: [
-                    {type: 'num', targets: 0},  // Indica que la primera columna (índice 0) es de tipo numérico
-                ]
-
-            });
-
-        });
-
-    </script>
+    <!-- container -->
 {% endblock %}
 

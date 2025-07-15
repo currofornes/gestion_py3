@@ -1,378 +1,588 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block css %}
-    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
-{% endblock %}
+{% load grupo_tags %}
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+
+{% endblock %}
+
+
+
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
+
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Incidencias TIC</h4>
+            </div>
+        </div>
+
 
         <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h2>Incidencias TIC</h2>
-                    </div>
-                    <div class="ibox-content">
+            <div class="col-12">
+                <div class="card">
 
-                        <div class="tabs-container">
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li><a class="nav-link active" data-toggle="tab" href="#tab-pendientes">
-                                    <span class="label label-warning">PENDIENTES</span></a></li>
-                                <li><a class="nav-link" data-toggle="tab" href="#tab-resueltas"><span
-                                        class="label label-primary">RESUELTAS</span></a>
-                                </li>
-                            </ul>
-                            <div class="tab-content">
-                                <div id="tab-pendientes" class="tab-pane active">
-                                    <div class="panel-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-striped table-bordered dataTables-incidencias-pendientes">
-                                                <thead>
+                    <div class="card-body">
 
-                                                <tr>
-                                                    <td class="text-center"><strong>ID</strong></td>
-                                                    <td class="text-center"><strong>Prioridad</strong></td>
-                                                    <td class="text-center"><strong>Descripción</strong></td>
-                                                    <td class="text-center"><strong>Fecha</strong></td>
-                                                    <td class="text-center"><strong>Aula</strong></td>
-                                                    <td class="text-center"><strong>Elementos</strong></td>
-                                                    <td class="text-center"><strong>Profesor/a</strong></td>
-                                                    <td class="text-center"><strong>Acciones</strong></td>
-                                                </tr>
+                        <ul class="nav nav-tabs nav-bordered mb-3">
+                            <li class="nav-item">
+                                <a href="#tab-pendientes" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                                    <span class="badge badge-label text-bg-warning">PENDIENTES</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#tab-resueltas" data-bs-toggle="tab" aria-expanded="true"
+                                   class="nav-link active">
+                                    <span class="badge badge-label text-bg-primary">RESUELTAS</span>
+                                </a>
+                            </li>
+                        </ul>
 
+                        <div class="tab-content">
+                            <div class="tab-pane show active" id="tab-pendientes">
+                                <table class="table table-striped table-bordered table-hover dt-responsive align-middle mt-2 mb-0 dataTables-incidencias-pendientes">
+                                    <thead class="thead-sm text-uppercase fs-xxs">
 
-                                                </thead>
-                                                <tbody>
-                                                {% for l in incidencias_pendientes %}
-                                                    <tr>
-                                                        <td style="text-align: center; vertical-align: middle;"
-                                                            class="text-center">{{ l.id }}</td>
+                                    <tr>
+                                        <th class="text-center">ID</th>
+                                        <th class="text-center">Prioridad</th>
+                                        <th class="text-center">Descripción</th>
+                                        <th class="text-center">Fecha</th>
+                                        <th class="text-center">Aula</th>
+                                        <th class="text-center">Elementos</th>
+                                        <th class="text-center">Profesor</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
 
+                                    </thead>
+                                    <tbody>
+                                    {% for l in incidencias_pendientes %}
+                                        <tr>
+                                            <td style="text-align: center; vertical-align: middle;"
+                                                class="text-center">{{ l.id }}</td>
 
+                                            {% if l.prioridad.nombre == "Alta" %}
+                                                <td style="text-align: center; vertical-align: middle;"><span
+                                                        class="badge badge-label text-bg-danger">{{ l.prioridad.nombre }}</span>
+                                                </td>
+                                            {% elif l.prioridad.nombre == "Media" %}
+                                                <td style="text-align: center; vertical-align: middle;"><span
+                                                        class="badge badge-label text-bg-warning">{{ l.prioridad.nombre }}</span>
+                                                </td>
+                                            {% elif l.prioridad.nombre == "Baja" %}
+                                                <td style="text-align: center; vertical-align: middle;"><span
+                                                        class="badge badge-label text-bg-primary">{{ l.prioridad.nombre }}</span>
+                                                </td>
+                                            {% else %}
+                                                <td style="text-align: center; vertical-align: middle;"><span
+                                                        class="badge badge-label text-bg-info">{{ l.prioridad.nombre }}</span>
+                                                </td>
+                                            {% endif %}
 
-                                                        {% if l.prioridad.nombre == "Alta" %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-danger">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% elif l.prioridad.nombre == "Media" %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-warning">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% elif l.prioridad.nombre == "Baja" %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-success">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% else %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-info">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% endif %}
+                                            <td>{{ l.comentario }}</td>
+                                            <td style="text-align: center; vertical-align: middle;">{{ l.fecha|date:"d/m/Y" }}</td>
+                                            <td style="text-align: center; vertical-align: middle;">{{ l.aula }}</td>
 
-                                                        <td>{{ l.comentario }}</td>
-                                                        <td style="text-align: center; vertical-align: middle;">{{ l.fecha|date:"d/m/Y" }}</td>
-                                                        <td style="text-align: center; vertical-align: middle;">{{ l.aula }}</td>
-
-                                                        <td style="text-align: center; vertical-align: middle;">
-                                                            {% for elemento in l.elementos.all %}
-                                                                {{ elemento.nombre }}{% if not forloop.last %},
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                        </td>
-                                                        <td style="text-align: center; vertical-align: middle;">{{ l.profesor }}</td>
-                                                        <td style="text-align: center; vertical-align: middle;">
-                                                            <a class="btn btn-primary btn-bitbucket resolver-pendiente"
-                                                               style="color: white" data-toggle="tooltip"
-                                                               data-placement="top" title="Resolver"
-                                                               data-id="{{ l.id }}">
-                                                                <i class="fa fa-check"></i>
-                                                            </a>
-                                                            <a class="btn btn-danger btn-bitbucket borrar-pendiente"
-                                                               style="color: white" data-toggle="tooltip"
-                                                               data-placement="top" title="Borrar" data-id="{{ l.id }}">
-                                                                <i class="fa fa-trash"></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-
+                                            <td style="text-align: center; vertical-align: middle;">
+                                                {% for elemento in l.elementos.all %}
+                                                    {{ elemento.nombre }}{% if not forloop.last %},
+                                                    {% endif %}
                                                 {% endfor %}
+                                            </td>
+                                            <td style="text-align: center; vertical-align: middle;">{{ l.profesor }}</td>
+                                            <td style="text-align: center; vertical-align: middle;">
+                                                <a class="btn btn-primary btn-icon resolver-pendiente"
+                                                   style="color: white" data-bs-toggle="tooltip"
+                                                   data-bs-placement="top" data-bs-title="Resolver"
+                                                   data-id="{{ l.id }}">
+                                                    <i class="ti ti-check"></i>
+                                                </a>
+                                                <a class="btn btn-danger btn-icon borrar-pendiente"
+                                                   style="color: white" data-bs-toggle="tooltip"
+                                                   data-bs-placement="top" data-bs-title="Borrar" data-id="{{ l.id }}">
+                                                    <i class="ti ti-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="tab-pane" id="tab-resueltas">
+                                <table class="table table-striped table-bordered table-hover dt-responsive align-middle mt-2 mb-0 dataTables-incidencias-resueltas">
+                                    <thead class="thead-sm text-uppercase fs-xxs">
+
+                                    <tr>
+                                        <th class="text-center">ID</th>
+                                        <th class="text-center">Prioridad</th>
+                                        <th class="text-center">Descripción</th>
+                                        <th class="text-center">Fecha</th>
+                                        <th class="text-center">Aula</th>
+                                        <th class="text-center">Elementos</th>
+                                        <th class="text-center">Profesor</th>
+                                        <th class="text-center">Solución</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+
+                                    </thead>
+                                    <tbody>
+                                    {% for l in incidencias_resueltas %}
+                                        <tr>
+                                            <td style="text-align: center; vertical-align: middle;"
+                                                class="text-center">{{ l.id }}</td>
 
 
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div id="tab-resueltas" class="tab-pane active">
-                                    <div class="panel-body">
-                                        <div class="table-responsive" style="display: none;">
-                                            <table class="table table-striped table-bordered dataTables-incidencias-resueltas">
-                                                <thead>
 
-                                                <tr>
-                                                    <td class="text-center"><strong>ID</strong></td>
-                                                    <td class="text-center"><strong>Prioridad</strong></td>
-                                                    <td class="text-center"><strong>Descripción</strong></td>
-                                                    <td class="text-center"><strong>Fecha</strong></td>
-                                                    <td class="text-center"><strong>Aula</strong></td>
-                                                    <td class="text-center"><strong>Elementos</strong></td>
-                                                    <td class="text-center"><strong>Profesor/a</strong></td>
-                                                    <td class="text-center"><strong>Solución</strong></td>
-                                                    <td class="text-center"><strong>Acciones</strong></td>
-                                                </tr>
+                                            {% if l.prioridad.nombre == "Alta" %}
+                                                <td style="text-align: center; vertical-align: middle;"><span
+                                                        class="badge badge-label text-bg-danger">{{ l.prioridad.nombre }}</span>
+                                                </td>
+                                            {% elif l.prioridad.nombre == "Media" %}
+                                                <td style="text-align: center; vertical-align: middle;"><span
+                                                        class="badge badge-label text-bg-warning">{{ l.prioridad.nombre }}</span>
+                                                </td>
+                                            {% elif l.prioridad.nombre == "Baja" %}
+                                                <td style="text-align: center; vertical-align: middle;"><span
+                                                        class="badge badge-label text-bg-primary">{{ l.prioridad.nombre }}</span>
+                                                </td>
+                                            {% else %}
+                                                <td style="text-align: center; vertical-align: middle;"><span
+                                                        class="badge badge-label text-bg-info">{{ l.prioridad.nombre }}</span>
+                                                </td>
+                                            {% endif %}
 
+                                            <td>{{ l.comentario }}</td>
+                                            <td style="text-align: center; vertical-align: middle;">{{ l.fecha|date:"d/m/Y" }}</td>
+                                            <td style="text-align: center; vertical-align: middle;">{{ l.aula }}</td>
 
-                                                </thead>
-                                                <tbody>
-                                                {% for l in incidencias_resueltas %}
-                                                    <tr>
-                                                        <td style="text-align: center; vertical-align: middle;"
-                                                            class="text-center">{{ l.id }}</td>
-
-
-
-                                                        {% if l.prioridad.nombre == "Alta" %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-danger">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% elif l.prioridad.nombre == "Media" %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-warning">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% elif l.prioridad.nombre == "Baja" %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-success">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% else %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-info">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% endif %}
-
-                                                        <td>{{ l.comentario }}</td>
-                                                        <td style="text-align: center; vertical-align: middle;">{{ l.fecha|date:"d/m/Y" }}</td>
-                                                        <td style="text-align: center; vertical-align: middle;">{{ l.aula }}</td>
-
-                                                        <td style="text-align: center; vertical-align: middle;">
-                                                            {% for elemento in l.elementos.all %}
-                                                                {{ elemento.nombre }}{% if not forloop.last %},
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                        </td>
-                                                        <td style="text-align: center; vertical-align: middle;">{{ l.profesor }}</td>
-                                                        <td>{{ l.solucion }}</td>
-                                                        <td style="text-align: center; vertical-align: middle;">
-                                                            <a class="btn btn-danger btn-bitbucket" style="color: white"
-                                                               data-toggle="tooltip" data-placement="top"
-                                                               title="Borrar">
-                                                                <i class="fa fa-trash"></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-
+                                            <td style="text-align: center; vertical-align: middle;">
+                                                {% for elemento in l.elementos.all %}
+                                                    {{ elemento.nombre }}{% if not forloop.last %},
+                                                    {% endif %}
                                                 {% endfor %}
+                                            </td>
+                                            <td style="text-align: center; vertical-align: middle;">{{ l.profesor }}</td>
+                                            <td>{{ l.solucion }}</td>
+                                            <td style="text-align: center; vertical-align: middle;">
+                                                <a class="btn btn-danger btn-icon" style="color: white"
+                                                   data-bs-toggle="tooltip" data-bs-placement="top"
+                                                   data-bs-title="Borrar">
+                                                    <i class="ti ti-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
 
-
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
 
                         </div>
 
 
+                    </div> <!-- end card-body-->
+
+                </div>
+                <div class="card-footer border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div data-table-pagination-info="projects"></div>
+                        <div data-table-pagination></div>
                     </div>
                 </div>
+            </div>
+
+        </div><!-- end col -->
+
+
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">incidencias TIC (cursos académicos anteriores)</h4>
             </div>
         </div>
 
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h2>Incidencias TIC (cursos académicos anteriores)</h2>
-                    </div>
-                    <div class="ibox-content">
+        {% for curso, incidencias_a in incidencias_anteriores.items %}
 
-                        {% for curso, incidencias_a in incidencias_anteriores.items %}
+            <div class="row">
+                <div class="col-12">
+                    <div data-table data-table-rows-per-page="20" class="card">
+                        <div class="card-header border-light justify-content-between text-bg-info bg-gradient">
+                            <h4>{{ curso }}</h4>
 
-                            <div class="panel panel-info">
-                                <div class="panel-heading">
-                                    <h3>{{ curso }}</h3>
-                                </div>
-                                <div class="panel-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-striped table-bordered dataTables-incidenciasantiguas"
-                                               style="border-collapse: separate !important;">
-                                            <thead>
+                        </div>
 
-                                            <tr>
-                                                <td class="text-center"><strong>ID</strong></td>
-                                                    <td class="text-center"><strong>Prioridad</strong></td>
-                                                    <td class="text-center"><strong>Descripción</strong></td>
-                                                    <td class="text-center"><strong>Fecha</strong></td>
-                                                    <td class="text-center"><strong>Aula</strong></td>
-                                                    <td class="text-center"><strong>Elementos</strong></td>
-                                                    <td class="text-center"><strong>Profesor/a</strong></td>
-                                                    <td class="text-center"><strong>Estado</strong></td>
-                                                    <td class="text-center"><strong>Solución</strong></td>
-                                                    <td class="text-center"><strong>Acciones</strong></td>
-                                            </tr>
+                        <div class="card-body">
+                            <table class="table table-striped table-bordered table-hover dt-responsive align-middle mb-0 dataTables-incidenciasantiguas">
+                                <thead class="thead-sm text-uppercase fs-xxs">
+
+                                <tr>
+                                    <th class="text-center">ID</th>
+                                    <th class="text-center">Prioridad</th>
+                                    <th class="text-center">Descripción</th>
+                                    <th class="text-center">Fecha</th>
+                                    <th class="text-center">Aula</th>
+                                    <th class="text-center">Elementos</th>
+                                    <th class="text-center">Profesor/a</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-center">Solución</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
 
 
-                                            </thead>
-                                            <tbody>
-                                            {% for l in incidencias_a %}
-                                                <tr>
-                                                    <td class="text-center">{{ l.id }}</td>
+                                </thead>
+                                <tbody>
+                                {% for l in incidencias_a %}
+                                    <tr>
+                                        <td class="text-center">{{ l.id }}</td>
 
 
-                                                    {% if l.prioridad.nombre == "Alta" %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-danger">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% elif l.prioridad.nombre == "Media" %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-warning">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% elif l.prioridad.nombre == "Baja" %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-success">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% else %}
-                                                            <td style="text-align: center; vertical-align: middle;"><span
-                                                                    class="label label-info">{{ l.prioridad.nombre }}</span>
-                                                            </td>
-                                                        {% endif %}
+                                        {% if l.prioridad.nombre == "Alta" %}
+                                            <td style="text-align: center; vertical-align: middle;"><span
+                                                    class="badge badge-label text-bg-danger">{{ l.prioridad.nombre }}</span>
+                                            </td>
+                                        {% elif l.prioridad.nombre == "Media" %}
+                                            <td style="text-align: center; vertical-align: middle;"><span
+                                                    class="badge badge-label text-bg-warning">{{ l.prioridad.nombre }}</span>
+                                            </td>
+                                        {% elif l.prioridad.nombre == "Baja" %}
+                                            <td style="text-align: center; vertical-align: middle;"><span
+                                                    class="badge badge-label text-bg-primary">{{ l.prioridad.nombre }}</span>
+                                            </td>
+                                        {% else %}
+                                            <td style="text-align: center; vertical-align: middle;"><span
+                                                    class="badge badge-label text-bg-info">{{ l.prioridad.nombre }}</span>
+                                            </td>
+                                        {% endif %}
 
-                                                    <td>{{ l.comentario }}</td>
-                                                    <td>{{ l.fecha|date:"d/m/Y" }}</td>
-                                                    <td>{{ l.aula }}</td>
+                                        <td>{{ l.comentario }}</td>
+                                        <td>{{ l.fecha|date:"d/m/Y" }}</td>
+                                        <td>{{ l.aula }}</td>
 
-                                                    <td>
-                                                        {% for elemento in l.elementos.all %}
-                                                            {{ elemento.nombre }}{% if not forloop.last %}, {% endif %}
-                                                        {% endfor %}
-                                                    </td>
-                                                    <td style="text-align: center; vertical-align: middle;">{{ l.profesor }}</td>
-                                                    <td>
-                                                        {% if l.resuelta %}
-                                                            <span class="status-resuelta">Resuelta</span>
-                                                        {% else %}
-                                                            <span class="status-pendiente">Pendiente</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>{{ l.solucion }}</td>
-                                                    <td style="text-align: center; vertical-align: middle;">
-                                                            {% if not l.resuelta %}
-                                                            <a class="btn btn-primary btn-bitbucket resolver-pendiente"
-                                                               style="color: white" data-toggle="tooltip"
-                                                               data-placement="top" title="Resolver"
-                                                               data-id="{{ l.id }}">
-                                                                <i class="fa fa-check"></i>
-                                                            </a>
-                                                            {% endif %}
-                                                            <a class="btn btn-danger btn-bitbucket borrar-antigua"
-                                                               style="color: white" data-toggle="tooltip"
-                                                               data-placement="top" title="Borrar" data-id="{{ l.id }}">
-                                                                <i class="fa fa-trash"></i>
-                                                            </a>
-                                                        </td>
-                                                </tr>
-
+                                        <td>
+                                            {% for elemento in l.elementos.all %}
+                                                {{ elemento.nombre }}{% if not forloop.last %}, {% endif %}
                                             {% endfor %}
+                                        </td>
+                                        <td style="text-align: center; vertical-align: middle;">{{ l.profesor }}</td>
+                                        <td>
+                                            {% if l.resuelta %}
+                                                <span class="badge badge-label text-bg-primary">Resuelta</span>
+                                            {% else %}
+                                                <span class="badge badge-label text-bg-warning-warning">Pendiente</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ l.solucion }}</td>
+
+                                        <td style="text-align: center; vertical-align: middle;">
+                                            {% if not l.resuelta %}
+                                                <a class="btn btn-primary btn-icon resolver-pendiente"
+                                                   style="color: white" data-bs-toggle="tooltip"
+                                                   data-bs-placement="top" data-bs-title="Resolver"
+                                                   data-id="{{ l.id }}">
+                                                    <i class="ti ti-check"></i>
+                                                </a>
+                                            {% endif %}
+                                            <a class="btn btn-danger btn-icon borrar-antigua"
+                                               style="color: white" data-bs-toggle="tooltip"
+                                               data-bs-placement="top" data-bs-title="Borrar" data-id="{{ l.id }}">
+                                                <i class="ti ti-trash"></i>
+                                            </a>
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
 
 
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
+                                </tbody>
+                            </table>
+                        </div> <!-- end card-body-->
+
+                    </div>
+                    <div class="card-footer border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div data-table-pagination-info="projects"></div>
+                            <div data-table-pagination></div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+
+            </div><!-- end col -->
 
 
-    </div>
+
+        {% endfor %}
+
+
+    </div><!-- end row -->
+
+    <!-- Modal para mostrar los detalles -->
+
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
-    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
     <script>
+
+        jQuery.extend(jQuery.fn.dataTable.ext.type.order, {
+            "date-eu-pre": function (date) {
+                // Si la fecha está vacía o mal formada, devolvemos valor alto para dejarla al final
+                if (!date || date.trim() === '') {
+                    return 0;
+                }
+
+                const eu_date = date.split('/');
+                // dd/mm/yyyy → yyyy+mm+dd como número
+                return (eu_date[2] + eu_date[1] + eu_date[0]) * 1;
+            },
+            "date-eu-asc": function (a, b) {
+                return a - b;
+            },
+            "date-eu-desc": function (a, b) {
+                return b - a;
+            }
+        });
 
 
         $(document).ready(function () {
 
-            // Upgrade button class name
-            $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
-
-            const tooltipTriggerList = document.querySelectorAll('[data-toggle="tooltip"]')
-            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
-            $('.borrar-pendiente').click(function () {
-                var incidenciaId = $(this).data('id');
-                var row = $(this).closest('tr'); // Obtener la fila de la tabla
-
-
-                Swal.fire({
-                    title: "¿Estás seguro?",
-                    text: "No podrás volver a recuperar esta incidencia.",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "Sí, borrar.",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-
-                        $.ajax({
-                            url: '{% url "eliminar_incidencia" %}', // Asegúrate de que esta URL sea la correcta
-                            method: 'POST',
-                            data: {
-                                'id': incidenciaId,
-                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            var tablePendientes = $('.dataTables-incidencias-pendientes').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
                             },
-                            success: function (response) {
-                                if (response.success) {
-                                    Swal.fire({
-                                        title: "¡Borrada!",
-                                        text: "La incidencia ha sido borrada.",
-                                        icon: "success"
-                                    });
-
-                                    // Eliminar la fila de la tabla
-                                    tablePendientes.row(row).remove().draw();
-                                } else {
-                                    Swal.fire({
-                                        title: "Error",
-                                        text: "No se pudo borrar la incidencia.",
-                                        icon: "error"
-                                    });
-                                }
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
                             },
-                            error: function (xhr, status, error) {
-                                Swal.fire({
-                                    title: "Error",
-                                    text: "Ocurrió un error al intentar borrar la incidencia.",
-                                    icon: "error"
-                                });
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
                             }
-                        });
-
-
+                        ]
                     }
-                });
+                ],
+
+                columnDefs: [
+                    {
+                        targets: 3,
+                        type: 'date-eu'
+                    }
+                ],
+
+
+                order: [[3, 'desc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+
             });
 
+            var tableResueltas = $('.dataTables-incidencias-resueltas').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
+
+                columnDefs: [
+                    {
+                        targets: 3,
+                        type: 'date-eu'
+                    }
+                ],
+
+
+                order: [[3, 'desc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+
+            });
+
+            var tableAntiguas = $('.dataTables-incidenciasantiguas').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
+
+                columnDefs: [
+                    {
+                        targets: 3,
+                        type: 'date-eu'
+                    }
+                ],
+
+
+                order: [[3, 'desc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+
+            });
 
             $('.borrar-antigua').click(function () {
                 var incidenciaId = $(this).data('id');
@@ -428,20 +638,59 @@
                 });
             });
 
-            var tableAntiguas = $('.dataTables-incidenciasantiguas').DataTable({
-                language: {
-                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                },
-                pageLength: 50,
-                scrollX: false,
-                scrollCollapse: true,
-                responsive: true,
-                columnDefs: [
-                    {type: 'num', targets: 0},  // Indica que la primera columna (índice 0) es de tipo numérico
-                ]
+            $('.borrar-pendiente').click(function () {
+                var incidenciaId = $(this).data('id');
+                var row = $(this).closest('tr'); // Obtener la fila de la tabla
 
+
+                Swal.fire({
+                    title: "¿Estás seguro?",
+                    text: "No podrás volver a recuperar esta incidencia.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Sí, borrar.",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        $.ajax({
+                            url: '{% url "eliminar_incidencia" %}', // Asegúrate de que esta URL sea la correcta
+                            method: 'POST',
+                            data: {
+                                'id': incidenciaId,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: "¡Borrada!",
+                                        text: "La incidencia ha sido borrada.",
+                                        icon: "success"
+                                    });
+
+                                    // Eliminar la fila de la tabla
+                                    tablePendientes.row(row).remove().draw();
+                                } else {
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: "No se pudo borrar la incidencia.",
+                                        icon: "error"
+                                    });
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                Swal.fire({
+                                    title: "Error",
+                                    text: "Ocurrió un error al intentar borrar la incidencia.",
+                                    icon: "error"
+                                });
+                            }
+                        });
+
+
+                    }
+                });
             });
-
 
             $('.resolver-pendiente').click(function () {
                 var incidenciaId = $(this).data('id');
@@ -495,82 +744,8 @@
                 });
             });
 
-
-            // Inicializar solo la tabla en la pestaña activa
-            var tablePendientes = $('.dataTables-incidencias-pendientes').DataTable({
-                language: {
-                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                },
-                pageLength: 50,
-                scrollX: false,
-                scrollCollapse: true,
-                responsive: true,
-                dom: '<"html5buttons"B>lTfgitp',
-                buttons: [
-                    {extend: 'copy'},
-                    {extend: 'csv'},
-                    {extend: 'excel', title: 'Incidencias TIC'},
-                    {extend: 'pdf', title: 'Incidencias TIC'},
-                    {
-                        extend: 'print',
-                        customize: function (win) {
-                            $(win.document.body).addClass('white-bg');
-                            $(win.document.body).css('font-size', '10px');
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                        }
-                    }
-                ],
-                columnDefs: [
-                    { type: 'num', targets: 0 },  // Indica que la primera columna (índice 0) es de tipo numérico
-                ]
-            });
-
-            var tableResueltas;
-            var tabResueltasLoaded = false;
-
-            // Inicializar la tabla de la pestaña 'Resueltas' solo cuando se active
-            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-                var target = $(e.target).attr("href"); // activated tab
-                if (target == "#tab-resueltas" && !tabResueltasLoaded) {
-                    $('.dataTables-incidencias-resueltas').parent().show();  // Mostrar la tabla cuando se activa la pestaña
-                    tableResueltas = $('.dataTables-incidencias-resueltas').DataTable({
-                        language: {
-                            url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                        },
-                        pageLength: 50,
-                        scrollX: false,
-                        scrollCollapse: true,
-                        responsive: true,
-                        dom: '<"html5buttons"B>lTfgitp',
-                        buttons: [
-                            {extend: 'copy'},
-                            {extend: 'csv'},
-                            {extend: 'excel', title: 'Incidencias TIC'},
-                            {extend: 'pdf', title: 'Incidencias TIC'},
-                            {
-                                extend: 'print',
-                                customize: function (win) {
-                                    $(win.document.body).addClass('white-bg');
-                                    $(win.document.body).css('font-size', '10px');
-                                    $(win.document.body).find('table')
-                                        .addClass('compact')
-                                        .css('font-size', 'inherit');
-                                }
-                            }
-                        ],
-                        columnDefs: [
-                            { type: 'num', targets: 0 },  // Indica que la primera columna (índice 0) es de tipo numérico
-                        ]
-                    });
-                    tabResueltasLoaded = true
-                }
-            });
         });
+
+
     </script>
 {% endblock %}
-
-
-
-

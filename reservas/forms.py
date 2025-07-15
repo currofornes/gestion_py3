@@ -8,19 +8,19 @@ from .models import Reservas
 class ReservaForm(forms.ModelForm):
     periodicidad = forms.ChoiceField(
         choices=[('puntual', 'Puntual'), ('semanal', 'Semanal')],
-        widget=forms.RadioSelect(attrs={'class': 'i-checks2'}),
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input form-periodicidad'}),
         required=True,
         initial='puntual'
     )
     num_semanas = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'class': 'touchspin1', 'value': '1'}),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'value': '1'}),
         label='Número de semanas'
     )
 
     tipo = forms.ChoiceField(
         choices=[('1', 'Espacio'), ('2', 'Recurso')],
-        widget=forms.RadioSelect(attrs={'class': 'i-checks'}),
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
         required=True,
         initial='2'
     )
@@ -47,7 +47,7 @@ class ReservaProfeForm(forms.ModelForm):
 
     periodicidad = forms.ChoiceField(
         choices=[('puntual', 'Puntual'), ('semanal', 'Semanal')],
-        widget=forms.RadioSelect(attrs={'class': 'i-checks2'}),
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
         required=True,
         initial='puntual'
     )
@@ -59,7 +59,7 @@ class ReservaProfeForm(forms.ModelForm):
 
     tipo = forms.ChoiceField(
         choices=[('1', 'Espacio'), ('2', 'Recurso')],
-        widget=forms.RadioSelect(attrs={'class': 'i-checks'}),
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
         required=True,
         initial='2'
     )

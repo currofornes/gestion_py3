@@ -40,7 +40,7 @@ class UnidadProfeForm(forms.Form):
 class UnidadesProfeForm(forms.Form):
     Unidad = forms.ModelChoiceField(queryset=Cursos.objects.none(), empty_label=None, required=False,
                                     widget=forms.Select(
-                                        attrs={'class': "form-control select2_unidad",
+                                            attrs={'class': "form-control select2_unidad",
                                                'onchange': 'this.form.submit(); setFormTrigger("Unidad");'}))
     UnidadResto = forms.ModelChoiceField(queryset=Cursos.objects.none(), empty_label=None, required=False,
                                          widget=forms.Select(

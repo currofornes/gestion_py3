@@ -288,16 +288,18 @@ def reservas_json(request):
         # Asignar color según el tipo de reservable
 
         if str(reserva.Reservable.TiposReserva) == 'Espacio':
-            color = '#23c6c8'  # Verde para Espacio
+            classname = 'bg-primary-subtle text-primary border-start border-3 border-primary'  # Verde para Espacio
         else:
-            color = '#1c84c6'  # Azul para Recurso
+            classname = 'bg-info-subtle text-info border-start border-3 border-info'  # Azul para Recurso
 
 
         eventos.append({
             'title': f'{reserva.Profesor} - {reserva.Reservable}',
+            'profesor': f'{reserva.Profesor}',
+            'reservable' : f'{reserva.Reservable}',
             'start': start_datetime,
             'end': end_datetime,
-            'backgroundColor': color,
+            'className': classname,
         })
 
     return JsonResponse(eventos, safe=False)

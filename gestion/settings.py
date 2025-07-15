@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     "guardias.apps.GuardiasConfig",
     'calendario.apps.CalendarioConfig',
     'analres.apps.AnalresConfig',
-    'carga_archivos.apps.CargaArchivosConfig'
+    'carga_archivos.apps.CargaArchivosConfig',
+    'DACE.apps.DaceConfig'
 ]
 
 MIDDLEWARE = [

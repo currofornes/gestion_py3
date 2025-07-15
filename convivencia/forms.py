@@ -50,6 +50,7 @@ class AmonestacionForm(forms.ModelForm):
         # Filtrar el queryset del campo 'Profesor' para que solo muestre profesores que no están dados de baja
         self.fields['Profesor'].queryset = Profesores.objects.filter(Baja=False)
         self.fields['Tipo'].required = True
+        self.fields['Medio'].required = True
 
 
 
@@ -141,11 +142,14 @@ class AmonestacionProfeForm(forms.ModelForm):
         else:
             self.fields['Fecha'].initial = datetime.today()  # Establecer la fecha de hoy como valor inicial
         self.fields['Tipo'].required = True
+        self.fields['Medio'].required = True
 
 class ResumenForm(forms.Form):
     fecha = forms.DateField(widget=DatePickerInput(attrs={
         'class': 'form-control',
         'autocomplete': 'off',
+        'aria-label': 'Fecha',
+        'aria-describedby': 'basic-addon1',
         # 'onchange': 'this.form.submit();'
     }))
 
@@ -153,4 +157,4 @@ class ResumenForm(forms.Form):
         ('amonestacion', 'Amonestación'),
         ('sancion', 'Sanción'),
     ]
-    tipo = forms.ChoiceField(choices=TIPO_CHOICES, widget=forms.RadioSelect(attrs={'class': 'i-checks'}))
+    tipo = forms.ChoiceField(choices=TIPO_CHOICES, widget=forms.RadioSelect(attrs={'class': 'form-check-input'}))

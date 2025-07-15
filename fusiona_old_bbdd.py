@@ -118,7 +118,7 @@ def get_or_insert_profesor(cursor_fusionada, profesor, profesor_map):
 
 
 # Conexión a la nueva base de datos fusionada
-conn_fusionada = sqlite3.connect('olddbs/fusionada.sqlite3')
+conn_fusionada = sqlite3.connect('olddbs/fusionada_hastadb2024.sqlite3')
 cursor_fusionada = conn_fusionada.cursor()
 
 limpia_bbdd(conn_fusionada, cursor_fusionada)
@@ -131,7 +131,8 @@ db_ids = {
     'olddbs/db2020.sqlite3': 1,
     'olddbs/db2021.sqlite3': 6,
     'olddbs/db2022.sqlite3': 5,
-    'olddbs/db2023.sqlite3': 4
+    'olddbs/db2023.sqlite3': 4,
+    'olddbs/db2024.sqlite3': 3
 }
 
 # Diccionarios para mapear IDs originales a IDs fusionados

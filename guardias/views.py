@@ -1022,3 +1022,6 @@ def actualizar_guardia_ajax(request):
             return JsonResponse({'success': False, 'error': 'ItemGuardia no encontrado'})
 
     return JsonResponse({'success': False, 'error': 'Solicitud inválida'})
+
+def modal_registrar_ausencia(request):
+    return render(request, "partials/modal_registrar_ausencia.html")
