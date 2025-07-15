@@ -1,9 +1,20 @@
+from collections import defaultdict
+from sqlite3 import IntegrityError
+
+from django.forms import modelformset_factory
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import Group
-from .models import Actividades
-from centro.models import Profesores
-from .forms import ActividadesForm
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
+from centro.utils import get_current_academic_year
+from centro.views import group_check_prof, group_check_je
+from .models import Actividades, ActividadAlumno, GastosActividad, Aprobaciones
+from centro.models import Profesores, Cursos, Alumnos
+from .forms import ActividadesForm, ActividadesCompletoForm, GestionEconomicaActividadForm, GastosActividadForm
+
 
 @login_required
 def crear_actividad(request):
@@ -12,32 +23,290 @@ def crear_actividad(request):
         if form.is_valid():
             actividad = form.save(commit=False)
             actividad.estado = 'Pendiente'
-            actividad.save()
-            form.save_m2m()  # para guardar relaciones ManyToMany
-            return redirect('lista_actividades')
+
+            try:
+                actividad.save()
+            except IntegrityError:
+                print("Ya existe una actividad igual")
+
+            return redirect('misactividades')
     else:
-        profe = Profesores.objects.filter(user=request.user).first()
-        form = ActividadesForm({'Responsable': profe})
+        profe = request.user.profesor
+        form = ActividadesForm(initial={'Responsable': profe})
     return render(request, 'crear_actividad.html', {'form': form, 'menu_DACE': True})
 
 # @login_required
 # def aprobar_actividad(request, actividad_id):
-#     actividad = get_object_or_404(Actividad, id=actividad_id)
-#     if request.method == 'POST':
-#         form = AprobacionForm(request.POST)
-#         if form.is_valid():
-#             aprobacion = form.save(commit=False)
-#             aprobacion.actividad = actividad
-#             aprobacion.aprobado_por = request.user
-#             aprobacion.save()
-#             actividad.estado = 'Aprobada'
-#             actividad.save()
-#             return redirect('lista_actividades')
-#     else:
-#         form = AprobacionForm()
-#     return render(request, 'gestion/aprobar_actividad.html', {'form': form, 'actividad': actividad})
+    # actividad = get_object_or_404(Actividad, id=actividad_id)
+    # if request.method == 'POST':
+    #     form = AprobacionForm(request.POST)
+    #     if form.is_valid():
+    #         aprobacion = form.save(commit=False)
+    #         aprobacion.actividad = actividad
+    #         aprobacion.aprobado_por = request.user
+    #         aprobacion.save()
+    #         actividad.estado = 'Aprobada'
+    #         actividad.save()
+    #         return redirect('lista_actividades')
+    # else:
+    #     form = AprobacionForm()
+    # return render(request, 'gestion/aprobar_actividad.html', {'form': form, 'actividad': actividad})
+
 
 # @login_required
 # def calendario_actividades(request):
-#     actividades = Actividad.objects.filter(estado='Aprobada')
+#     actividades = Actividades.objects.filter(estado='Aprobada')
 #     return render(request, 'gestion/calendario_actividades.html', {'actividades': actividades})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+def aprobar_actividad(request, actividad_id):
+    if request.method == 'POST':
+        actividad = get_object_or_404(Actividades, id=actividad_id)
+        aprobado_por = request.POST.get('aprobadoPor')
+        fecha_aprobacion = request.POST.get('fechaAprobacion')
+
+        if not aprobado_por or not fecha_aprobacion:
+            return JsonResponse({'error': 'Faltan campos requeridos.'}, status=400)
+
+        # Crear registro en el modelo Aprobaciones
+        Aprobaciones.objects.create(
+            Actividad=actividad,
+            AprobadoPor=aprobado_por,
+            Fecha=fecha_aprobacion
+        )
+
+        # Actualizar estado de la actividad
+        actividad.Estado = 'Aprobada'
+        actividad.save()
+
+        return JsonResponse({'message': 'Actividad aprobada exitosamente.'})
+    return JsonResponse({'error': 'Método no permitido.'}, status=405)
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
+def misactividades(request):
+    if not hasattr(request.user, 'profesor'):
+        return render(request, 'error.html', {'message': 'No tiene un perfil de profesor asociado.'})
+
+    profesor = request.user.profesor
+
+    curso_academico_actual = get_current_academic_year()
+
+
+
+    lista_actividades = Actividades.objects.filter(Responsable__id=profesor.id, curso_academico=curso_academico_actual)
+    lista_actividades = sorted(lista_actividades, key=lambda d: d.FechaInicio, reverse=True)
+
+
+    context = {'actividades': lista_actividades, 'profesor': profesor, 'menu_DACE': True}
+
+
+    return render(request, 'misactividades.html', context)
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def actividadesdace(request):
+    curso_academico_actual = get_current_academic_year()
+
+    lista_actividades = Actividades.objects.filter(curso_academico=curso_academico_actual)
+    lista_actividades = sorted(lista_actividades, key=lambda d: d.FechaInicio, reverse=True)
+
+
+    context = {'actividades': lista_actividades,'menu_DACE': True}
+
+
+    return render(request, 'actividadesdace.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
+def editar_actividad(request, actividad_id):
+    actividad = get_object_or_404(Actividades, id=actividad_id)
+
+    if request.method == 'POST':
+        form = ActividadesForm(request.POST, instance=actividad)
+        if form.is_valid():
+            try:
+                form.save()
+            except IntegrityError:
+                print("Ya existe una actividad igual")
+
+
+            return redirect('actividadesdace')  # Redirige al listado de actividades
+
+    else:
+        form = ActividadesForm(instance=actividad)
+        form.fields['FechaInicio'].widget.attrs['value'] = format(actividad.FechaInicio,
+                                                                  'd/m/Y') if actividad.FechaInicio else ''
+        form.fields['FechaFin'].widget.attrs['value'] = format(actividad.FechaFin,
+                                                               'd/m/Y') if actividad.FechaFin else ''
+        form.fields['HoraSalida'].widget.attrs['value'] = actividad.HoraSalida.strftime(
+            '%H:%M') if actividad.HoraSalida else ''
+        form.fields['HoraLlegada'].widget.attrs['value'] = actividad.HoraLlegada.strftime(
+            '%H:%M') if actividad.HoraLlegada else ''
+
+    return render(request, 'editar_actividad.html', {'form': form, 'actividad': actividad})
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
+def editar_actividad_participantes(request, actividad_id):
+    actividad = get_object_or_404(Actividades, id=actividad_id)
+
+    if request.method == 'POST':
+
+        unidades_raw = request.POST.getlist('unidades_afectadas', '')
+        unidades_ids = []
+        for unidad in unidades_raw:
+            if unidad:  # Verifica si el valor no está vacío
+                unidades_ids.extend(unidad.split(','))  # Divide por comas y agrega los ids a la lista
+
+        unidades_ids = [u for u in unidades_ids if u]
+        print(f"Unidades procesadas: {unidades_ids}")
+        actividad.UnidadesAfectadas.set(unidades_ids)
+
+        # Procesar Alumnado Participante
+        alumnos_ids_raw = request.POST.get('alumnado_participante', '')  # Obtén el valor como una cadena
+        alumnos_ids = [u for u in alumnos_ids_raw.split(',') if u]  # Divide la cadena y filtra elementos vacíos
+
+        actividad.Alumnado.set(alumnos_ids)
+
+        profesorado_ids_raw = request.POST.get('profesorado_participante',
+                                               '')  # Obtén el valor como cadena vacía si no hay nada
+        profesorado_ids = [id for id in profesorado_ids_raw.split(',') if id]  # Filtra vacíos
+
+        if profesorado_ids:  # Si hay IDs de profesorado, realizar el filtro
+            actividad.Profesorado.set(Profesores.objects.filter(id__in=profesorado_ids))
+        else:  # Si no hay profesorado, establecer como vacío
+            actividad.Profesorado.clear()
+
+        actividad.save()
+
+        return redirect('actividadesdace')
+
+
+
+    unidades = Cursos.objects.all()
+    profesores = Profesores.objects.filter(Baja=False)
+    return render(request, 'editar_actividad_participantes.html', {'actividad': actividad, 'unidades': unidades, 'profesores': profesores})
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
+def editar_actividad_economica(request, actividad_id):
+
+    actividad = get_object_or_404(Actividades, pk=actividad_id)
+    alumnos = actividad.actividad_alumno.select_related('alumno', 'alumno__Unidad').order_by('alumno__Nombre')
+
+    # Agrupar alumnos por unidad
+    alumnos_por_unidad = defaultdict(list)
+    alumnos_total = 0  # Inicializamos el contador de alumnos
+
+    for alumno in alumnos:
+        unidad = alumno.alumno.Unidad.Curso if alumno.alumno.Unidad else "Sin unidad"
+        alumnos_por_unidad[unidad].append(alumno)
+        alumnos_total += 1  # Incrementamos el contador
+
+    # Formulario para los gastos
+    GastosFormSet = modelformset_factory(GastosActividad, form=GastosActividadForm, extra=0, can_delete=False)
+    formset = GastosFormSet(queryset=actividad.gastos.all())
+
+    if request.method == 'POST':
+        # Actualiza los costos
+        form = GestionEconomicaActividadForm(request.POST, instance=actividad)
+        formset = GastosFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+
+            actividad = form.save()
+
+            # Guardar los gastos
+            gastos = formset.save(commit=False)
+            for gasto in gastos:
+                gasto.actividad = actividad
+                gasto.save()
+
+
+            # Actualiza el estado de pago de los alumnos
+            for alumno in alumnos:
+                pagado = request.POST.get(f"pagado_{alumno.id}", "off") == "on"
+                compe = request.POST.get(f"compe_{alumno.id}", "off") == "on"
+                actividad_alumno = ActividadAlumno.objects.get(actividad=actividad, alumno=alumno.alumno)
+                actividad_alumno.ha_pagado = pagado
+                actividad_alumno.compe = compe
+                actividad_alumno.save()
+
+            return redirect('actividadesdace')
+
+        else:
+            # Depuración de errores
+            if not form.is_valid():
+                print("Errores en el formulario principal:")
+                print(form.errors)
+            if not formset.is_valid():
+                print("Errores en el formset:")
+                for i, form_errors in enumerate(formset.errors):
+                    print(f"Errores en el formulario {i + 1}: {form_errors}")
+                print("Errores globales en el formset:")
+                print(formset.non_form_errors())
+
+
+
+    else:
+        form = GestionEconomicaActividadForm(instance=actividad)
+
+    return render(request, 'editar_actividad_economica.html', {
+        'actividad': actividad,
+        'alumnos_por_unidad': dict(alumnos_por_unidad),
+        'form': form,
+        'formset': formset,
+        'alumnos_total': alumnos_total
+    })
+
+@login_required(login_url='/')
+def get_alumnos_unidad(request, unidad_id):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        alumnos = Alumnos.objects.filter(Unidad_id=unidad_id).values('id', 'Nombre')
+        return JsonResponse({'alumnos': list(alumnos)})
+
+    return JsonResponse({'error': 'Esta no es una solicitud AJAX.'})
+
+def get_alumnos_participantes_unidad(request, unidad_id, actividad_id):
+    try:
+        actividad = Actividades.objects.get(id=actividad_id)
+        unidad = Cursos.objects.get(id=unidad_id)
+
+        # Obtener el alumnado participante de la actividad y perteneciente a la unidad
+        alumnos = actividad.Alumnado.filter(Unidad=unidad)
+        data = [{'id': alumno.id, 'Nombre': alumno.Nombre} for alumno in alumnos]
+        return JsonResponse({'alumnos': data}, status=200)
+    except Actividades.DoesNotExist:
+        return JsonResponse({'error': 'Actividad no encontrada'}, status=404)
+    except Cursos.DoesNotExist:
+        return JsonResponse({'error': 'Unidad no encontrada'}, status=404)
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
+def detalles_actividad(request, actividad_id):
+
+    actividad = get_object_or_404(Actividades, pk=actividad_id)
+    alumnos = actividad.actividad_alumno.select_related('alumno', 'alumno__Unidad').order_by('alumno__Nombre')
+
+    # Agrupar alumnos por unidad
+    alumnos_por_unidad = defaultdict(list)
+    alumnos_total = 0  # Inicializamos el contador de alumnos
+
+    for alumno in alumnos:
+        unidad = alumno.alumno.Unidad.Curso if alumno.alumno.Unidad else "Sin unidad"
+        alumnos_por_unidad[unidad].append(alumno)
+        alumnos_total += 1  # Incrementamos el contador
+
+    gastos = actividad.gastos.all()
+
+    return render(request, 'detalles_actividad.html', {
+        'actividad': actividad,
+        'alumnos_por_unidad': dict(alumnos_por_unidad),
+        'alumnos_total': alumnos_total,
+        'gastos': gastos
+    })

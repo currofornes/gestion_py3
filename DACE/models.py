@@ -1,7 +1,6 @@
 from django.db import models
+from centro.models import Cursos, Alumnos, Profesores, CursoAcademico
 
-# Create your models here.
-from centro.models import Cursos, Alumnos, Profesores
 
 class Actividades(models.Model):
     ESTADO_CHOICES = [
@@ -9,26 +8,39 @@ class Actividades(models.Model):
         ('Aprobada', 'Aprobada'),
     ]
 
-    DURACION_CHOICES = [
-        ('Dias', 'Días'),
-        ('Horas', 'Horas'),
-    ]
-
     Titulo = models.CharField(max_length=255)
+    Descripcion = models.TextField(blank=True, null=True)
     Responsable = models.ForeignKey(Profesores, on_delete=models.CASCADE, related_name='actividades_organizadas')
     FechaInicio = models.DateField()
-    Duracion = models.PositiveSmallIntegerField()  # Duración en días u horas
-    MedidaDuracion = models.CharField(max_length=10, choices=DURACION_CHOICES, default='Horas')
+    FechaFin = models.DateField()
+    HoraSalida = models.TimeField(blank=True, null=True)
+    HoraLlegada = models.TimeField(blank=True, null=True)
     UnidadesAfectadas = models.ManyToManyField(Cursos)
-    Alumnado = models.ManyToManyField(Alumnos)
+    Alumnado = models.ManyToManyField(Alumnos, through='ActividadAlumno', related_name="actividades_participadas")
     Profesorado = models.ManyToManyField(Profesores, related_name="actividades_participadas")
-    CosteAlumnado = models.DecimalField(max_digits=8, decimal_places=2)
-    DietasProfesorado = models.DecimalField(max_digits=8, decimal_places=2)
+    CosteAlumnado = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    AportacionCentro = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     Estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='Pendiente')
+
+    curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.titulo
 
+    class Meta:
+        verbose_name="Actividad DACE"
+        verbose_name_plural="Actividades DACE"
+        unique_together = ('Titulo', 'Descripcion', 'Responsable', 'FechaInicio', 'FechaFin', 'HoraSalida', 'HoraLlegada')
+
+
+class ActividadAlumno(models.Model):
+    actividad = models.ForeignKey(Actividades, on_delete=models.CASCADE, related_name="actividad_alumno")
+    alumno = models.ForeignKey(Alumnos, on_delete=models.CASCADE, related_name="actividades")
+    ha_pagado = models.BooleanField(default=False)
+    compe = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('actividad', 'alumno')
 
 class Aprobaciones(models.Model):
     APROBACION_CHOICES = [
@@ -41,3 +53,18 @@ class Aprobaciones(models.Model):
 
     def __str__(self):
         return f"Aprobación de {self.actividad.titulo}"
+
+
+class GastosActividad(models.Model):
+    TIPO_CHOICES = [
+        ('General', 'General'),
+        ('Por alumno', 'Por alumno'),
+    ]
+
+    actividad = models.ForeignKey(Actividades, on_delete=models.CASCADE, related_name="gastos")
+    concepto = models.CharField(max_length=255)
+    importe = models.DecimalField(max_digits=10, decimal_places=2)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='General')
+
+    def __str__(self):
+        return f"{self.concepto} ({self.tipo}) - {self.importe}€"

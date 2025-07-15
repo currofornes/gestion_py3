@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+
+    <style>
+        .swal2-container {
+            z-index: 2080 !important;
+        }
+
+        .swal2-backdrop-show {
+            z-index: 2075 !important;
+        }
+    </style>
+
+
+{% endblock %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <div class="float-right">
+                            <a href="/DACE/crear_actividad/" class="btn btn-warning"><i class="fa fa-plus"></i> Nueva
+                                actividad </a>
+                        </div>
+                        <h2>Actividades DACE</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered dataTables-actividades"
+                                   style="border-collapse: separate !important;">
+                                <thead>
+
+                                <tr>
+                                    <td class="text-center"><strong>Titulo</strong></td>
+                                    <td class="text-center"><strong>Responsable</strong></td>
+                                    <td class="text-center"><strong>Fecha Inicio</strong></td>
+                                    <td class="text-center"><strong>Hora Salida</strong></td>
+                                    <td class="text-center"><strong>Fecha Fin</strong></td>
+                                    <td class="text-center"><strong>Hora Llegada</strong></td>
+                                    <td class="text-center"><strong>Estado</strong></td>
+                                    <td class="text-center"><strong>Acciones</strong></td>
+                                </tr>
+
+
+                                </thead>
+                                <tbody>
+                                {% for a in actividades %}
+                                    <tr>
+                                        <td>{{ a.Titulo }}</td>
+                                        <td>{{ a.Responsable }}</td>
+                                        <td>{{ a.FechaInicio|date:"d/m/Y" }}</td>
+                                        <td>{{ a.HoraSalida }}</td>
+                                        <td>{{ a.FechaFin|date:"d/m/Y" }}</td>
+                                        <td>{{ a.HoraLlegada }}</td>
+                                        {% if a.Estado == 'Aprobada' %}
+                                            <td class="text-center"><span class="label label-primary">{{ a.Estado }}</span></td>
+                                        {% else %}
+                                            <td class="text-center"><span class="label label-warning-warning">{{ a.Estado }}</span></td>
+                                        {% endif %}
+                                        <td class="text-center">
+                                            <a class="btn btn-xs btn-warning" href="{% url 'detalles_actividad' a.id %}">Detalles</a>
+                                            <a class="btn btn-xs btn-warning" href="{% url 'editar_actividad' a.id %}">Editar</a>
+                                            <a class="btn btn-xs btn-success"
+                                               href="{% url 'editar_actividad_participantes' a.id %}"><i
+                                                    class="fa fa-users"></i> Gestión participantes</a>
+                                            <a class="btn btn-xs btn-secondary"
+                                               href="{% url 'editar_actividad_economica' a.id %}"><i
+                                                    class="fa fa-eur"></i> Gestión económica</a>
+                                            {% if not a.Estado == 'Aprobada' %}
+                                                <a class="btn btn-xs btn-primary"
+                                                   href="#" data-toggle="modal" data-target="#aprobarModal"
+                                                   data-actividad-id="{{ a.id }}">Aprobar</a>
+                                            {% endif %}
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal fade" id="aprobarModal" tabindex="-1" role="dialog" aria-labelledby="dateTimeModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="dateTimeModalLabel">Aprobar Actividad DACE</h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="aprobarActividadForm">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="aprobadoPor">Aprobado por:</label>
+                                <select id="aprobadoPor" name="aprobadoPor" class="form-control select2_AprobadoPor">
+                                    <option value="" disabled selected>Seleccione una opción</option>
+                                    <option value="Consejo Escolar">Consejo Escolar</option>
+                                    <option value="Comisión Permanente">Comisión Permanente</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaAprobacion">Fecha de aprobación:</label>
+                                <input type="date" id="fechaAprobacion" name="fechaAprobacion" class="form-control">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" id="aprobarButton">Aprobar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
+    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
+    <script>
+
+        // Upgrade button class name
+        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
+
+        $(document).ready(function () {
+
+
+            $('.dataTables-actividades').DataTable({
+                language: {
+                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
+                },
+                pageLength: 50,
+                scrollX: false,
+                scrollCollapse: true,
+                responsive: true,
+                dom: '<"html5buttons"B>lTfgitp',
+                buttons: [
+                    {extend: 'copy'},
+                    {extend: 'csv'},
+                    {extend: 'excel', title: 'Incidencias TIC'},
+                    {extend: 'pdf', title: 'Incidencias TIC'},
+
+                    {
+                        extend: 'print',
+                        customize: function (win) {
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+
+                            $(win.document.body).find('table')
+                                .addClass('compact')
+                                .css('font-size', 'inherit');
+                        }
+                    }
+                ],
+                columnDefs: [
+                    {type: 'num', targets: 0},  // Indica que la primera columna (índice 0) es de tipo numérico
+                ]
+
+            });
+
+
+            $('#aprobarActividadForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const actividadId = $('#aprobarModal').data('actividad-id');
+                const aprobadoPor = $('#aprobadoPor').val();
+                const fechaAprobacion = $('#fechaAprobacion').val();
+
+                if (!aprobadoPor || !fechaAprobacion) {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Por favor, completa todos los campos.",
+                        icon: "error",
+                        customClass: {
+                            container: 'swal2-container',
+                            popup: 'swal2-popup',
+                            backdrop: 'swal2-backdrop-show'
+                        }
+                    });
+                    return;
+                }
+
+                $.ajax({
+                    url: `/DACE/aprobar_actividad/${actividadId}/`,
+                    method: 'POST',
+                    data: {
+                        aprobadoPor: aprobadoPor,
+                        fechaAprobacion: fechaAprobacion,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        $('#aprobarModal').modal('hide');
+                        Swal.fire({
+                            title: "¡Aprobada!",
+                            text: "Actividad aprobada con éxito.",
+                            icon: "success",
+                            customClass: {
+                                container: 'swal2-container',
+                                popup: 'swal2-popup',
+                                backdrop: 'swal2-backdrop-show'
+                            }
+                        }).then(() => {
+                            location.reload();
+                        });
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            title: "Error",
+                            text: "Error al aprobar la actividad. Inténtalo de nuevo.",
+                            icon: "error",
+                            customClass: {
+                                container: 'swal2-container',
+                                popup: 'swal2-popup',
+                                backdrop: 'swal2-backdrop-show'
+                            }
+                        });
+                        $('#aprobarModal').modal('hide');
+                    }
+                });
+            });
+
+            $('#aprobarModal').on('show.bs.modal', function (event) {
+                const button = $(event.relatedTarget); // Botón que disparó el modal
+                const actividadId = button.data('actividad-id'); // Extrae el id de la actividad
+                $(this).data('actividad-id', actividadId);
+
+                $(".select2_AprobadoPor").select2({
+                    theme: 'bootstrap4',
+                    placeholder: "Selecciona una opción",
+                    width: '100%'
+                });
+            });
+
+        });
+
+    </script>
+{% endblock %}

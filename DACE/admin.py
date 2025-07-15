@@ -1,11 +1,10 @@
 from django.contrib import admin
 
-# Register your models here.
 from DACE.models import Actividades, Aprobaciones
 
 
 class ActividadesAdmin(admin.ModelAdmin):
-    list_display = ['Titulo', 'FechaInicio', 'Duracion', 'MedidaDuracion' ,'Estado']
+    list_display = ['Titulo', 'FechaInicio', 'FechaFin' ,'Estado']
 
 
 class AprobacionesAdmin(admin.ModelAdmin):

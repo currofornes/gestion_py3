@@ -7,7 +7,7 @@
     <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
 {% endblock %}
 
-{% block title %}Centro{% endblock %}
+{% block title %}Editar Actividad{% endblock %}
 
 {% block content %}
     <div class="wrapper wrapper-content animated fadeInRight">
@@ -15,16 +15,17 @@
             <div class="col-lg-12">
                 <div class="ibox float-e-margins">
                     <div class="ibox-title">
-                        <h3>Crear actividad complementaria o extraescolar</h3>
+                        <h2>Gestión Actividad DACE</h2>
                     </div>
                     <div class="ibox-content">
                         <form action="" method="post">
                             {% csrf_token %}
+
                             <div class="form-group row">
                                 <label class="col-lg-2 col-form-label">{{ form.Titulo.label_tag }} </label>
                                 <div class="col-lg-10">
-                                    {{  form.Titulo }}
-                                    {%  for error in form.Titulo.errors %}
+                                    {{ form.Titulo }}
+                                    {% for error in form.Titulo.errors %}
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
                                 </div>
@@ -32,8 +33,8 @@
                             <div class="form-group row">
                                 <label class="col-lg-2 col-form-label">{{ form.Descripcion.label_tag }} </label>
                                 <div class="col-lg-10">
-                                    {{  form.Descripcion }}
-                                    {%  for error in form.Descripcion.errors %}
+                                    {{ form.Descripcion }}
+                                    {% for error in form.Descripcion.errors %}
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
                                 </div>
@@ -42,7 +43,7 @@
                                 <label class="col-lg-2 col-form-label">{{ form.Responsable.label_tag }} </label>
                                 <div class="col-lg-10">
                                     {{ form.Responsable }}
-                                    {%  for error in form.Responsable.errors %}
+                                    {% for error in form.Responsable.errors %}
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
                                 </div>
@@ -51,14 +52,14 @@
                                 <label class="col-lg-2 col-form-label"> {{ form.FechaInicio.label_tag }} </label>
                                 <div class="col-lg-2">
                                     {{ form.FechaInicio }}
-                                    {%  for error in form.FechaInicio.errors %}
+                                    {% for error in form.FechaInicio.errors %}
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
                                 </div>
                                 <label class="col-lg-1 col-form-label"> {{ form.FechaFin.label_tag }} </label>
                                 <div class="col-lg-2">
                                     {{ form.FechaFin }}
-                                    {%  for error in form.FechaFin.errors %}
+                                    {% for error in form.FechaFin.errors %}
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
                                 </div>
@@ -68,26 +69,32 @@
                                 <label class="col-lg-2 col-form-label"> {{ form.HoraSalida.label_tag }} </label>
                                 <div class="col-lg-2">
                                     {{ form.HoraSalida }}
-                                    {%  for error in form.HoraSalida.errors %}
+                                    {% for error in form.HoraSalida.errors %}
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
                                 </div>
                                 <label class="col-lg-1 col-form-label"> {{ form.HoraLlegada.label_tag }} </label>
                                 <div class="col-lg-2">
                                     {{ form.HoraLlegada }}
-                                    {%  for error in form.HoraLlegada.errors %}
+                                    {% for error in form.HoraLlegada.errors %}
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
                                 </div>
 
                             </div>
-                            <br/>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
+
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            <a href="{% url 'actividadesdace' %}" class="btn btn-secondary">Cancelar</a>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+
+
+
+
+
     </div>
 {% endblock %}
 
@@ -100,10 +107,17 @@
     <script>
         $(document).ready(function () {
             $(".select2_Responsable").select2({
-                    theme: 'bootstrap4',
-                    placeholder: "Selecciona profesor/a",
-                    allowClear: true
+                theme: 'bootstrap4',
+                placeholder: "Selecciona profesor/a",
+                allowClear: true
             });
+
+            $("#unidades-select").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona una unidad",
+                allowClear: true
+            });
+
             $('#id_FechaInicio').datepicker({
                 todayBtn: "linked",
                 keyboardNavigation: false,
@@ -111,33 +125,35 @@
                 calendarWeeks: true,
                 autoclose: true,
                 language: "es"
-            }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
+           }).datepicker('update', $('#id_FechaInicio').val());
 
-             $('#id_FechaFin').datepicker({
+            $('#id_FechaFin').datepicker({
                 todayBtn: "linked",
                 keyboardNavigation: false,
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
                 language: "es"
-            }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
+            }).datepicker('update', $('#id_FechaFin').val());
 
-            $('form').on('keypress', 'input, select', function(e) {
+            $('form').on('keypress', 'input, select', function (e) {
                 if (e.which === 13) {
                     e.preventDefault();
                 }
             });
 
-            $('form').on('submit', function() {
+            $('form').on('submit', function () {
                 $('button[type="submit"]').prop('disabled', true).text('Procesando...');
             });
 
             $('.clockpicker').clockpicker({
                 donetext: 'Hecho'
             });
-        })
 
+
+        })
 
 
     </script>
 {% endblock %}
+

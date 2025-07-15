@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/plugins/datapicker/datepicker3.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/clockpicker/clockpicker.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Detalles Actividad{% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <div class="float-right">
+                            <a href="{% url 'editar_actividad' actividad.id %}" class="btn btn-warning"> Editar </a>
+                            <a class="btn btn-success"
+                                               href="{% url 'editar_actividad_participantes' actividad.id %}"><i
+                                                    class="fa fa-users"></i> Gestión participantes</a>
+                                            <a class="btn btn-secondary"
+                                               href="{% url 'editar_actividad_economica' actividad.id %}"><i
+                                                    class="fa fa-eur"></i> Gestión económica</a>
+                        </div>
+
+                        <h2>Detalles Actividad DACE</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">Título</label>
+                            <div class="col-lg-10">
+                                <p class="form-control-static">{{ actividad.Titulo|default:"-" }}</p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">Descripción</label>
+                            <div class="col-lg-10">
+                                <p class="form-control-static">{{ actividad.Descripcion|default:"-" }}</p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">Responsable</label>
+                            <div class="col-lg-10">
+                                <p class="form-control-static">{{ actividad.Responsable|default:"-" }}</p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">Fecha de Inicio</label>
+                            <div class="col-lg-2">
+                                <p class="form-control-static">{{ actividad.FechaInicio|date:"d/m/Y" }}</p>
+                            </div>
+                            <label class="col-lg-1 col-form-label">Fecha de Fin</label>
+                            <div class="col-lg-2">
+                                <p class="form-control-static">{{ actividad.FechaFin|date:"d/m/Y" }}</p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-lg-2 col-form-label">Hora de Salida</label>
+                            <div class="col-lg-2">
+                                <p class="form-control-static">{{ actividad.HoraSalida|time:"H:i" }}</p>
+                            </div>
+                            <label class="col-lg-1 col-form-label">Hora de Llegada</label>
+                            <div class="col-lg-2">
+                                <p class="form-control-static">{{ actividad.HoraLlegada|time:"H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>Participantes Actividad DACE</h2>
+                    </div>
+                    <div class="ibox-content">
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <h3>Unidades y Alumnado participante</h3>
+
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped" id="tabla-unidades">
+                                                <thead>
+                                                <tr>
+                                                    <th>Unidad</th>
+                                                    <th>Alumnos/as</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for unidad in actividad.UnidadesAfectadas.all %}
+                                                    <tr data-id="{{ unidad.id }}">
+                                                        <td>{{ unidad }}</td>
+                                                        <td>
+                                                            <button type="button" data-unidad="{{ unidad }}"
+                                                                    class="btn btn-success btn-sm btn-alumnos-unidad">
+                                                                Alumnado
+                                                                (0)
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <h3>Profesorado participante</h3>
+
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped" id="tabla-profesorado">
+                                                <thead>
+                                                <tr>
+                                                    <th>Profesor/a</th>
+                                                    <th>Departamento</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for profe in actividad.Profesorado.all %}
+                                                    <tr data-id="{{ profe.id }}">
+                                                        <td>{{ profe }}</td>
+                                                        <td>
+                                                            {{ profe.Departamento }}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modal-alumnos-unidad" tabindex="-1" role="dialog"
+             aria-labelledby="modalAlumnosUnidadLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="modalAlumnosUnidadLabel">Alumnado Participante - Unidad: <span
+                                id="unidad-nombre"></span></h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                        <table class="table table-striped" id="tabla-alumnos-unidad">
+                            <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th class="text-center">Participa</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>Economía Actividad DACE</h2>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-lg-5">
+                                    <div class="panel panel-info">
+                                        <div class="panel-heading">
+                                            <h3>Listado de alumnado participante</h3>
+                                        </div>
+                                        <div class="panel-body">
+                                            <h4 class="text-center" style="margin-bottom: 20px;">Total
+                                                alumnos/as: {{ alumnos_total }}</h4>
+
+                                            <div class="panel-group" id="accordion">
+                                                {% for unidad, alumnos in alumnos_por_unidad.items %}
+                                                    <div class="panel panel-default">
+                                                        <div class="panel-heading">
+                                                            <h4 class="panel-title">
+                                                                <a data-toggle="collapse" data-parent="#accordion"
+                                                                   href="#collapse{{ forloop.counter }}">
+                                                                    Alumnado de {{ unidad }} ({{ alumnos|length }})
+                                                                </a>
+                                                            </h4>
+                                                        </div>
+                                                        <div id="collapse{{ forloop.counter }}"
+                                                             class="panel-collapse collapse {% if forloop.first %}in{% endif %}">
+                                                            <div class="panel-body">
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-striped">
+                                                                        <thead>
+                                                                        <tr>
+                                                                            <th>Nombre</th>
+                                                                            <th class="text-center">COMPE</th>
+                                                                            <th class="text-center">Pagado</th>
+                                                                        </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                        {% for alumno in alumnos %}
+                                                                            <tr>
+                                                                                <td>{{ alumno.alumno.Nombre }}</td>
+                                                                                <td class="text-center">
+                                                                                    <input type="checkbox" disabled
+                                                                                           class="i-checks"
+                                                                                           name="compe_{{ alumno.id }}"
+                                                                                           {% if alumno.compe %}checked{% endif %}>
+                                                                                </td>
+                                                                                <td class="text-center">
+                                                                                    <input type="checkbox" disabled
+                                                                                           class="i-checks"
+                                                                                           name="pagado_{{ alumno.id }}"
+                                                                                           {% if alumno.ha_pagado %}checked{% endif %}>
+                                                                                </td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                                <div class="col-lg-7">
+                                    <div class="panel panel-info">
+                                        <div class="panel-heading">
+                                            <h3>Control de gastos</h3>
+                                        </div>
+                                        <div class="panel-body">
+
+                                            <div class="form-group row">
+                                                <label class="col-lg-4 col-form-label text-right">Aportación Externa
+                                                    (€):</label>
+                                                <div class="col-lg-2">
+                                                    <p class="form-control-static">{{ actividad.AportacionCentro|default:"-" }}</p>
+                                                </div>
+
+                                                <label class="col-lg-4 col-form-label text-right"><strong>Coste por
+                                                    Alumnado (€): </strong></label>
+                                                <div class="col-lg-2">
+                                                    <p class="form-control-static">{{ actividad.CosteAlumnado|default:"-" }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered" id="tabla_gastos">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>Concepto</th>
+                                                        <th>Importe (€)</th>
+                                                        <th>Tipo</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+
+                                                    {% for gasto in gastos %}
+                                                        <tr>
+                                                            <td>{{ gasto.concepto }}</td>
+                                                            <td>{{ gasto.importe }}</td>
+                                                            <td>{{ gasto.tipo }}</td>
+                                                        </tr>
+                                                    {% empty %}
+                                                        <tr>
+                                                            <td colspan="3" class="text-center">No hay gastos
+                                                                registrados.
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{% url 'actividadesdace' %}" class="btn btn-secondary">Volver</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/datapicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'js/plugins/datapicker/locales/bootstrap-datepicker.es.min.js' %}"></script>
+    <script src="{% static 'js/plugins/clockpicker/clockpicker.js' %}"></script>
+    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green',
+            });
+
+
+            $('.i-checks').each(function () {
+                if ($(this).prop('checked')) {
+                    $(this).iCheck('check'); // Marca el checkbox en iCheck
+                } else {
+                    $(this).iCheck('uncheck'); // Desmarca el checkbox en iCheck
+                }
+            });
+
+
+            $('#id_FechaInicio').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker();
+
+            $('#id_FechaFin').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker();
+
+
+            $('.clockpicker').clockpicker({
+                donetext: 'Hecho'
+            });
+
+            function actualizarCheckboxesICheck() {
+                const checkboxes = $('#tabla-alumnos-unidad input.chk-alumno');
+
+                // Aplicar iCheck
+                checkboxes.iCheck({
+                    checkboxClass: 'icheckbox_square-green',
+                    radioClass: 'iradio_square-green'
+                }).off('ifChanged').on('ifChanged', function (event) {
+                    const $checkbox = $(this);
+                    const fila = $checkbox.closest('tr');
+                    const alumnoId = fila.data('alumno-id');
+                    const unidadId = fila.data('unidad-id');
+
+                    // Actualizar la lógica de selección/desselección
+                    if ($checkbox.prop('checked')) {
+                        if (!alumnosParticipantes[unidadId]) {
+                            alumnosParticipantes[unidadId] = [];
+                        }
+                        if (!alumnosParticipantes[unidadId].includes(alumnoId)) {
+                            alumnosParticipantes[unidadId].push(alumnoId);
+                        }
+                    } else {
+                        if (alumnosParticipantes[unidadId]) {
+                            alumnosParticipantes[unidadId] = alumnosParticipantes[unidadId].filter(id => id !== alumnoId);
+                        }
+                    }
+                });
+
+            }
+
+            const unidadesInput = $('#unidades-afectadas');
+            const alumnosInput = $('#alumnado-participante');
+            const profesoresInput = $('#profesorado-participante');
+
+            const tablaUnidades = $('#tabla-unidades tbody');
+            const tablaProfesorado = $('#tabla-profesorado tbody');
+            const alumnosParticipantes = {}; // Objeto para almacenar los alumnos seleccionados por unidad
+
+            $('#modal-alumnos-unidad').on('shown.bs.modal', function (event) {
+                actualizarCheckboxesICheck();
+            });
+
+
+            function reconstruirAlumnado() {
+
+                const actividadId = {{ actividad.id }};
+                // Iterar sobre cada fila de la tabla de unidades
+                tablaUnidades.find('tr').each(function () {
+                    const fila = $(this);
+                    const unidadId = fila.data('id');
+                    const botonAlumnado = fila.find('.btn-alumnos-unidad'); // Botón para actualizar el recuento
+
+                    if (unidadId) {
+                        // Hacer llamada AJAX para obtener los alumnos de la unidad en esta actividad
+                        $.ajax({
+                            url: `/DACE/get-alumnos-participantes-unidad/${unidadId}/${actividadId}/`, // Ajusta el endpoint si es necesario
+                            method: 'GET',
+                            success: function (data) {
+                                // Guardar alumnos en la estructura
+                                alumnosParticipantes[unidadId] = data.alumnos.map(alumno => alumno.id);
+
+                                // Actualizar el botón con el recuento de alumnos
+                                botonAlumnado.text(`Alumnado (${alumnosParticipantes[unidadId].length})`);
+
+                                actualizarAlumnado();
+
+
+                            },
+                            error: function () {
+                                console.error(`Error al obtener los alumnos para la unidad ${unidadId}`);
+                            }
+                        });
+                    }
+                });
+            }
+
+
+            // Actualizar el campo oculto con las unidades seleccionadas
+            function actualizarUnidades() {
+                const unidades = tablaUnidades.find('tr').map(function () {
+                    return $(this).data('id');
+                }).get();
+                unidadesInput.val(unidades.join(',')); // No se añade una coma extra
+            }
+
+            // Actualizar el campo oculto con las unidades seleccionadas
+            function actualizarProfesores() {
+                const profes = tablaProfesorado.find('tr').map(function () {
+                    return $(this).data('id');
+                }).get();
+                profesoresInput.val(profes.join(',')); // No se añade una coma extra
+            }
+
+            // Abrir el modal para gestionar alumnado
+            tablaUnidades.on('click', '.btn-alumnos-unidad', function () {
+                const unidadId = $(this).closest('tr').data('id');
+                const boton = $(this); // Botón para actualizar el contador
+                const unidadNombre = boton.attr('data-unidad');
+
+                // Solicitar alumnado de la unidad
+                $.ajax({
+                    url: `/DACE/get-alumnos-unidad/${unidadId}/`, // Endpoint para obtener alumnos de la unidad
+                    method: 'GET',
+                    success: function (data) {
+                        const tablaAlumnos = $('#tabla-alumnos-unidad tbody');
+                        tablaAlumnos.empty();
+
+                        // Rellenar la tabla con los alumnos
+                        data.alumnos.forEach(alumno => {
+                            const marcado = alumnosParticipantes[unidadId]?.includes(alumno.id) ? 'checked' : '';
+                            tablaAlumnos.append(`
+                    <tr data-id="${alumno.id}">
+                        <td>${alumno.Nombre}</td>
+                        <td class="text-center">
+                            <input type="checkbox" disabled class="form-check-input chk-alumno i-checks" ${marcado}>
+                        </td>
+                    </tr>
+                `);
+                        });
+
+                        actualizarCheckboxesICheck();
+
+                        $('#unidad-nombre').text(unidadNombre);
+
+                        // Abrir el modal
+                        $('#modal-alumnos-unidad').modal('show');
+
+                        // Guardar selección de alumnado
+                        $('#guardar-alumnos-unidad').off('click').on('click', function () {
+                            const seleccionados = tablaAlumnos.find('.chk-alumno:checked').closest('tr').map(function () {
+                                return $(this).data('id');
+                            }).get();
+
+                            alumnosParticipantes[unidadId] = seleccionados;
+
+                            // Actualizar el campo oculto de alumnado
+                            actualizarAlumnado();
+
+                            // Actualizar el botón con el recuento
+                            boton.text(`Alumnado (${seleccionados.length})`);
+
+                            $('#modal-alumnos-unidad').modal('hide');
+                        });
+                    }
+                });
+            });
+
+            // Actualizar el campo oculto con el alumnado participante
+            function actualizarAlumnado() {
+                const allAlumnos = Object.values(alumnosParticipantes).flat();
+                alumnosInput.val(allAlumnos.join(',')); // Actualizar el campo oculto
+            }
+
+
+            // Llamar a las funciones de actualización al cargar la página
+            actualizarProfesores();
+            actualizarUnidades();
+            reconstruirAlumnado();
+
+
+        })
+
+
+    </script>
+{% endblock %}
+
