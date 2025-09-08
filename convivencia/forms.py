@@ -2,8 +2,8 @@ from datetime import datetime
 
 from django import forms
 from django.forms import ModelForm, ModelChoiceField
-from convivencia.models import Amonestaciones, Sanciones
-from centro.models import Profesores, CursoAcademico
+from convivencia.models import Amonestaciones, Sanciones, IntervencionAulaHorizonte
+from centro.models import Profesores, CursoAcademico, Cursos, Alumnos
 from django.forms.widgets import CheckboxSelectMultiple, HiddenInput, DateInput, Textarea, TextInput, Select, \
     SelectDateWidget, CheckboxInput
 from django.contrib.admin.widgets import AdminDateWidget
@@ -158,3 +158,35 @@ class ResumenForm(forms.Form):
         ('sancion', 'Sanción'),
     ]
     tipo = forms.ChoiceField(choices=TIPO_CHOICES, widget=forms.RadioSelect(attrs={'class': 'form-check-input'}))
+
+
+class IntervencionAulaHorizonteForm(forms.ModelForm):
+    alumno = forms.ModelChoiceField(
+        queryset=Alumnos.objects.filter(Unidad__isnull=False).order_by("Nombre"),
+        label="Alumno/a",
+        widget=forms.Select(attrs={'class': 'form-select select2_Alumno'}),
+    )
+
+
+    class Meta:
+        model = IntervencionAulaHorizonte
+        exclude = ['profesor_atiende', 'creada_por', 'creada_en']  # estos los rellenamos desde la vista
+
+        widgets = {
+            'profesor_envia': forms.Select(attrs={'class': 'form-control select2_Profesor'}),
+            'fecha': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
+            'tramo_horario': forms.Select(attrs={'class': 'form-control select2_Hora'}),
+            'tarea_asignada': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'tarea_realizada': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'motivo': forms.TextInput(attrs={'class': 'form-control'}),
+            'reflexion_alumno': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'necesita_reubicacion': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'grupo_destino': forms.Select(attrs={'class': 'form-control select2_Grupo'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['alumno'].label_from_instance = lambda obj: obj.Nombre
+        self.fields['profesor_envia'].queryset = Profesores.objects.filter(Baja=False)
+        self.fields['grupo_destino'].queryset = Cursos.objects.all()

@@ -105,16 +105,24 @@ class Niveles(models.Model):
         verbose_name = "Nivel"
         verbose_name_plural = "Niveles"
 
+class CursosActivosManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(Activo=True).order_by('Orden', 'id')
 
 class Cursos(models.Model):
     Curso = models.CharField(max_length=30)
     Tutor = models.ForeignKey(Profesores, related_name='Tutor_de', blank=True, null=True, on_delete=models.SET_NULL)
-    EquipoEducativo = models.ManyToManyField(Profesores, verbose_name="Equipo Educativo", blank=True)
     Abe = models.CharField(max_length=10, blank=True, null=True)
     Nivel = models.ForeignKey(Niveles, related_name='Nivel', blank=True, null=True, on_delete=models.SET_NULL)
     Aula = models.ForeignKey(Aulas, related_name='Curso', blank=True, null=True, on_delete=models.SET_NULL)
     CursoHorarios = models.CharField(max_length=100, blank=True, null=True)
     Dificultad = models.IntegerField(blank=True, null=True)
+    Activo = models.BooleanField(default=True)
+    Orden = models.PositiveIntegerField(default=0)  # Campo para controlar el orden
+
+    # Managers
+    all_objects = models.Manager()          # sin filtro (útil para administración/tareas)
+    objects = CursosActivosManager()        # por defecto: solo Activo=True
 
     def __str__(self):
         return self.Curso
@@ -128,7 +136,10 @@ class Cursos(models.Model):
     class Meta:
         verbose_name = "Curso"
         verbose_name_plural = "Cursos"
-        ordering = ['id']
+        ordering = ['Orden', 'id']
+        # Importante para que Django use el manager sin filtro en tareas internas
+        base_manager_name = 'all_objects'
+        default_manager_name = 'objects'
 
 
 class Alumnos(models.Model):
@@ -345,3 +356,23 @@ class RevisionLibroAlumno(models.Model):
 
     def __str__(self):
         return f"{self.revision} - {self.alumno} - {self.estado} ({self.observaciones})"
+
+
+class PreferenciaHorario(models.Model):
+    profesor = models.OneToOneField(Profesores, on_delete=models.CASCADE, related_name='preferencia_horaria')
+
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+
+    # Guardamos la información del horario como JSON
+    horario = models.JSONField(default=dict)  # Ejemplo: {'Lunes-1': True, 'Martes-2': False, ...}
+    flexibilidad_inicio = models.BooleanField(default=False)
+    flexibilidad_fin = models.BooleanField(default=False)
+
+    guardias = models.JSONField(default=list)  # ['Pasillo', 'Recreo', 'Horizonte'], en orden
+    observaciones = models.TextField(blank=True)
+
+    actualizado = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Preferencias de {self.profesor}"
+

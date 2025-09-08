@@ -30,6 +30,7 @@ class ItemHorario(models.Model):
     unidad = models.ForeignKey(Cursos, on_delete=models.CASCADE)
     aula = models.ForeignKey(Aulas, on_delete=models.CASCADE)
     materia = models.CharField(max_length=255, blank=True, null=True)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.profesor} - {self.materia} - {self.unidad} - {self.aula} - {self.get_dia_display()} {self.get_tramo_display()}"
@@ -37,4 +38,4 @@ class ItemHorario(models.Model):
     class Meta:
         verbose_name = "Item de Horario"
         verbose_name_plural = "Items de Horario"
-        unique_together = ('tramo', 'dia', 'profesor', 'unidad', 'aula', 'materia')
+        unique_together = ('tramo', 'dia', 'profesor', 'unidad', 'aula', 'materia', 'curso_academico')

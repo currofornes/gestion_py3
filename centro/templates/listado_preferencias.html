@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+{% load dict_extras %}
+
+{% block title %}Centro{% endblock %}
+
+{% block css %}
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Preferencias horarias del profesorado</h4>
+            </div>
+        </div>
+
+
+        <div class="row">
+
+
+            <div class="col-12">
+
+                <div class="card">
+
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped dataTables-preferencias">
+                                <thead>
+                                <tr>
+                                    <th>Profesor</th>
+                                    <th>Flex. Entrada</th>
+                                    <th>Flex. Salida</th>
+                                    <th>Horario</th>
+                                    <th>Guardias</th>
+                                    <th>Observaciones</th>
+                                    <th>Fecha</th>
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for profesor in profesores %}
+                                    {% with preferencias|dict_get:profesor.id as pref %}
+                                        <tr>
+                                            <td>{{ profesor }}</td>
+                                            {% if pref %}
+                                                <td class="text-center"
+                                                    data-flex-inicio="{{ pref.flexibilidad_inicio|yesno:"Sí,No" }}">
+                                                    {% if pref.flexibilidad_inicio %}
+                                                        <div class="avatar-xs flex-shrink-0">
+                                                        <span class="avatar-title text-bg-success bg-opacity-90 rounded-circle fs-16">
+                                                            <i class="ti ti-check"></i>
+                                                        </span>
+                                                        </div>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-center"
+                                                    data-flex-inicio="{{ pref.flexibilidad_fin|yesno:"Sí,No" }}"
+                                                        {% if pref.flexibilidad_fin %}>
+                                                            <div class="avatar-xs flex-shrink-0">
+                                                        <span class="avatar-title text-bg-success bg-opacity-90 rounded-circle fs-16">
+                                                            <i class="ti ti-check"></i>
+                                                        </span>
+                                                            </div>
+                                                        {% endif %}</td>
+                                                <td>
+                                                    {% if pref.horario_resumen %}
+                                                        {% for celda in pref.horario_resumen %}
+                                                            <span class="badge badge-label bg-light text-dark me-1">{{ celda }}</span>
+                                                        {% endfor %}
+
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if pref.guardias %}
+                                                        {% for guardia in pref.guardias %}
+                                                            <span class="badge badge-label 
+                {% if guardia == 'pasillo' %}text-bg-primary
+                {% elif guardia == 'recreo' %}text-bg-secondary
+                {% elif guardia == 'horizonte' %}text-bg-warning
+                {% endif %}">
+                {{ guardia|capfirst }}
+            </span>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        —
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ pref.observaciones|default:"—" }}</td>
+                                            {% else %}
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            {% endif %}
+                                            <td>{{ pref.actualizado|date:"d/m/Y" }}</td>
+
+                                        </tr>
+                                    {% endwith %}
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div><!-- end col -->
+
+
+    </div><!-- end row -->
+
+
+
+{% endblock %}
+
+{% block js %}
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <script>
+
+        jQuery.extend(jQuery.fn.dataTable.ext.type.order, {
+            "date-eu-pre": function (date) {
+                // Si la fecha está vacía o mal formada, devolvemos valor alto para dejarla al final
+                if (!date || date.trim() === '') {
+                    return 0;
+                }
+
+                const eu_date = date.split('/');
+                // dd/mm/yyyy → yyyy+mm+dd como número
+                return (eu_date[2] + eu_date[1] + eu_date[0]) * 1;
+            },
+            "date-eu-asc": function (a, b) {
+                return a - b;
+            },
+            "date-eu-desc": function (a, b) {
+                return b - a;
+            }
+        });
+
+
+        $(document).ready(function () {
+
+            $('.dataTables-preferencias').each(function () {
+                $(this).DataTable({
+                    dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                        "rt" +
+                        "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                    responsive: true,
+                    pageLength: 50,
+                    fixedHeader: {
+                        header: true,
+                        headerOffset: 65
+                    },
+                    buttons: [
+                        {
+                            extend: 'collection',
+                            text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                            className: 'btn btn-sm btn-secondary dropdown-toggle',
+                            autoClose: true,
+                            buttons: [
+                                {
+                                    extend: 'copy',
+                                    text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                    className: 'dropdown-item'
+                                },
+                                {
+                                    extend: 'csv',
+                                    text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                    className: 'dropdown-item',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        format: {
+                                            body: function (data, row, column, node) {
+                                                const flexInicio = node.getAttribute('data-flex-inicio');
+                                                if (flexInicio !== null) return flexInicio;
+
+                                                const flexFin = node.getAttribute('data-flex-fin');
+                                                if (flexFin !== null) return flexFin;
+
+                                                return $(node).text().trim(); // fallback para el resto
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    extend: 'excel',
+                                    text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                    className: 'dropdown-item',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        format: {
+                                            body: function (data, row, column, node) {
+                                                const flexInicio = node.getAttribute('data-flex-inicio');
+                                                if (flexInicio !== null) return flexInicio;
+
+                                                const flexFin = node.getAttribute('data-flex-fin');
+                                                if (flexFin !== null) return flexFin;
+
+                                                return $(node).text().trim(); // fallback para el resto
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    extend: 'print',
+                                    text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                    className: 'dropdown-item',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        format: {
+                                            body: function (data, row, column, node) {
+                                                const flexInicio = node.getAttribute('data-flex-inicio');
+                                                if (flexInicio !== null) return flexInicio;
+
+                                                const flexFin = node.getAttribute('data-flex-fin');
+                                                if (flexFin !== null) return flexFin;
+
+                                                return $(node).text().trim(); // fallback para el resto
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    extend: 'pdf',
+                                    text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                    className: 'dropdown-item',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        format: {
+                                            body: function (data, row, column, node) {
+                                                const flexInicio = node.getAttribute('data-flex-inicio');
+                                                if (flexInicio !== null) return flexInicio;
+
+                                                const flexFin = node.getAttribute('data-flex-fin');
+                                                if (flexFin !== null) return flexFin;
+
+                                                return $(node).text().trim(); // fallback para el resto
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+
+                    columnDefs: [
+                        {
+                            targets: [6],
+                            type: 'date-eu'
+                        }
+                    ],
+
+
+                    order: [[0, 'asc']],
+                    language: {
+                        url: "{% static 'plugins/datatables/es-ES.json' %}",
+                        paginate: {
+                            first: '<i class="ti ti-chevrons-left"></i>',
+                            previous: '<i class="ti ti-chevron-left"></i>',
+                            next: '<i class="ti ti-chevron-right"></i>',
+                            last: '<i class="ti ti-chevrons-right"></i>'
+                        }
+                    }
+                });
+            });
+
+
+        });
+
+
+    </script>
+{% endblock %}
+

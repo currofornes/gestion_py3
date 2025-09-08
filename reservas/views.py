@@ -8,8 +8,10 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
+from centro.utils import get_current_academic_year
 from centro.views import group_check_prof, group_check_je, group_check_tde
 from horarios.models import ItemHorario
+from prevision_plazas_enero import curso_academico_actual
 from reservas.forms import ReservaForm, ReservaProfeForm
 from reservas.models import Reservas, Reservables
 
@@ -156,7 +158,9 @@ def misreservas(request):
 @user_passes_test(group_check_tde, login_url='/')
 def reservas(request):
 
-    lista_reservas = Reservas.objects.all().order_by('-Fecha')  # Ordenar directamente en la consulta
+    curso_academico_actual = get_current_academic_year()
+
+    lista_reservas = Reservas.objects.filter(curso_academico=curso_academico_actual).order_by('-Fecha')  # Ordenar directamente en la consulta
     reservas_info = []  # Lista para almacenar la información de cada reserva junto con el curso y aula
 
     for reserva in lista_reservas:

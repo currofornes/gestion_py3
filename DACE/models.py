@@ -1,12 +1,20 @@
 from django.db import models
 from centro.models import Cursos, Alumnos, Profesores, CursoAcademico
 
+class EstadoActividad(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+    descripcion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        verbose_name = "Estado de actividad"
+        verbose_name_plural = "Estados de actividad"
+        ordering = ['nombre']
+
 
 class Actividades(models.Model):
-    ESTADO_CHOICES = [
-        ('Pendiente', 'Pendiente'),
-        ('Aprobada', 'Aprobada'),
-    ]
 
     Titulo = models.CharField(max_length=255)
     Descripcion = models.TextField(blank=True, null=True)
@@ -20,7 +28,7 @@ class Actividades(models.Model):
     Profesorado = models.ManyToManyField(Profesores, related_name="actividades_participadas")
     CosteAlumnado = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     AportacionCentro = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    Estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='Pendiente')
+    Estado = models.ForeignKey(EstadoActividad, on_delete=models.PROTECT, related_name='actividades')
 
     curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -68,3 +76,5 @@ class GastosActividad(models.Model):
 
     def __str__(self):
         return f"{self.concepto} ({self.tipo}) - {self.importe}€"
+
+

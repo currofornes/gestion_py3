@@ -5,15 +5,15 @@
 <div class="sidenav-menu">
 
     <!-- Brand Logo -->
-    <a href="index.html" class="logo">
+    <a href="/" class="logo">
         <span class="logo logo-light">
-            <span class="logo-lg"><img src="{% static 'img/logo.png' %}" alt="logo"></span>
-            <span class="logo-sm"><img src="{% static 'img/logo.png' %}" alt="small logo"></span>
+            <span class="logo-lg"><img src="{% static 'img/logo_gestiona.png' %}" alt="logo"></span>
+            <span class="logo-sm"><img src="{% static 'img/logo_gestiona_small.png' %}" alt="small logo"></span>
         </span>
 
         <span class="logo logo-dark">
-            <span class="logo-lg"><img src="{% static 'img/logo.png' %}" alt="dark logo"></span>
-            <span class="logo-sm"><img src="{% static 'img/logo.png' %}" alt="small logo"></span>
+            <span class="logo-lg"><img src="{% static 'img/logo_gestiona.png' %}" alt="dark logo"></span>
+            <span class="logo-sm"><img src="{% static 'img/logo_gestiona_small.png' %}" alt="small logo"></span>
         </span>
     </a>
 
@@ -33,10 +33,22 @@
         <div class="sidenav-user">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <a href="pages-profile.html" class="link-reset">
-                        <img src="{% static 'img/user-2.jpg' %}" alt="user-image" class="rounded-circle mb-2 avatar-md">
-                        <span class="sidenav-user-name fw-bold">Damian D.</span>
-                        <span class="fs-12 fw-semibold" data-lang="user-role">Art Director</span>
+                    <a href="#" class="link-reset">
+                        <img src="{% static 'img/user-generic.png' %}" alt="user-image" class="rounded-circle mb-2 avatar-md">
+                        <span class="sidenav-user-name fw-bold">
+                            {% if user.profesor %}
+                                    {{ user.profesor }}
+                                {% else %}
+                                    {{ user }}
+                                {% endif %}
+                        </span>
+                        <span class="fs-12 fw-semibold" data-lang="user-role">
+                            {% if user|has_group:"jefatura de estudios" %}
+                            Jefatura de estudios
+                        {% elif user|has_group:"profesor" %}
+                            Profesor/a
+                            {% endif %}
+                        </span>
                     </a>
                 </div>
                 <div>
@@ -49,28 +61,22 @@
                     <div class="dropdown-menu">
                         <!-- Header -->
                         <div class="dropdown-header noti-title">
-                            <h6 class="text-overflow m-0">Bienvenido/a</h6>
+                            <h6 class="text-overflow m-0">¡Bienvenido/a!</h6>
                         </div>
 
-                        <!-- My Profile -->
-                        <a href="pages-profile.html" class="dropdown-item">
-                            <i class="ti ti-user-circle me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">Perfil</span>
-                        </a>
-
-                        <!-- Notifications -->
-                        <a href="javascript:void(0);" class="dropdown-item">
-                            <i class="ti ti-bell-ringing me-2 fs-17 align-middle"></i>
-                            <span class="align-middle">Notificaciones</span>
-                        </a>
-
+                        {% if user|not_in_group:"guardia" %}
+                        <a href="/cambiar-password-custom" class="dropdown-item">
+                                    <i class="ti ti-lock me-2 fs-17 align-middle"></i>
+                                    <span class="align-middle">Cambiar contraseña</span>
+                                </a>
+                        {% endif %}
 
                         <!-- Divider -->
                         <div class="dropdown-divider"></div>
 
 
                         <!-- Logout -->
-                        <a href="javascript:void(0);" class="dropdown-item text-danger fw-semibold">
+                        <a href="/logout" class="dropdown-item text-danger fw-semibold">
                             <i class="ti ti-logout-2 me-2 fs-17 align-middle"></i>
                             <span class="align-middle">Cerrar sesión</span>
                         </a>
@@ -82,11 +88,14 @@
         <!--- Sidenav Menu -->
         <ul class="side-nav">
 
+
+            {% if user.is_superuser %}
+
             <li class="side-nav-title" data-lang="menu-title">ADMINISTRACIÓN</li>
 
             <li class="side-nav-item">
-                <a href="landing.html" target="_blank" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                <a href="/admin" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-radioactive"></i></span>
                     <span class="menu-text" data-lang="landing-page">Zona Restringida</span>
                 </a>
             </li>
@@ -94,18 +103,31 @@
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarAdminImportar" aria-expanded="false"
                    aria-controls="sidebarAdminImportar" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
+                    <span class="menu-icon"><i class="ti ti-database-import"></i></span>
                     <span class="menu-text" data-lang="dashboards">Importación Datos</span>
                     <span class="menu-arrow"></span>
                     {#                    <span class="badge bg-success">5</span>#}
                 </a>
                 <div class="collapse" id="sidebarAdminImportar">
                     <ul class="sub-menu">
+
                         <li class="side-nav-item">
-                            <a href="index.html" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Importar datos</span>
+                            <a href="/carga_archivos/RegAlum/" class="side-nav-link">
+                                <span class="menu-text" data-lang="dashboard-one">Carga de datos adicionales de alumnado desde Séneca</span>
                             </a>
                         </li>
+                        <li class="side-nav-item">
+                            <a href="/carga_archivos/calificaciones/" class="side-nav-link">
+                                <span class="menu-text" data-lang="dashboard-one">Carga de calificaciones desde Séneca</span>
+                            </a>
+                        </li>
+                        <li class="side-nav-item">
+                            <a href="/carga_archivos/admision/" class="side-nav-link">
+                                <span class="menu-text" data-lang="dashboard-one">Carga de datos de admisión</span>
+                            </a>
+                        </li>
+
+
                         <li class="side-nav-item">
                             <a href="/centro/importar_materias/" class="side-nav-link">
                                 <span class="menu-text" data-lang="dashboard-one">Importar Materias por Nivel</span>
@@ -135,7 +157,7 @@
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarAdminUtils" aria-expanded="false"
                    aria-controls="sidebarAdminUtils" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
+                    <span class="menu-icon"><i class="ti ti-tools"></i></span>
                     <span class="menu-text" data-lang="dashboards">Utilidades</span>
                     <span class="menu-arrow"></span>
                     {#                    <span class="badge bg-success">5</span>#}
@@ -143,8 +165,23 @@
                 <div class="collapse" id="sidebarAdminUtils">
                     <ul class="sub-menu">
                         <li class="side-nav-item">
-                            <a href="index.html" class="side-nav-link">
+                            <a href="/centro/gestion-sustitutos/lista" class="side-nav-link">
+                                <span class="menu-text" data-lang="dashboard-one">Gestión de sustitutos/as</span>
+                            </a>
+                        </li>
+                        <li class="side-nav-item">
+                            <a href="/horarios/copiar_horario/" class="side-nav-link">
                                 <span class="menu-text" data-lang="dashboard-one">Copiar horario</span>
+                            </a>
+                        </li>
+                        <li class="side-nav-item">
+                            <a href="/centro/profesores" class="side-nav-link">
+                                <span class="menu-text" data-lang="dashboard-one">Ver Profesores/as</span>
+                            </a>
+                        </li>
+                        <li class="side-nav-item">
+                            <a href="/centro/cursos" class="side-nav-link">
+                                <span class="menu-text" data-lang="dashboard-one">Ver Unidades</span>
                             </a>
                         </li>
                         <li class="side-nav-item">
@@ -168,13 +205,15 @@
                 </div>
             </li>
 
+            {% endif %}
+
 
             <li class="side-nav-title" data-lang="menu-title">CONVIVENCIA</li>
-
+            {% if user|has_group:"jefatura de estudios" %}
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarConvBusqueda" aria-expanded="false"
                    aria-controls="sidebarConvBusqueda" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
+                    <span class="menu-icon"><i class="ti ti-search"></i></span>
                     <span class="menu-text" data-lang="dashboards">Búsqueda</span>
                     <span class="menu-arrow"></span>
                     {#                    <span class="badge bg-success">5</span>#}
@@ -196,10 +235,11 @@
                 </div>
             </li>
 
+
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarConvAmonestaciones" aria-expanded="false"
                    aria-controls="sidebarConvAmonestaciones" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
+                    <span class="menu-icon"><i class="ti ti-thumb-down"></i></span>
                     <span class="menu-text" data-lang="dashboards">Amonestaciones</span>
                     <span class="menu-arrow"></span>
                     {#                    <span class="badge bg-success">5</span>#}
@@ -207,7 +247,7 @@
                 <div class="collapse" id="sidebarConvAmonestaciones">
                     <ul class="sub-menu">
                         <li class="side-nav-item">
-                            <a href="index.html" class="side-nav-link">
+                            <a href="/convivencia/busq-amonestaciones/" class="side-nav-link">
                                 <span class="menu-text" data-lang="dashboard-one">Consulta</span>
                             </a>
                         </li>
@@ -217,21 +257,18 @@
                 </div>
             </li>
 
+
+
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarConvSanciones" aria-expanded="false"
                    aria-controls="sidebarConvSanciones" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
+                    <span class="menu-icon"><i class="ti ti-home-up"></i></span>
                     <span class="menu-text" data-lang="dashboards">Sanciones</span>
                     <span class="menu-arrow"></span>
                     {#                    <span class="badge bg-success">5</span>#}
                 </a>
                 <div class="collapse" id="sidebarConvSanciones">
                     <ul class="sub-menu">
-                        <li class="side-nav-item">
-                            <a href="index.html" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Consulta</span>
-                            </a>
-                        </li>
 
                         <li class="side-nav-item">
                             <a href="/convivencia/alumnadosancionable/False" class="side-nav-link">
@@ -255,10 +292,12 @@
             </li>
 
 
+        {% endif %}
+            <!--
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarConvAulaConv" aria-expanded="false"
                    aria-controls="sidebarConvAulaConv" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
+                    <span class="menu-icon"><i class="ti ti-steam"></i></span>
                     <span class="menu-text" data-lang="dashboards">Aula de Convivencia</span>
                     <span class="menu-arrow"></span>
                     {#                    <span class="badge bg-success">5</span>#}
@@ -279,51 +318,87 @@
                     </ul>
                 </div>
             </li>
+            -->
 
             <li class="side-nav-item">
+                <a data-bs-toggle="collapse" href="#sidebarConvAulaHoriz" aria-expanded="false"
+                   aria-controls="sidebarConvAulaHoriz" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-sunset-2"></i></span>
+                    <span class="menu-text" data-lang="dashboards">Aula Horizonte</span>
+                    <span class="menu-arrow"></span>
+                    {#                    <span class="badge bg-success">5</span>#}
+                </a>
+                <div class="collapse" id="sidebarConvAulaHoriz">
+                    <ul class="sub-menu">
+                        <li class="side-nav-item">
+                            <a href="/convivencia/nueva-intervencion-horizonte" class="side-nav-link">
+                                <span class="menu-text" data-lang="dashboard-one">Registrar Intervención</span>
+                            </a>
+                        </li>
+                        {% if user|has_group:"jefatura de estudios" %}
+                        <li class="side-nav-item">
+                            <a href="/convivencia/derivaciones-aula-horizonte" class="side-nav-link">
+                                <span class="menu-text" data-lang="dashboard-one">Registro derivación</span>
+                            </a>
+                        </li>
+                        <li class="side-nav-item">
+                            <a href="/convivencia/intervenciones-horizonte/" class="side-nav-link">
+                                <span class="menu-text" data-lang="dashboard-two">Registro actividad</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                    </ul>
+                </div>
+            </li>
+            {% if user|has_group:"jefatura de estudios" %}
+            <li class="side-nav-item">
                 <a href="/convivencia/show" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-vocabulary"></i></span>
                     <span class="menu-text" data-lang="landing-page">Resumen diario</span>
                 </a>
             </li>
+        {% endif %}
             {% if user|has_group:"profesor" %}
                 <li class="side-nav-item">
                     <a href="/centro/misalumnos" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
-                        <span class="menu-text" data-lang="landing-page">Mis Alumnos</span>
+                        <span class="menu-icon"><i class="ti ti-friends"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Mis Alumnos/as</span>
                     </a>
                 </li>
 
                 <li class="side-nav-item">
                     <a href="/convivencia/misamonestaciones" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                        <span class="menu-icon"><i class="ti ti-thumb-down-filled"></i></span>
                         <span class="menu-text" data-lang="landing-page">Mis Amonestaciones</span>
                     </a>
                 </li>
             {% endif %}
 
+        <!--
             <li class="side-nav-title mt-2" data-lang="layouts-title">ABSENTISMO</li>
 
             <li class="side-nav-item">
                 <a href="landing.html" target="_blank" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-building-community"></i></span>
                     <span class="menu-text" data-lang="landing-page">Protocolos abiertos</span>
                 </a>
             </li>
 
             <li class="side-nav-item">
                 <a href="landing.html" target="_blank" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-school-off"></i></span>
                     <span class="menu-text" data-lang="landing-page">Alumnado completo</span>
                 </a>
             </li>
-
+            -->
+            {% if user|has_group:"jefatura de estudios" %}
             <li class="side-nav-title" data-lang="apps-title">ESTADÍSTICAS Y ANÁLISIS</li>
 
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarEstAnalRes" aria-expanded="false"
                    aria-controls="sidebarEstAnalRes" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-basket"></i></span>
+                    <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
                     <span class="menu-text" data-lang="ecommerce">Análisis Resultados</span>
                     <span class="menu-arrow"></span>
                 </a>
@@ -351,7 +426,7 @@
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarEstAmonSanc" aria-expanded="false"
                    aria-controls="sidebarEstAmonSanc" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-basket"></i></span>
+                    <span class="menu-icon"><i class="ti ti-chart-dots"></i></span>
                     <span class="menu-text" data-lang="ecommerce">Amon./Sanc.</span>
                     <span class="menu-arrow"></span>
                 </a>
@@ -359,37 +434,37 @@
                     <ul class="sub-menu">
 
                         <li class="side-nav-item">
-                            <a href="ecommerce-categories.html" class="side-nav-link">
+                            <a href="/convivencia/estadistica" class="side-nav-link">
                                 <span class="menu-text" data-lang="eco-categories">General</span>
                             </a>
                         </li>
 
                         <li class="side-nav-item">
-                            <a href="ecommerce-categories.html" class="side-nav-link">
+                            <a href="/convivencia/horas" class="side-nav-link">
                                 <span class="menu-text" data-lang="eco-categories">Tramos</span>
                             </a>
                         </li>
 
                         <li class="side-nav-item">
-                            <a href="ecommerce-categories.html" class="side-nav-link">
+                            <a href="/convivencia/profesores" class="side-nav-link">
                                 <span class="menu-text" data-lang="eco-categories">Profesorado</span>
                             </a>
                         </li>
 
                         <li class="side-nav-item">
-                            <a href="ecommerce-categories.html" class="side-nav-link">
+                            <a href="/convivencia/niveles" class="side-nav-link">
                                 <span class="menu-text" data-lang="eco-categories">Niveles</span>
                             </a>
                         </li>
 
                         <li class="side-nav-item">
-                            <a href="ecommerce-categories.html" class="side-nav-link">
+                            <a href="/convivencia/grupos" class="side-nav-link">
                                 <span class="menu-text" data-lang="eco-categories">Grupos</span>
                             </a>
                         </li>
 
                         <li class="side-nav-item">
-                            <a href="ecommerce-categories.html" class="side-nav-link">
+                            <a href="/convivencia/alumnos" class="side-nav-link">
                                 <span class="menu-text" data-lang="eco-categories">Alumnos</span>
                             </a>
                         </li>
@@ -399,26 +474,42 @@
             </li>
 
             <li class="side-nav-item">
-                <a href="landing.html" target="_blank" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                <a href="/guardias/estadisticas" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-user-cancel"></i></span>
                     <span class="menu-text" data-lang="landing-page">Ausencias</span>
                 </a>
             </li>
-
+            {% endif %}
 
             <li class="side-nav-title mt-2" data-lang="pages-title">HORARIOS</li>
 
             <li class="side-nav-item">
                 <a href="/horarios/mihorario" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-calendar-heart"></i></span>
                     <span class="menu-text" data-lang="landing-page">Mi Horario</span>
                 </a>
             </li>
 
+        <li class="side-nav-item">
+                <a href="/centro/mipreferenciahoraria/" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-calendar-smile"></i></span>
+                    <span class="menu-text" data-lang="landing-page">Mi Preferencia horaria</span>
+                </a>
+            </li>
+
+        {% if user|has_group:"jefatura de estudios" %}
+            <li class="side-nav-item">
+                <a href="/centro/verpreferenciashorarias/" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-calendar-search"></i></span>
+                    <span class="menu-text" data-lang="landing-page">Ver Preferencias horarias</span>
+                </a>
+            </li>
+        {% endif %}
+
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarHorarioOtros" aria-expanded="false"
                    aria-controls="sidebarHorarioOtros" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-files"></i></span>
+                    <span class="menu-icon"><i class="ti ti-calendar-plus"></i></span>
                     <span class="menu-text" data-lang="pages"> Otros Horarios </span>
                     <span class="menu-arrow"></span>
                 </a>
@@ -449,66 +540,71 @@
 
             <li class="side-nav-item">
                 <a href="/guardias/parteguardias" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-table-share"></i></span>
                     <span class="menu-text" data-lang="landing-page">Parte de Guardias</span>
                 </a>
             </li>
 
             <li class="side-nav-item">
                 <a href="/guardias/misausencias" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-user-exclamation"></i></span>
                     <span class="menu-text" data-lang="landing-page">Mis Ausencias</span>
                 </a>
             </li>
-
+            {% if user|has_group:"jefatura de estudios" %}
             <li class="side-nav-item">
                 <a href="/guardias/ver-guardias" class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
                     <span class="menu-text" data-lang="landing-page">Ausencias profesorado</span>
                 </a>
             </li>
+            {% endif %}
 
 
             <li class="side-nav-title mt-2" data-lang="components-title">RESERVAS</li>
 
             <li class="side-nav-item">
                 <a href="/reservas/misreservas" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-devices-2"></i></span>
                     <span class="menu-text" data-lang="landing-page">Mis Reservas</span>
                 </a>
             </li>
 
+        {% if user|has_group:"jefatura de estudios" %}
             <li class="side-nav-item">
                 <a href="/reservas/verreservas" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-devices-question"></i></span>
                     <span class="menu-text" data-lang="landing-page">Ver Reservas</span>
                 </a>
             </li>
-
+{% endif %}
 
             <li class="side-nav-title mt-2" data-lang="components-title">TDE/TIC</li>
 
 
             <li class="side-nav-item">
                 <a href="https://pablogs2.github.io/tde" target="_blank" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-file-type-doc"></i></span>
                     <span class="menu-text" data-lang="landing-page">Manual TDE</span>
                 </a>
             </li>
 
             <li class="side-nav-item">
                 <a href="/tde/misincidenciastic" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-device-projector"></i></span>
                     <span class="menu-text" data-lang="landing-page">Mis Incidencias TIC</span>
                 </a>
             </li>
 
+
+            {% if user|has_group:"jefatura de estudios" or user|has_group:"tde" %}
             <li class="side-nav-item">
                 <a href="/tde/incidenciastic" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-device-imac-bolt"></i></span>
                     <span class="menu-text" data-lang="landing-page">Ver Incidencias TIC</span>
                 </a>
             </li>
+        {% endif %}
 
 
             <li class="side-nav-title mt-2" data-lang="components-title">LIBROS DE TEXTO</li>
@@ -516,14 +612,14 @@
             {% if user|has_group:"profesor" %}
                 <li class="side-nav-item">
                     <a href="/centro/mis-revisiones-libros" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                        <span class="menu-icon"><i class="ti ti-books"></i></span>
                         <span class="menu-text" data-lang="landing-page">Mis Revisiones</span>
                     </a>
                 </li>
 
                 <li class="side-nav-item">
                     <a href="/centro/revisar-libros" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                        <span class="menu-icon"><i class="ti ti-book"></i></span>
                         <span class="menu-text" data-lang="landing-page">Revisar libros</span>
                     </a>
                 </li>
@@ -532,15 +628,29 @@
             {% if user|has_group:"jefatura de estudios" %}
                 <li class="side-nav-item">
                     <a href="/centro/revision-libros" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                        <span class="menu-icon"><i class="ti ti-book-2"></i></span>
                         <span class="menu-text" data-lang="landing-page">Revision Libros (JE)</span>
                     </a>
                 </li>
 
                 <li class="side-nav-item">
                     <a href="/centro/resumen-revisiones" class="side-nav-link">
-                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                        <span class="menu-icon"><i class="ti ti-vocabulary"></i></span>
                         <span class="menu-text" data-lang="landing-page">Resumen revisiones</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item">
+                    <a href="/centro/morosos" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-books-off"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Informe Morosos</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item">
+                    <a href="/centro/destrozones" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-book-off"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Informe Destrozones</span>
                     </a>
                 </li>
             {% endif %}
@@ -548,25 +658,33 @@
             <li class="side-nav-title mt-2" data-lang="components-title">ACT. COMPLEMENTARIAS y EXT.</li>
 
             <li class="side-nav-item">
-                <a href="landing.html" target="_blank" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                <a href="/DACE/calendario/" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-calendar"></i></span>
                     <span class="menu-text" data-lang="landing-page">Calendario</span>
                 </a>
             </li>
 
             <li class="side-nav-item">
                 <a href="/DACE/crear_actividad" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                    <span class="menu-icon"><i class="ti ti-calendar-plus"></i></span>
                     <span class="menu-text" data-lang="landing-page">Nueva actividad</span>
                 </a>
             </li>
 
             <li class="side-nav-item">
-                <a href="landing.html" target="_blank" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                <a href="/DACE/misactividades" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-calendar-star"></i></span>
                     <span class="menu-text" data-lang="landing-page">Mis Actividades</span>
                 </a>
             </li>
+        {% if user|has_group:"jefatura de estudios" %}
+        <li class="side-nav-item">
+                <a href="/DACE/actividadesdace" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-calendar-month"></i></span>
+                    <span class="menu-text" data-lang="landing-page">Actividades DACE</span>
+                </a>
+            </li>
+        {% endif %}
 
 
         </ul>

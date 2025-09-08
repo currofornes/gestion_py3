@@ -1,0 +1,796 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
+
+{% block css %}
+
+    <style>
+        table {
+            table-layout: fixed;
+        }
+
+        td, th {
+            text-align: center;
+            vertical-align: middle;
+            height: 80px;
+            border: 1px solid #dee2e6;
+            margin: auto;
+            position: relative;
+
+        }
+
+        .dropzone {
+            background-color: #f8f9fa;
+            min-height: 60px;
+            position: relative;
+        }
+
+        .draggable {
+            width: 32px;
+            height: 32px;
+            background-color: #dc3545;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            line-height: 32px;
+            border-radius: 50%;
+            cursor: grab;
+            user-select: none;
+            display: inline-block;
+        }
+
+        .draggable.dragging {
+            opacity: 0.5;
+        }
+
+        #cruces-origen {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .flex-disabled {
+            background-color: #f1f3f5 !important;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        tr.flex-row {
+            background-color: #e9ecef !important;
+        }
+
+        .dropzone.highlight {
+            background-color: #e2e6ea !important;
+        }
+
+        .dropzone.has-cruz {
+            background-color: #f8d7da; /* o el color que prefieras cuando haya una cruz colocada */
+        }
+
+        @keyframes cruzDropAnimation {
+            0% {
+                transform: scale(1.05);
+                background-color: #e2e6ea;
+            }
+            100% {
+                transform: scale(1);
+                background-color: #f8f9fa;
+            }
+        }
+
+        .dropzone.animate-drop {
+            animation: cruzDropAnimation 0.3s ease-out;
+        }
+
+        .draggable-guardia {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: grab;
+            text-align: center;
+            font-weight: 500;
+            user-select: none;
+        }
+
+        .draggable-guardia.dragging {
+            opacity: 0.5;
+        }
+
+        .dropzone-guardia {
+            min-height: 60px;
+            background-color: #f8f9fa;
+        }
+
+        .dropzone-guardia.over {
+            background-color: #e2e6ea;
+        }
+
+        .dropzone-guardia.disabled {
+            background-color: #e9ecef;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Preferencia horaria</h4>
+            </div>
+        </div>
+
+
+        <div class="row">
+
+
+            <div class="col-12">
+
+                <div class="card">
+
+                    <div class="card-body">
+
+                        <div class="alert alert-info">
+                            <h5 class="mb-2"><i class="ti ti-info-circle me-1"></i> Instrucciones para rellenar las
+                                preferencias horarias:</h5>
+                            <ul class="mb-0 ps-4">
+                                <li>Arrastra una cruz (<strong>✖</strong>) desde la caja inferior hasta la celda del
+                                    horario que te gustaría tener libre.
+                                </li>
+                                <li>Sólo puedes colocar una cruz por franja horaria. Si intentas soltarla en una celda
+                                    ocupada, no se colocará.
+                                </li>
+                                <li>Para quitar una cruz de una celda, vuelve a arrastrarla a la caja original.</li>
+                                <li>Si marcas la opción de <strong>Flexibilidad horaria</strong> al inicio o final del
+                                    día, se bloquearán esas franjas por <strong>Conciliación familiar</strong> (primará
+                                    lo solicitado en el Anexo I). No es posible marcar ambas opciones de flexibilidad a
+                                    la vez (inicio y fin).
+                                </li>
+                                <li><strong>Nota: </strong>No es posible garantizar a priori que se respeten todas las
+                                    preferencias en su totalidad.
+                                </li>
+                            </ul>
+                        </div>
+
+
+                        <!-- Caja de elementos -->
+                        <div class="mb-4">
+                            <p>Arrastra una cruz a una celda del horario:</p>
+                            <div id="cruces-origen" class="dropzone">
+                                <div class="draggable me-2" draggable="true">✖</div>
+                                <div class="draggable me-2" draggable="true">✖</div>
+                                <div class="draggable" draggable="true">✖</div>
+                            </div>
+                        </div>
+
+
+                        <!-- Tabla de horario -->
+
+                        <table class="table table-bordered text-center align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Flexibilidad horaria</th>
+                                <th>Hora</th>
+                                {% for dia in dias %}
+                                    <th>{{ dia }}</th>
+                                {% endfor %}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Primera fila con checkbox de entrada -->
+                            <tr data-flex="inicio">
+                                <td class="text-center align-middle">
+                                    <div class="d-flex flex-column justify-content-center align-items-center">
+                                        <div class="form-check form-check-secondary fs-xxl mb-2 d-flex flex-column justify-content-center align-items-center">
+                                            <input type="checkbox" class="flex-check form-check-input mt-1"
+                                                   data-target="inicio">
+                                        </div>
+                                        <small class="text-muted mt-1">
+                                            Tengo flexibilidad y quiero <strong>entrar más tarde</strong>
+                                        </small>
+                                    </div>
+                                </td>
+                                <th>1ª Hora</th>
+                                {% for dia in dias %}
+                                    {% with forloop.counter0 as dia_idx %}
+                                        <td class="dropzone horario"
+                                            data-dia="{{ dia }}"
+                                            data-hora="1"
+                                            data-pos="1-{{ dia_idx }}"></td>
+                                    {% endwith %}
+                                {% endfor %}
+                            </tr>
+
+                            <!-- Horas antes del recreo -->
+                            {% for i in horas_antes_recreo|slice:"1:" %}
+                                <tr>
+                                    <td></td>
+                                    <th>{{ i }}ª Hora</th>
+                                    {% for dia in dias %}
+                                        {% with forloop.counter0 as dia_idx %}
+                                            <td class="dropzone horario"
+                                                data-dia="{{ dia }}"
+                                                data-hora="{{ i }}"
+                                                data-pos="{{ i }}-{{ dia_idx }}"></td>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+
+                            <!-- Recreo -->
+                            <tr class="table-warning">
+                                <td></td>
+                                <th>Recreo</th>
+                                <td colspan="{{ dias|length }}">30 minutos</td>
+                            </tr>
+
+                            <!-- Horas después del recreo -->
+                            {% for i in horas_despues_recreo %}
+                                <tr {% if forloop.last %}data-flex="fin"{% endif %}>
+                                    <td class="text-center align-middle">
+                                        {% if forloop.last %}
+                                            <div class="d-flex flex-column justify-content-center align-items-center">
+                                                <div class="form-check form-check-secondary fs-xxl mb-2 d-flex flex-column justify-content-center align-items-center">
+                                                    <input type="checkbox" class="flex-check form-check-input mt-1"
+                                                           data-target="fin">
+                                                </div>
+                                                <small class="text-muted mt-1">
+                                                    Tengo flexibilidad y quiero <strong>salir antes</strong>
+                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <th>{{ i }}ª Hora</th>
+                                    {% for dia in dias %}
+                                        {% with forloop.counter0 as dia_idx %}
+                                            <td class="dropzone horario"
+                                                data-dia="{{ dia }}"
+                                                data-hora="{{ i }}"
+                                                data-pos="{{ i }}-{{ dia_idx }}"></td>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+
+                        </table>
+
+
+                    </div>
+
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-3">Preferencias de guardias</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="alert alert-info">
+                            <h5 class="mb-2"><i class="ti ti-info-circle me-1"></i> Instrucciones para rellenar las
+                                preferencias de guardia:</h5>
+                            <ul class="mb-0 ps-4">
+                                <li>Arrastra los tipos de guardia a las cajas de <strong>Prioridad 1, 2 y 3</strong>
+                                    según tu orden de preferencia.
+                                </li>
+                                <li>Debes completar las prioridades en orden. <strong>No se puede colocar una guardia en
+                                    Prioridad 2 o 3 si la anterior está vacía.
+                                </li>
+                                <li>No es necesario completar las 3 prioridades.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="row mb-4">
+                            <!-- Zona de opciones iniciales -->
+                            <div class="col-md-4">
+                                <h6>Opciones de guardias disponibles</h6>
+                                <div id="guardias-disponibles" class="dropzone-guardia bg-light p-3 rounded border">
+                                    <div class="draggable-guardia bg-primary text-white mb-2" draggable="true"
+                                         data-tipo="pasillo">De pasillo
+                                    </div>
+                                    <div class="draggable-guardia bg-secondary text-white mb-2" draggable="true"
+                                         data-tipo="recreo">De recreo
+                                    </div>
+                                    <div class="draggable-guardia bg-warning text-white mb-2" draggable="true"
+                                         data-tipo="horizonte">Aula Horizonte
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Zonas de preferencia -->
+                            <div class="col-md-8">
+                                <div class="row text-center">
+                                    {% for i in "123" %}
+                                        <div class="col-md-4">
+                                            <h6>Preferencia {{ i }}</h6>
+                                            <div class="dropzone-guardia guardia-dropzone preferencia p-3 border rounded"
+                                                 data-preferencia="{{ i }}" style="min-height: 60px;"></div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-5">
+                            <h5 class="mb-3">Observaciones</h5>
+                            <div class="mb-3">
+                                <label for="observaciones" class="form-label">¿Deseas añadir alguna observación
+                                    adicional?</label>
+                                <textarea id="observaciones" class="form-control" rows="4"
+                                          placeholder="Escribe aquí tus comentarios..."></textarea>
+                            </div>
+                        </div>
+                        <form method="post" id="preferencias-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="horario_json" id="horario_json">
+                            <input type="hidden" name="guardias_json" id="guardias_json">
+                            <input type="hidden" name="flex_inicio" id="flex_inicio">
+                            <input type="hidden" name="flex_fin" id="flex_fin">
+                            <input type="hidden" name="observaciones" id="observaciones_input">
+                            <div class="d-flex justify-content-center mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ti ti-check me-1"></i> {{ preferencia.horario|yesno:"Actualizar preferencias,Guardar preferencias" }}
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div><!-- end col -->
+
+
+    </div><!-- end row -->
+
+
+
+{% endblock %}
+
+{% block js %}
+    <!-- JavaScript drag & drop -->
+    <script>
+        const draggables = document.querySelectorAll('.draggable');
+        const dropzones = document.querySelectorAll('.dropzone');
+        let draggedItem = null;
+
+        draggables.forEach(item => {
+            item.addEventListener('dragstart', e => {
+                draggedItem = item;
+                item.classList.add('dragging');
+                setTimeout(() => item.style.display = 'none', 0);
+
+                // Eliminar la clase 'has-cruz' de la celda actual
+                const parent = item.parentElement;
+                if (parent.classList.contains('dropzone')) {
+                    parent.classList.remove('has-cruz');
+                }
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                item.style.display = 'inline-block';
+                draggedItem = null;
+            });
+        });
+
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+
+                e.preventDefault();
+                zone.classList.add('highlight');
+                {#zone.style.backgroundColor = '#e2e6ea';#}
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('highlight');
+                {#zone.style.backgroundColor = '#f8f9fa';#}
+            });
+
+            zone.addEventListener('drop', () => {
+
+                zone.classList.remove('highlight');
+
+
+                if (!draggedItem) return;
+
+                // Permitir múltiples cruces solo en el origen
+                const isOrigen = zone.id === 'cruces-origen';
+
+                if (isOrigen || zone.children.length === 0) {
+                    zone.appendChild(draggedItem);
+                }
+                if (!isOrigen) {
+                    if (zone.children.length === 0) {
+                        zone.classList.remove('has-cruz');
+                    } else {
+                        zone.classList.add('has-cruz');
+                    }
+
+                    zone.classList.add('animate-drop');
+                    setTimeout(() => zone.classList.remove('animate-drop'), 300);
+                }
+
+
+            });
+        });
+
+
+        document.querySelectorAll('.flex-check').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const target = checkbox.dataset.target;
+
+                // Desmarcar el otro checkbox
+                document.querySelectorAll('.flex-check').forEach(other => {
+                    if (other !== checkbox) {
+                        other.checked = false;
+                        updateFlexRow(other.dataset.target, false);
+                    }
+                });
+
+                updateFlexRow(target, checkbox.checked);
+            });
+        });
+
+        function updateFlexRow(target, isChecked) {
+            const row = document.querySelector(`tr[data-flex="${target}"]`);
+            if (!row) return;
+
+            const origen = document.getElementById('cruces-origen');
+
+            if (isChecked) {
+                row.classList.add('flex-row');
+
+                row.querySelectorAll('.dropzone').forEach(zone => {
+                    // Si hay alguna cruz dentro, la devolvemos al origen
+                    const cruz = zone.querySelector('.draggable');
+                    if (cruz) {
+                        origen.appendChild(cruz);
+                    }
+
+                    // Deshabilitamos la dropzone
+                    zone.classList.remove('has-cruz');
+                    zone.classList.add('flex-disabled');
+
+                });
+
+            } else {
+                row.classList.remove('flex-row');
+
+                row.querySelectorAll('.dropzone').forEach(zone => {
+                    zone.classList.remove('flex-disabled');
+                });
+            }
+        }
+
+        document.querySelectorAll('.preferencia-guardia').forEach(select => {
+            select.addEventListener('change', () => {
+                const valores = Array.from(document.querySelectorAll('.preferencia-guardia'))
+                    .map(s => s.value)
+                    .filter(v => v !== "");
+
+                const valoresUnicos = new Set(valores);
+
+                if (valores.length !== valoresUnicos.size) {
+                    document.getElementById('error-preferencias').classList.remove('d-none');
+                } else {
+                    document.getElementById('error-preferencias').classList.add('d-none');
+                }
+            });
+        });
+
+        document.querySelectorAll('.draggable-guardia').forEach(item => {
+            item.addEventListener('dragstart', e => {
+                item.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', item.dataset.tipo);
+                setTimeout(() => item.style.display = 'none', 0);
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                item.style.display = 'block';
+            });
+        });
+
+        document.querySelectorAll('.dropzone-guardia').forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('over');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('over');
+            });
+
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('over');
+                const dragged = document.querySelector('.draggable-guardia.dragging');
+
+                // Solo una guardia por zona: devolver la anterior al origen
+                if (zone.children.length > 0) {
+                    const existing = zone.children[0];
+                    document.getElementById('guardias-disponibles').appendChild(existing);
+                }
+
+                // Eliminar duplicados en otras zonas
+                document.querySelectorAll('.preferencia').forEach(pref => {
+                    if (pref !== zone && pref.contains(dragged)) {
+                        pref.removeChild(dragged);
+                    }
+                });
+
+                zone.appendChild(dragged);
+                actualizarZonasGuardia();
+            });
+        });
+
+
+        function actualizarZonasGuardia() {
+            const zonas = document.querySelectorAll('.dropzone-guardia.preferencia');
+            let permitir = true;
+
+            zonas.forEach((zone, index) => {
+                if (permitir) {
+                    zone.classList.remove('disabled');
+                } else {
+                    // Zona deshabilitada: vaciar si hay contenido
+                    if (zone.children.length > 0) {
+                        const existing = zone.children[0];
+                        document.getElementById('guardias-disponibles').appendChild(existing);
+                    }
+                    zone.classList.add('disabled');
+                }
+
+                // Si esta zona está vacía, las siguientes deben bloquearse
+                if (zone.children.length === 0) {
+                    permitir = false;
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            actualizarZonasGuardia();
+        });
+
+
+        document.getElementById('preferencias-form').addEventListener('submit', function (e) {
+            // Serializar horario
+            const horario = {};
+            document.querySelectorAll('.dropzone.horario').forEach((cell, idx) => {
+                const dia = cell.dataset.dia;
+                const hora = cell.dataset.hora;
+                horario[`${dia}-${hora}`] = cell.querySelector('.draggable') !== null;
+            });
+
+            // Guardias
+            const guardias = [];
+            document.querySelectorAll('.guardia-dropzone').forEach(zone => {
+                const g = zone.querySelector('.draggable-guardia');
+                guardias.push(g ? g.dataset.tipo : null);
+            });
+
+            // Flexibilidad
+            document.getElementById('flex_inicio').value = document.querySelector('.flex-check[data-target="inicio"]').checked;
+            document.getElementById('flex_fin').value = document.querySelector('.flex-check[data-target="fin"]').checked;
+
+            // Observaciones
+            document.getElementById('observaciones_input').value = document.getElementById('observaciones').value;
+
+            // JSON
+            document.getElementById('horario_json').value = JSON.stringify(horario);
+            document.getElementById('guardias_json').value = JSON.stringify(guardias);
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            /*
+            const horario =
+            
+            
+            {{ horario_json|safe }};
+            const guardias =
+            
+            
+            {{ preferencia.guardias|default:"[]"|safe }};
+            const flex_inicio =
+            
+            
+            {{ preferencia.flexibilidad_inicio|yesno:"true,false" }};
+            const flex_fin =
+            
+            
+            {{ preferencia.flexibilidad_fin|yesno:"true,false" }};
+            const observaciones = `
+            
+            
+            {{ preferencia.observaciones|default_if_none:""|escapejs }}`;
+
+            // Rellenar el horario
+            Object.entries(horario).forEach(([horaDia, cruz]) => {
+                const cell = document.querySelector(`td[data-pos="${horaDia}"]`);
+                if (cell && cruz) {
+                    const newCruz = document.createElement('div');
+                    newCruz.className = 'draggable bg-danger text-white cruz';
+                    newCruz.draggable = true;
+                    newCruz.innerHTML = '&times;';
+                    newCruz.setAttribute('data-tipo', cruz);
+                    cell.classList.add('has-cruz');
+                    cell.appendChild(newCruz);
+                }
+            });
+
+            // Rellenar las guardias
+            guardias.forEach((tipo, idx) => {
+                const drop = document.querySelector(`#prioridad-${idx + 1}`);
+                const original = document.querySelector(`.draggable-guardia[data-tipo="${tipo}"]`);
+                if (drop && original) {
+                    const cloned = original.cloneNode(true);
+                    cloned.classList.add('dragged');
+                    drop.appendChild(cloned);
+                }
+            });
+
+            // Rellenar checkboxes de flexibilidad
+            if (flex_inicio) {
+                document.querySelector('input.flex-check[data-target="inicio"]').checked = true;
+                document.querySelector('tr[data-flex="inicio"]').classList.add('bg-light', 'text-muted');
+                document.querySelector('tr[data-flex="inicio"]').querySelectorAll('.dropzone').forEach(dz => {
+                    dz.classList.add('disabled-dropzone');
+                });
+            }
+
+            if (flex_fin) {
+                document.querySelector('input.flex-check[data-target="fin"]').checked = true;
+                document.querySelector('tr[data-flex="fin"]').classList.add('bg-light', 'text-muted');
+                document.querySelector('tr[data-flex="fin"]').querySelectorAll('.dropzone').forEach(dz => {
+                    dz.classList.add('disabled-dropzone');
+                });
+            }
+
+            // Observaciones
+            document.querySelector('#observaciones').value = observaciones;
+
+            // Activar bloqueo de prioridades si es necesario
+            const allPrioridades = ['prioridad-1', 'prioridad-2', 'prioridad-3'];
+            allPrioridades.forEach((id, index) => {
+                const drop = document.getElementById(id);
+                const anterior = document.getElementById(allPrioridades[index - 1]);
+
+                if (!drop) return; // salta si no existe este contenedor
+
+                if (index === 0 || (anterior && anterior.children.length > 0)) {
+                    drop.classList.remove('disabled-drop');
+                } else {
+                    drop.classList.add('disabled-drop');
+                }
+            });
+            */
+
+
+            const horario = {{ horario_json|safe }};
+            let crucesOrigen = document.querySelectorAll('#cruces-origen .draggable');
+            let crucesUsadas = 0;
+
+            for (const key in horario) {
+                if (horario[key]) {
+                    const dia = key.split('-')[0];
+                    const hora = key.split('-')[1];
+
+                    const cell = document.querySelector(`.dropzone.horario[data-dia="${dia}"][data-hora="${hora}"]`);
+                    if (cell) {
+                        const cruz = crucesOrigen[crucesUsadas];
+                        if (cruz) {
+                            cell.appendChild(cruz);
+                            cell.classList.add('has-cruz');
+                            crucesUsadas++;
+                        } else {
+                            // Si no quedan cruces en origen, crea una nueva
+                            const nueva = document.createElement('div');
+                            nueva.classList.add('cruz', 'draggable', 'me-2');
+                            nueva.setAttribute('draggable', 'true');
+                            nueva.textContent = '✖';
+                            cell.appendChild(nueva);
+                            cell.classList.add('has-cruz');
+                        }
+                    }
+                }
+            }
+
+            activarDragAndDrop();  // Activa funcionalidad
+
+        });
+
+        function activarDragAndDrop() {
+            let dragged;
+
+            // Arrastrables
+            document.querySelectorAll('.draggable').forEach(elem => {
+                elem.addEventListener('dragstart', (e) => {
+                    dragged = e.target;
+                    setTimeout(() => dragged.classList.add('invisible'), 0);
+                });
+
+                elem.addEventListener('dragend', () => {
+                    dragged.classList.remove('invisible');
+                });
+            });
+
+            // Dropzones (horario + origen)
+            document.querySelectorAll('.dropzone').forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (zone.children.length < 1 || zone.id === 'cruces-origen') {
+                        if (dragged && dragged !== zone) {
+                            zone.appendChild(dragged);
+                            if (zone.classList.contains('horario')) {
+                                zone.classList.add('has-cruz');
+                            }
+                            if (zone.id === 'cruces-origen') {
+                                dragged.classList.remove('invisible');
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Actívala después del render de elementos dinámicos también
+        document.addEventListener("DOMContentLoaded", activarDragAndDrop);
+
+        // Observaciones
+        const observaciones = `{{ preferencia.observaciones|default_if_none:""|escapejs }}`;
+        document.querySelector('#observaciones').value = observaciones;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const guardias = {{ guardias_json|default:"[]"|safe }};
+
+
+            guardias.forEach((tipo, index) => {
+                if (!tipo) return;
+
+                const draggable = document.querySelector(`#guardias-disponibles .draggable-guardia[data-tipo="${tipo}"]`);
+                const zonaDestino = document.querySelector(`.guardia-dropzone[data-preferencia="${index + 1}"]`);
+
+                if (draggable && zonaDestino) {
+                    zonaDestino.appendChild(draggable);
+                }
+            });
+
+            actualizarZonasGuardia();
+
+            
+        });
+        
+        const flex_inicio = {{ preferencia.flexibilidad_inicio|yesno:"true,false" }};
+            const flex_fin = {{ preferencia.flexibilidad_fin|yesno:"true,false" }};
+
+            document.addEventListener('DOMContentLoaded', () => {
+                if (flex_inicio) {
+                    const checkboxInicio = document.querySelector('input.flex-check[data-target="inicio"]');
+                    checkboxInicio.checked = true;
+                    updateFlexRow('inicio', true);
+                }
+
+                if (flex_fin) {
+                    const checkboxFin = document.querySelector('input.flex-check[data-target="fin"]');
+                    checkboxFin.checked = true;
+                    updateFlexRow('fin', true);
+                }
+            });
+
+
+    </script>
+{% endblock %}
+

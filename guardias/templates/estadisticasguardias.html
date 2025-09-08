@@ -3,481 +3,410 @@
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+    <!-- Datepicker CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+{% endblock %}
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h3>{{ titulo }}</h3>
-                    </div>
-                    <div class="ibox-content">
-                        <h2>Estadísticas de Ausencias ({{ curso_seleccionado.nombre }})</h2>
-                        <br>
-                        <form id="curso-academico-form" method="GET" action="/guardias/estadisticas">
 
-                            <div class="form-group row">
+<div class="container-fluid">
+    <div class="page-title-head d-flex align-items-center">
+        <div class="flex-grow-1">
+            <h4 class="fs-sm text-uppercase fw-bold m-0">{{ titulo }}</h4>
+        </div>
+    </div>
 
-                                <label class="col-lg-2 col-form-label" for="curso_academico">Seleccionar Curso
-                                    Académico:</label>
-                                <div class="col-lg-10">
-                                    <select name="curso_academico" id="curso_academico" onchange="this.form.submit();"
-                                            class="form-control select2_CursoAcademico">
-                                        {% for curso in cursos_academicos %}
-                                            <option value="{{ curso.id }}"
-                                                    {% if curso.id == curso_seleccionado.id %}selected{% endif %}>
-                                                {{ curso }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+    <!-- Filtros -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light justify-content-between">
+                    <h4 class="card-title">Estadísticas de Ausencias ({{ curso_seleccionado.nombre }})</h4>
+                </div>
+                <div class="card-body">
+                    <form id="curso-academico-form" method="GET" action="/guardias/estadisticas">
+                        <div class="row g-2 align-items-end">
+                            <div class="mb-3 col-md-8">
+                                <label for="curso_academico" class="form-label">Seleccionar Curso Académico</label>
+                                <select name="curso_academico" id="curso_academico"
+                                        class="form-select select2_CursoAcademico"
+                                        onchange="this.form.submit();">
+                                    {% for curso in cursos_academicos %}
+                                        <option value="{{ curso.id }}" {% if curso.id == curso_seleccionado.id %}selected{% endif %}>
+                                            {{ curso }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                        </form>
+                        </div>
+                    </form>
 
-                        <br>
-                        <form action="/guardias/estadisticas" method="post">
-                            {% csrf_token %}
-
-                            <div class="form-group row">
-                                <label class="col-lg-1 col-form-label">{{ form.Fecha1.label_tag }}</label>
-                                <div class="col-lg-4">
+                    <form action="/guardias/estadisticas" method="post">
+                        {% csrf_token %}
+                        <div class="row g-2 align-items-end">
+                            <div class="mb-3 col-md-4">
+                                <label class="form-label">{{ form.Fecha1.label_tag }}</label>
+                                <div class="date-search">
                                     {{ form.Fecha1 }}
-                                    {% if form.Fecha.help_text %}
-                                        <span class="help-block">{{ form.Fecha1.help_text }}</span>
+                                    {% if form.Fecha1.help_text %}
+                                        <div class="form-text">{{ form.Fecha1.help_text }}</div>
                                     {% endif %}
                                     {% for error in form.Fecha1.errors %}
-                                        <span class="text-danger">{{ error }}</span>
+                                        <div class="text-danger small">{{ error }}</div>
                                     {% endfor %}
                                 </div>
-                                <label class="col-lg-1 col-form-label">{{ form.Fecha2.label_tag }}</label>
-                                <div class="col-lg-4">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label class="form-label">{{ form.Fecha2.label_tag }}</label>
+                                <div class="date-search">
                                     {{ form.Fecha2 }}
                                     {% if form.Fecha2.help_text %}
-                                        <span class="help-block">{{ form.Fecha2.help_text }}</span>
+                                        <div class="form-text">{{ form.Fecha2.help_text }}</div>
                                     {% endif %}
                                     {% for error in form.Fecha2.errors %}
-                                        <span class="text-danger">{{ error }}</span>
+                                        <div class="text-danger small">{{ error }}</div>
                                     {% endfor %}
                                 </div>
-                                <div class="col-lg-2">
-                                    <button type="submit" class="btn btn-primary">Filtrar</button>
-                                </div>
                             </div>
-                        </form>
-                    </div>
+                            <input type="hidden" name="curso_academico" value="{{ curso_seleccionado.id }}">
+                            <div class="mb-3 col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                            </div>
+                        </div>
+                    </form>
+
                 </div>
+                <div class="card-footer border-0"></div>
             </div>
         </div>
+    </div>
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h2>Ausencias por Tramos</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="ibox ">
-                                    <div class="ibox-title">
-                                        <h3>Gráfico</h3>
-                                    </div>
-                                    <div class="ibox-content">
-                                        <div>
-                                            <canvas id="barChart" height="140"></canvas>
-                                        </div>
-                                    </div>
+    <!-- Ausencias por Tramos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light">
+                    <h4 class="card-title mb-0">Ausencias por Tramos</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Gráfico</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="barChart" height="140"></canvas>
                                 </div>
                             </div>
-                            <div class="col-lg-6">
-                                <div class="ibox ">
-                                    <div class="ibox-title">
-                                        <h3>Detalles</h3>
-                                    </div>
-                                    <div class="ibox-content">
-                                        <table class="table table-bordered">
-                                            <thead>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Detalles</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered align-middle">
+                                        <thead class="table-light">
                                             <tr>
                                                 <th>Tramo</th>
                                                 <th class="text-center">Ausencias</th>
                                             </tr>
-                                            </thead>
-                                            <tbody>
+                                        </thead>
+                                        <tbody>
                                             {% for h,c in horas %}
                                                 <tr>
                                                     <td>{{ h }}</td>
                                                     <td class="text-center">{{ c }}</td>
                                                 </tr>
                                             {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> <!-- row -->
                 </div>
             </div>
-
         </div>
+    </div>
 
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h2>Ausencias por Día de la semana</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="ibox ">
-                                    <div class="ibox-title">
-                                        <h3>Gráfico</h3>
-                                    </div>
-                                    <div class="ibox-content">
-                                        <div>
-                                            <canvas id="barChart2" height="100"></canvas>
-                                        </div>
-                                    </div>
+    <!-- Ausencias por Día -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light">
+                    <h4 class="card-title mb-0">Ausencias por Día de la semana</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Gráfico</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="barChart2" height="100"></canvas>
                                 </div>
                             </div>
-                            <div class="col-lg-6">
-                                <div class="ibox ">
-                                    <div class="ibox-title">
-                                        <h3>Detalles</h3>
-                                    </div>
-                                    <div class="ibox-content">
-                                        <table class="table table-bordered">
-                                            <thead>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Detalles</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered align-middle">
+                                        <thead class="table-light">
                                             <tr>
                                                 <th>Día</th>
                                                 <th class="text-center">Ausencias</th>
                                             </tr>
-                                            </thead>
-                                            <tbody>
+                                        </thead>
+                                        <tbody>
                                             {% for h,c in dias_semana %}
                                                 <tr>
                                                     <td>{{ h }}</td>
                                                     <td class="text-center">{{ c }}</td>
                                                 </tr>
                                             {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> <!-- row -->
                 </div>
             </div>
-
         </div>
+    </div>
 
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h2>Ausencias por Mes</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="ibox ">
-                                    <div class="ibox-title">
-                                        <h3>Gráfico</h3>
-                                    </div>
-                                    <div class="ibox-content">
-                                        <div>
-                                            <canvas id="barChartMeses" height="160"></canvas>
-                                        </div>
-                                    </div>
+    <!-- Ausencias por Mes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light">
+                    <h4 class="card-title mb-0">Ausencias por Mes</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Gráfico</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="barChartMeses" height="160"></canvas>
                                 </div>
                             </div>
-                            <div class="col-lg-6">
-                                <div class="ibox ">
-                                    <div class="ibox-title">
-                                        <h3>Detalles</h3>
-                                    </div>
-                                    <div class="ibox-content">
-                                        <table class="table table-bordered">
-                                            <thead>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Detalles</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered align-middle">
+                                        <thead class="table-light">
                                             <tr>
                                                 <th>Mes</th>
                                                 <th class="text-center">Ausencias</th>
                                             </tr>
-                                            </thead>
-                                            <tbody>
+                                        </thead>
+                                        <tbody>
                                             {% for h,c in meses %}
                                                 <tr>
                                                     <td>{{ h }}</td>
                                                     <td class="text-center">{{ c }}</td>
                                                 </tr>
                                             {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> <!-- row -->
                 </div>
             </div>
-
         </div>
+    </div>
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h2>Ausencias por Profesor/a</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="ibox ">
-                                    <div class="ibox-title">
-                                        <h3>Gráfico</h3>
-                                    </div>
-                                    <div class="ibox-content">
-                                        <div>
-                                            <canvas id="barChartProfesores" height="140"></canvas>
-                                        </div>
-                                    </div>
+    <!-- Ausencias por Profesor/a -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light">
+                    <h4 class="card-title mb-0">Ausencias por Profesor/a</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Gráfico</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="barChartProfesores" height="140"></canvas>
                                 </div>
                             </div>
-                            <div class="col-lg-6">
-                                <div class="ibox ">
-                                    <div class="ibox-title">
-                                        <h3>Detalles</h3>
-                                    </div>
-                                    <div class="ibox-content">
-                                        <table class="table table-bordered">
-                                            <thead>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Detalles</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-bordered align-middle">
+                                        <thead class="table-light">
                                             <tr>
                                                 <th>Profesor</th>
                                                 <th class="text-center">Ausencias</th>
                                             </tr>
-                                            </thead>
-                                            <tbody>
+                                        </thead>
+                                        <tbody>
                                             {% for prof in profesores_con_ausencias %}
                                                 <tr>
                                                     <td>{{ prof.ProfesorAusente__Apellidos }}, {{ prof.ProfesorAusente__Nombre }}</td>
                                                     <td class="text-center">{{ prof.total_ausencias }}</td>
                                                 </tr>
                                             {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> <!-- row -->
                 </div>
             </div>
-
         </div>
-
-
     </div>
+
+</div>
+
 {% endblock %}
 
 {% block js %}
+    <!-- Chart.js -->
     <script src="{% static 'js/plugins/chartJs/Chart.min.js' %}"></script>
-    <script>
 
+    <!-- Datepicker & deps -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Select2 -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <script>
         $(document).ready(function () {
 
+            // Select2
             $(".select2_CursoAcademico").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona un curso académico",
                 allowClear: false
             });
 
+            // --- Tramos ---
             const horas = {{ totales|safe }};
             var datahoras = [];
-
-            horas.forEach(function (numero, index) {
-                datahoras.push(numero);
-            });
-
-            datahoras.pop(); // Sacamos el TOTAL del array
+            horas.forEach(function (n) { datahoras.push(n); });
+            datahoras.pop(); // quitar TOTAL
 
             var barData = {
                 labels: ["1ª h", "2ª h", "3ª h", "Recreo", "4ª h", "5ª h", "6ª h"],
-                datasets: [
-                    {
-                        label: "Ausencias",
-                        backgroundColor: 'rgba(26,179,148,0.5)',
-                        borderColor: "rgba(26,179,148,0.7)",
-                        pointBackgroundColor: "rgba(26,179,148,1)",
-                        pointBorderColor: "#fff",
-                        data: datahoras
-                    },
-                ]
+                datasets: [{
+                    label: "Ausencias",
+                    backgroundColor: 'rgba(26,179,148,0.5)',
+                    borderColor: "rgba(26,179,148,0.7)",
+                    pointBackgroundColor: "rgba(26,179,148,1)",
+                    pointBorderColor: "#fff",
+                    data: datahoras
+                }]
             };
+            new Chart(document.getElementById("barChart").getContext("2d"), { type: 'bar', data: barData, options: {responsive: true} });
 
-            var barOptions = {
-                responsive: true
-            };
-
-            var ctx2 = document.getElementById("barChart").getContext("2d");
-            new Chart(ctx2, {type: 'bar', data: barData, options: barOptions});
-
-
+            // --- Días de la semana ---
             var barData2 = {
                 labels: {{ dias_semana_labels|safe }},
-                datasets: [
-                    {
-                        label: "Ausencias",
-                        backgroundColor: 'rgba(231, 76, 60, 0.5)',   // Un tono rojizo semitransparente
-                        borderColor: 'rgba(192, 57, 43, 0.7)',      // Un borde más oscuro de rojo
-                        pointBackgroundColor: 'rgba(192, 57, 43, 1)',
-                        pointBorderColor: "#fff",
-                        data: {{ dias_semana_data|safe }}
-                    },
-                ]
+                datasets: [{
+                    label: "Ausencias",
+                    backgroundColor: 'rgba(231, 76, 60, 0.5)',
+                    borderColor: 'rgba(192, 57, 43, 0.7)',
+                    pointBackgroundColor: 'rgba(192, 57, 43, 1)',
+                    pointBorderColor: "#fff",
+                    data: {{ dias_semana_data|safe }}
+                }]
             };
+            new Chart(document.getElementById("barChart2").getContext("2d"), { type: 'bar', data: barData2, options: {responsive: true} });
 
-            var barOptions2 = {
-                responsive: true
-            };
-
-            var ctx3 = document.getElementById("barChart2").getContext("2d");
-            new Chart(ctx3, {type: 'bar', data: barData2, options: barOptions2});
-
+            // --- Meses ---
             var barDataMeses = {
-                labels: {{ meses_labels|safe }},  // Etiquetas de los meses
-                datasets: [
-                    {
-                        label: "Ausencias por mes",
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                        borderColor: "rgba(54, 162, 235, 0.7)",
-                        pointBackgroundColor: "rgba(54, 162, 235, 1)",
-                        pointBorderColor: "#fff",
-                        data: {{ meses_data|safe }}  // Datos de ausencias por mes
-                    },
-                ]
+                labels: {{ meses_labels|safe }},
+                datasets: [{
+                    label: "Ausencias por mes",
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: "rgba(54, 162, 235, 0.7)",
+                    pointBackgroundColor: "rgba(54, 162, 235, 1)",
+                    pointBorderColor: "#fff",
+                    data: {{ meses_data|safe }}
+                }]
             };
+            new Chart(document.getElementById("barChartMeses").getContext("2d"), { type: 'bar', data: barDataMeses, options: {responsive: true} });
 
-            var barOptionsMeses = {
-                responsive: true
-            };
-
-            var ctxMeses = document.getElementById("barChartMeses").getContext("2d");
-            new Chart(ctxMeses, {type: 'bar', data: barDataMeses, options: barOptionsMeses});
-
-
+            // --- Profesores ---
             var barDataProfesores = {
                 labels: {{ profesores_labels|safe }},
-                datasets: [
-                    {
-                        label: "Ausencias",
-                        backgroundColor: 'rgba(241, 196, 15, 0.5)',  // Amarillo claro semitransparente
-                        borderColor: 'rgba(243, 156, 18, 0.7)',      // Amarillo más oscuro
-                        pointBackgroundColor: 'rgba(243, 156, 18, 1)',
-                        pointBorderColor: "#fff",
-                        data: {{ profesores_data|safe }}
-                    },
-                ]
+                datasets: [{
+                    label: "Ausencias",
+                    backgroundColor: 'rgba(241, 196, 15, 0.5)',
+                    borderColor: 'rgba(243, 156, 18, 0.7)',
+                    pointBackgroundColor: 'rgba(243, 156, 18, 1)',
+                    pointBorderColor: "#fff",
+                    data: {{ profesores_data|safe }}
+                }]
             };
+            new Chart(document.getElementById("barChartProfesores").getContext("2d"), { type: 'bar', data: barDataProfesores, options: {responsive: true} });
 
-            var barOptionsProfesores = {
-                responsive: true
-            };
-
-            var ctxProfesores = document.getElementById("barChartProfesores").getContext("2d");
-            new Chart(ctxProfesores, {type: 'bar', data: barDataProfesores, options: barOptionsProfesores});
-
-
+            // Utilidades de fecha
             function parseDateString(dateString) {
-                const months = {
-                    'enero': '01',
-                    'febrero': '02',
-                    'marzo': '03',
-                    'abril': '04',
-                    'mayo': '05',
-                    'junio': '06',
-                    'julio': '07',
-                    'agosto': '08',
-                    'septiembre': '09',
-                    'octubre': '10',
-                    'noviembre': '11',
-                    'diciembre': '12'
-                };
-
-                // Check if the date is in "24 de septiembre de 2020" format
+                const months = {'enero':'01','febrero':'02','marzo':'03','abril':'04','mayo':'05','junio':'06','julio':'07','agosto':'08','septiembre':'09','octubre':'10','noviembre':'11','diciembre':'12'};
                 const longDateFormat = /^(\d{1,2}) de (\w+) de (\d{4})$/;
                 const shortDateFormat = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-
                 if (longDateFormat.test(dateString)) {
-                    const [_, day, monthName, year] = dateString.match(longDateFormat);
-                    const month = months[monthName.toLowerCase()];
-                    return new Date(`${year}-${month}-${day}`);
+                    const [_, d, mName, y] = dateString.match(longDateFormat);
+                    const m = months[mName.toLowerCase()];
+                    return new Date(`${y}-${m}-${d}`);
                 } else if (shortDateFormat.test(dateString)) {
-                    const [_, day, month, year] = dateString.match(shortDateFormat);
-                    return new Date(`${year}-${month}-${day}`);
+                    const [_, d, m, y] = dateString.match(shortDateFormat);
+                    return new Date(`${y}-${m}-${d}`);
                 } else {
-                    // If the date format is not recognized, return the current date
                     return new Date();
                 }
             }
 
-
             var fecha1_value = '{{ form.Fecha1.value|default_if_none:"" }}';
             var fecha2_value = '{{ form.Fecha2.value|default_if_none:"" }}';
+            if (fecha1_value) fecha1_value = parseDateString(fecha1_value);
+            if (fecha2_value) fecha2_value = parseDateString(fecha2_value);
 
+            $('#id_Fecha1').datepicker({
+                todayBtn: "linked", keyboardNavigation: false, forceParse: false,
+                calendarWeeks: true, autoclose: true, language: "es"
+            }).datepicker('setDate', fecha1_value ? new Date(fecha1_value) : new Date());
 
-            if (fecha1_value) {
-                fecha1_value = parseDateString(fecha1_value);
-            }
+            $('#id_Fecha2').datepicker({
+                todayBtn: "linked", keyboardNavigation: false, forceParse: false,
+                calendarWeeks: true, autoclose: true, language: "es"
+            }).datepicker('setDate', fecha2_value ? new Date(fecha2_value) : new Date());
 
-            if (fecha2_value) {
-                fecha2_value = parseDateString(fecha2_value);
-            }
-
-
-            var mem = $('#id_Fecha1').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker('setDate', fecha1_value ? new Date(fecha1_value) : new Date()); // Establecer la fecha de hoy;
-
-            var mem_fin = $('#id_Fecha2').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker('setDate', fecha2_value ? new Date(fecha2_value) : new Date()); // Establecer la fecha de hoy;
-
+            // Evitar Enter y doble envío
+            $('form').on('keypress', 'input, select', function (e) { if (e.which === 13) e.preventDefault(); });
+            $('form[action="/guardias/estadisticas"]').on('submit', function () {
+                const btn = $(this).find('button[type="submit"]');
+                btn.prop('disabled', true).text('Procesando...');
+            });
         });
-
     </script>
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

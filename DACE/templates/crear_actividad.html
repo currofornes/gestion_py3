@@ -1,109 +1,182 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block css %}
-    <link href="{% static 'css/plugins/datapicker/datepicker3.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/clockpicker/clockpicker.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
-{% endblock %}
+{% load grupo_tags %}
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+{% endblock %}
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h3>Crear actividad complementaria o extraescolar</h3>
-                    </div>
-                    <div class="ibox-content">
-                        <form action="" method="post">
-                            {% csrf_token %}
-                            <div class="form-group row">
-                                <label class="col-lg-2 col-form-label">{{ form.Titulo.label_tag }} </label>
-                                <div class="col-lg-10">
-                                    {{  form.Titulo }}
-                                    {%  for error in form.Titulo.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-lg-2 col-form-label">{{ form.Descripcion.label_tag }} </label>
-                                <div class="col-lg-10">
-                                    {{  form.Descripcion }}
-                                    {%  for error in form.Descripcion.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-lg-2 col-form-label">{{ form.Responsable.label_tag }} </label>
-                                <div class="col-lg-10">
-                                    {{ form.Responsable }}
-                                    {%  for error in form.Responsable.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-lg-2 col-form-label"> {{ form.FechaInicio.label_tag }} </label>
-                                <div class="col-lg-2">
-                                    {{ form.FechaInicio }}
-                                    {%  for error in form.FechaInicio.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <label class="col-lg-1 col-form-label"> {{ form.FechaFin.label_tag }} </label>
-                                <div class="col-lg-2">
-                                    {{ form.FechaFin }}
-                                    {%  for error in form.FechaFin.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
 
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-lg-2 col-form-label"> {{ form.HoraSalida.label_tag }} </label>
-                                <div class="col-lg-2">
-                                    {{ form.HoraSalida }}
-                                    {%  for error in form.HoraSalida.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <label class="col-lg-1 col-form-label"> {{ form.HoraLlegada.label_tag }} </label>
-                                <div class="col-lg-2">
-                                    {{ form.HoraLlegada }}
-                                    {%  for error in form.HoraLlegada.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-
-                            </div>
-                            <br/>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
-                        </form>
-                    </div>
-                </div>
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Crear actividad complementaria o extraescolar</h4>
             </div>
         </div>
-    </div>
+
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.Titulo.label_tag }}</label>
+                                {{ form.Titulo }}
+                                {% if form.Titulo.help_text %}
+                                    <span class="help-block">{{ form.Titulo.help_text }}</span>
+                                {% endif %}
+                                {% for error in form.Titulo.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.Descripcion.label_tag }}</label>
+                                {{ form.Descripcion }}
+                                {% if form.Descripcion.help_text %}
+                                    <span class="help-block">{{ form.Descripcion.help_text }}</span>
+                                {% endif %}
+                                {% for error in form.Descripcion.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+
+
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.Responsable.label_tag }}</label>
+                                {{ form.Responsable }}
+                                {% if form.Responsable.help_text %}
+                                    <span class="help-block">{{ form.Responsable.help_text }}</span>
+                                {% endif %}
+                                {% for error in form.Responsable.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="mb-3 col-md-3">
+                                    <label class="form-label">{{ form.FechaInicio.label_tag }}</label>
+                                    <div class="date-search">
+                                        {{ form.FechaInicio }}
+                                        {% if form.FechaInicio.help_text %}
+                                            <span class="help-block">{{ form.FechaInicio.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.FechaInicio.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+
+                                </div>
+                            <div class="mb-3 col-md-3">
+                                    <label class="form-label">{{ form.FechaFin.label_tag }}</label>
+                                    <div class="date-search">
+                                        {{ form.FechaFin }}
+                                        {% if form.FechaFin.help_text %}
+                                            <span class="help-block">{{ form.FechaFin.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.FechaFin.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+
+                                </div>
+
+                            <div class="mb-3 col-md-3">
+                                    <label class="form-label">{{ form.HoraSalida.label_tag }}</label>
+                                    <div class="date-search">
+                                        {{ form.HoraSalida }}
+                                        {% if form.HoraSalida.help_text %}
+                                            <span class="help-block">{{ form.HoraSalida.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.HoraSalida.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+
+                                </div>
+
+                            <div class="mb-3 col-md-3">
+                                    <label class="form-label">{{ form.HoraLlegada.label_tag }}</label>
+                                    <div class="date-search">
+                                        {{ form.HoraLlegada }}
+                                        {% if form.HoraLlegada.help_text %}
+                                            <span class="help-block">{{ form.HoraLlegada.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.HoraLlegada.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+
+                                </div>
+
+
+
+
+                            </div>
+
+
+
+
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </form>
+                    </div> <!-- end card-body-->
+
+                </div>
+                <div class="card-footer border-0">
+
+                </div>
+            </div>
+
+        </div><!-- end col -->
+
+    </div><!-- end row -->
+
+
+
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/plugins/datapicker/bootstrap-datepicker.js' %}"></script>
-    <script src="{% static 'js/plugins/datapicker/locales/bootstrap-datepicker.es.min.js' %}"></script>
-    <script src="{% static 'js/plugins/clockpicker/clockpicker.js' %}"></script>
-    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    {#    <script src="{% static 'js/plugins/clockpicker/clockpicker.js' %}"></script>#}
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
 
     <script>
+
         $(document).ready(function () {
-            $(".select2_Responsable").select2({
-                    theme: 'bootstrap4',
-                    placeholder: "Selecciona profesor/a",
-                    allowClear: true
+
+            $('form').on('submit', function () {
+                $('button[type="submit"]').prop('disabled', true).text('Procesando...');
             });
+
+
+            $(".select2_Responsable").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un/a profesor/a",
+                allowClear: false
+            });
+
+
+
             $('#id_FechaInicio').datepicker({
                 todayBtn: "linked",
                 keyboardNavigation: false,
@@ -113,7 +186,8 @@
                 language: "es"
             }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
 
-             $('#id_FechaFin').datepicker({
+
+            $('#id_FechaFin').datepicker({
                 todayBtn: "linked",
                 keyboardNavigation: false,
                 forceParse: false,
@@ -122,7 +196,10 @@
                 language: "es"
             }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
 
-            $('form').on('keypress', 'input, select', function(e) {
+
+
+
+            $('form').on('keypress', 'input, select', function (e) {
                 if (e.which === 13) {
                     e.preventDefault();
                 }
@@ -132,12 +209,9 @@
                 $('button[type="submit"]').prop('disabled', true).text('Procesando...');
             });
 
-            $('.clockpicker').clockpicker({
-                donetext: 'Hecho'
-            });
-        })
 
-
+        });
 
     </script>
 {% endblock %}
+

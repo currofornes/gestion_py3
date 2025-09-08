@@ -35,7 +35,11 @@
                         <div class="col">
                             <div class="row gap-3">
                                 <div class="col-lg-12">
-                                    <h3 class="fw-semibold">{{ alum.Nombre }} ({{ alum.Unidad }})</h3>
+                                    <h3 class="fw-semibold">{{ alum.Nombre }} ({{ alum.Unidad|default:"Sin unidad"  }})</h3>
+                                    <div class="forum-sub-title">Teléfono 1: {{ alum.Telefono1 }}
+                                            </div>
+                                        <div class="forum-sub-title">Teléfono 2: {{ alum.Telefono2 }}
+                                            </div>
                                 </div>
 
                             </div>

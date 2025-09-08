@@ -226,7 +226,7 @@ def infoIA(request, alum_id):
 @login_required(login_url='/')
 @user_passes_test(group_check_je,login_url='/')
 def imprimir_profesores(request):
-	lista_profesores = Profesores.objects.all().exclude(Apellidos="-").order_by("Apellidos")
+	lista_profesores = Profesores.objects.filter(Baja=False).exclude(Apellidos="-").order_by("Apellidos")
 	texto="Listado de profesores"
 	if request.path.split("/")[2]=="claustro":
 		lista_profesores=lista_profesores.exclude(Baja=True)

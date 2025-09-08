@@ -177,8 +177,7 @@
 
         $(document).ready(function () {
 
-            $('.dataTables-reservas').each(function () {
-            $(this).DataTable({
+            var tableReservas = $('.dataTables-reservas').DataTable({
                 dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
                     "rt" +
                     "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
@@ -242,7 +241,7 @@
                         last: '<i class="ti ti-chevrons-right"></i>'
                     }
                 }
-            });
+
             });
 
 

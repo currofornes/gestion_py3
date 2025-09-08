@@ -6,102 +6,105 @@
 {% endblock %}
 
 {% block content %}
+
+<div class="container-fluid">
+
+    <!-- Búsqueda -->
     <div class="row">
-        <div class="col-lg-12">
-            <div class="ibox">
-                <div class="ibox-title">
-                    <h5>Búsqueda</h5>
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light">
+                    <h5 class="card-title mb-0">Búsqueda</h5>
                 </div>
-                <div class="ibox-content">
-                    <form action="/centro/profesores" method="post" class="form-horizontal">
+                <div class="card-body">
+                    <form action="/centro/profesores" method="post">
                         {% csrf_token %}
-                        <div class="form-group row">
-                            <div class="col-lg-12">
+                        <div class="row g-2">
+                            <div class="col-12">
                                 {{ form.as_p }}
                             </div>
                         </div>
                     </form>
                 </div>
+                <div class="card-footer border-0"></div>
             </div>
         </div>
     </div>
 
-    <!--<a href="/usuarios/add"><button type="submit" class="btn btn-primary">Nuevo usuario</button></a>
-    <a href="/usuarios/tipo"><button type="submit" class="btn btn-primary">Asignar Tipo</button></a>-->
-
+    <!-- Listado -->
     <div class="row animated fadeInRight">
-        <div class="col-lg-12">
-            <div class="ibox ">
-                <div class="ibox-title">
-                    <div class="float-right">
-                        <a href="/pdf/profesores" class="btn btn-sm btn-info"><i class="fa fa-print"></i> Imprimir lista
-                            de profesores </a>
-                        <a href="/pdf/claustro" class="btn btn-sm btn-info"><i class="fa fa-id-card-o"></i> Imprimir
-                            asistencia al Claustro </a>
-                        <a href="/pdf/semana" class="btn btn-sm btn-info"><i class="fa fa-calendar-check-o "></i>
-                            Imprimir asistencia por semana </a>
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Gestión de profesores ({{ departamento }})</h4>
+                    <div class="d-flex gap-2">
+                        <a href="/pdf/profesores" class="btn btn-info btn-sm">
+                            <i class="fa fa-print"></i> Imprimir lista de profesores
+                        </a>
+                        <a href="/pdf/claustro" class="btn btn-info btn-sm">
+                            <i class="fa fa-id-card-o"></i> Imprimir asistencia al Claustro
+                        </a>
+                        <a href="/pdf/semana" class="btn btn-info btn-sm">
+                            <i class="fa fa-calendar-check-o"></i> Imprimir asistencia por semana
+                        </a>
                     </div>
-                    <h2>Gestión de profesores ({{ departamento }})</h2>
                 </div>
-                <div class="ibox-content">
+
+                <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover dataTables-profesores">
-                            <thead>
-                            <tr>
-                                <th class="text-center">N.</th>
-                                <th>Nombre</th>
-                                <th class="text-center">Teléfono</th>
-                                <th class="text-center">Móvil</th>
-                                <th>Email</th>
-                                <th class="text-center">Activo/a</th>
-                            </tr>
+                        <table class="table table-striped table-bordered align-middle dataTables-profesores">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">N.</th>
+                                    <th>Nombre</th>
+                                    <th class="text-center">Teléfono</th>
+                                    <th class="text-center">Móvil</th>
+                                    <th>Email</th>
+                                    <th class="text-center">Activo/a</th>
+                                </tr>
                             </thead>
                             <tbody>
-
-                            {% for prof,curso in profesores %}
-                                <tr>
-
-                                    <td class="text-center">{{ forloop.counter }}</td>
-
-
-                                    <td><strong>{{ prof.Apellidos }}, {{ prof.Nombre }}</strong>
-                                        ({{ prof.Departamento.Nombre }})<br/>{{ curso }}</td>
-
-                                    <td class="text-center">{{ prof.Telefono }}</td>
-                                    <td class="text-center">{{ prof.Movil }}</td>
-                                    <td>{{ prof.Email }}</td>
-
-                                    {% if prof.Baja %}
-                                        <td class="text-center" data-order="1">
-                                            <a style="color: inherit;"
-                                               href="/centro/profesores/change/Baja/{{ prof.id }}/off">
-                                    <span style="color: red;">
-                                          <i class="fa fa-times"></i>
-                                        </span>
-                                            </a>
+                                {% for prof,curso in profesores %}
+                                    <tr>
+                                        <td class="text-center">{{ forloop.counter }}</td>
+                                        <td>
+                                            <strong>{{ prof.Apellidos }}, {{ prof.Nombre }}</strong>
+                                            ({{ prof.Departamento.Nombre }})<br/>{{ curso }}
                                         </td>
-                                    {% else %}
-                                        <td class="text-center" data-order="0">
-                                            <a style="color: inherit;"
-                                               href="/centro/profesores/change/Baja/{{ prof.id }}/on">
-                                    <span style="color: green;">
-                                          <i class="fa fa-check"></i>
-                                        </span>
-                                            </a>
-                                        </td>
-                                    {% endif %}
-                                </tr>
-                            {% endfor %}
+                                        <td class="text-center">{{ prof.Telefono }}</td>
+                                        <td class="text-center">{{ prof.Movil }}</td>
+                                        <td>{{ prof.Email }}</td>
+
+                                        {% if prof.Baja %}
+                                            <td class="text-center" data-order="1">
+                                                <a style="color: inherit;" href="/centro/profesores/change/Baja/{{ prof.id }}/off">
+                                                    <span class="text-danger">
+                                                        <i class="fa fa-times"></i>
+                                                    </span>
+                                                </a>
+                                            </td>
+                                        {% else %}
+                                            <td class="text-center" data-order="0">
+                                                <a style="color: inherit;" href="/centro/profesores/change/Baja/{{ prof.id }}/on">
+                                                    <span class="text-success">
+                                                        <i class="fa fa-check"></i>
+                                                    </span>
+                                                </a>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
-                    </div>
-
-
+                    </div> <!-- table-responsive -->
                 </div>
+
+                <div class="card-footer border-0"></div>
             </div>
         </div>
     </div>
 
+</div> <!-- container-fluid -->
 
 {% endblock %}
 
@@ -109,82 +112,56 @@
     <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
     <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
     <script>
-
-        // Upgrade button class name
+        // Clase por defecto de los botones de DataTables
         $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
 
         $(document).ready(function () {
-            $(".select2_area").select2({
-                theme: 'bootstrap4',
-            });
+            // Select2
+            $(".select2_area").select2({ theme: 'bootstrap4' });
+            $(".select2_departamento").select2({ theme: 'bootstrap4' });
 
-            $(".select2_departamento").select2({
-                theme: 'bootstrap4',
-            });
-
+            // DataTable
             var tableProfes = $('.dataTables-profesores').DataTable({
-                language: {
-                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                },
+                language: { url: '{% static "js/plugins/dataTables/es-ES.json" %}' },
                 pageLength: 50,
                 responsive: true,
                 dom: '<"html5buttons"B>lTfgitp',
                 buttons: [
-                    {extend: 'copy'},
-                    {extend: 'csv'},
-                    {extend: 'excel', title: 'Profesores'},
-                    {extend: 'pdf', title: 'Profesores'},
-
+                    { extend: 'copy' },
+                    { extend: 'csv' },
+                    { extend: 'excel', title: 'Profesores' },
+                    { extend: 'pdf', title: 'Profesores' },
                     {
                         extend: 'print',
                         customize: function (win) {
-                            $(win.document.body).addClass('white-bg');
-                            $(win.document.body).css('font-size', '10px');
-
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
+                            $(win.document.body).addClass('white-bg').css('font-size', '10px');
+                            $(win.document.body).find('table').addClass('compact').css('font-size', 'inherit');
                         }
                     },
                     {
                         text: 'Mostrar solo activos/as',
                         className: '',
                         action: function (e, dt, button, config) {
-                            // Variable para almacenar si estamos mostrando solo activos o todos
                             var showingActives = button.text() === 'Mostrar solo activos/as';
-
                             if (showingActives) {
-                                // Filtro para mostrar solo los profesores activos
-                                $.fn.dataTable.ext.search.push(
-                                    function (settings, data, dataIndex) {
-                                        // Índice de la columna 'Baja'
-                                        var bajaColIndex = 5;
-                                        // Obtenemos el contenido de la columna
-                                        var bajaData = $(dt.row(dataIndex).node()).find('td:eq(' + bajaColIndex + ')').data('order');
-                                        // Devolvemos true para mostrar la fila si está activa (data-order = 0)
-                                        return bajaData == 0;
-                                    }
-                                );
+                                $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                                    var bajaColIndex = 5;
+                                    var bajaData = $(dt.row(dataIndex).node()).find('td:eq(' + bajaColIndex + ')').data('order');
+                                    return bajaData == 0; // solo activos
+                                });
                                 button.text('Mostrar todos/as');
                             } else {
-                                // Quitamos el filtro personalizado
                                 $.fn.dataTable.ext.search.pop();
                                 button.text('Mostrar solo activos/as');
                             }
-
-                            // Redibujamos la tabla con el nuevo filtro
                             dt.draw();
                         }
                     }
                 ],
                 columnDefs: [
-                    {type: 'num', targets: 0},  // Indica que la primera columna (índice 0) es de tipo numérico
+                    { type: 'num', targets: 0 }
                 ]
-
             });
-
-        })
-        ;
-
+        });
     </script>
 {% endblock %}

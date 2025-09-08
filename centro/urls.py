@@ -59,4 +59,14 @@ urlpatterns = [
 
     path('revision/editar/<int:revision_id>/', views.editar_revision_libros, name='editar_revision_libros'),
 
+    path('morosos/', views.morosos_view, name='informe_morosos'),
+    path('destrozones/', views.destrozones_view, name='informe_destrozones'),
+
+path('mipreferenciahoraria/', views.mi_preferencia_horaria, name='mi_preferencia_horaria'),
+
+path('preferenciashorarias/', views.preferencias_profesores, name='preferencias_profesores'),
+
+path('gestion-sustitutos/', views.crear_sustituto, name='crear_sustituto'),
+
+path('gestion-sustitutos/lista/', views.lista_sustitutos, name='lista_sustitutos'),
 ]

@@ -1,165 +1,163 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block css %}
-    <link href="{% static 'css/plugins/datapicker/datepicker3.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/clockpicker/clockpicker.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
-{% endblock %}
-
 {% block title %}Detalles Actividad{% endblock %}
 
-{% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <div class="float-right">
-                            <a href="{% url 'editar_actividad' actividad.id %}" class="btn btn-warning"> Editar </a>
-                            <a class="btn btn-success"
-                                               href="{% url 'editar_actividad_participantes' actividad.id %}"><i
-                                                    class="fa fa-users"></i> Gestión participantes</a>
-                                            <a class="btn btn-secondary"
-                                               href="{% url 'editar_actividad_economica' actividad.id %}"><i
-                                                    class="fa fa-eur"></i> Gestión económica</a>
-                        </div>
+{% block css %}
+<!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
 
-                        <h2>Detalles Actividad DACE</h2>
-                    </div>
-                    <div class="ibox-content">
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center mb-3">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Detalles Actividad DACE</h4>
+            </div>
+
+        </div>
+
+        <!-- Detalles actividad -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+
                         <div class="form-group row">
                             <label class="col-lg-2 col-form-label">Título</label>
                             <div class="col-lg-10">
-                                <p class="form-control-static">{{ actividad.Titulo|default:"-" }}</p>
+                                <p class="form-control-plaintext">{{ actividad.Titulo|default:"-" }}</p>
                             </div>
                         </div>
+
                         <div class="form-group row">
                             <label class="col-lg-2 col-form-label">Descripción</label>
                             <div class="col-lg-10">
-                                <p class="form-control-static">{{ actividad.Descripcion|default:"-" }}</p>
+                                <p class="form-control-plaintext">{{ actividad.Descripcion|default:"-" }}</p>
                             </div>
                         </div>
+
                         <div class="form-group row">
                             <label class="col-lg-2 col-form-label">Responsable</label>
                             <div class="col-lg-10">
-                                <p class="form-control-static">{{ actividad.Responsable|default:"-" }}</p>
+                                <p class="form-control-plaintext">{{ actividad.Responsable|default:"-" }}</p>
                             </div>
                         </div>
+
                         <div class="form-group row">
                             <label class="col-lg-2 col-form-label">Fecha de Inicio</label>
                             <div class="col-lg-2">
-                                <p class="form-control-static">{{ actividad.FechaInicio|date:"d/m/Y" }}</p>
+                                <p class="form-control-plaintext">{{ actividad.FechaInicio|date:"d/m/Y" }}</p>
                             </div>
                             <label class="col-lg-1 col-form-label">Fecha de Fin</label>
                             <div class="col-lg-2">
-                                <p class="form-control-static">{{ actividad.FechaFin|date:"d/m/Y" }}</p>
+                                <p class="form-control-plaintext">{{ actividad.FechaFin|date:"d/m/Y" }}</p>
                             </div>
                         </div>
+
                         <div class="form-group row">
                             <label class="col-lg-2 col-form-label">Hora de Salida</label>
                             <div class="col-lg-2">
-                                <p class="form-control-static">{{ actividad.HoraSalida|time:"H:i" }}</p>
+                                <p class="form-control-plaintext">{{ actividad.HoraSalida|time:"H:i" }}</p>
                             </div>
                             <label class="col-lg-1 col-form-label">Hora de Llegada</label>
                             <div class="col-lg-2">
-                                <p class="form-control-static">{{ actividad.HoraLlegada|time:"H:i" }}</p>
+                                <p class="form-control-plaintext">{{ actividad.HoraLlegada|time:"H:i" }}</p>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h2>Participantes Actividad DACE</h2>
-                    </div>
-                    <div class="ibox-content">
+
+        <!-- Participantes -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
 
                         <div class="row">
                             <div class="col-lg-6">
-                                <h3>Unidades y Alumnado participante</h3>
-
-                                <div class="row">
-                                    <div class="col-lg-12">
-                                        <div class="table-responsive">
-                                            <table class="table table-striped" id="tabla-unidades">
-                                                <thead>
-                                                <tr>
-                                                    <th>Unidad</th>
-                                                    <th>Alumnos/as</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {% for unidad in actividad.UnidadesAfectadas.all %}
-                                                    <tr data-id="{{ unidad.id }}">
-                                                        <td>{{ unidad }}</td>
-                                                        <td>
-                                                            <button type="button" data-unidad="{{ unidad }}"
-                                                                    class="btn btn-success btn-sm btn-alumnos-unidad">
-                                                                Alumnado
-                                                                (0)
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
+                                <h5 class="fw-bold mb-3">Unidades y Alumnado participante</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped" id="tabla-unidades">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th>Unidad</th>
+                                            <th>Alumnos/as</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for unidad in actividad.UnidadesAfectadas.all %}
+                                            <tr data-id="{{ unidad.id }}">
+                                                <td>{{ unidad }}</td>
+                                                <td>
+                                                    <button type="button" data-unidad="{{ unidad }}"
+                                                            class="btn btn-success btn-sm btn-alumnos-unidad">
+                                                        Alumnado (0)
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                            <div class="col-lg-6">
-                                <h3>Profesorado participante</h3>
 
-                                <div class="row">
-                                    <div class="col-lg-12">
-                                        <div class="table-responsive">
-                                            <table class="table table-striped" id="tabla-profesorado">
-                                                <thead>
-                                                <tr>
-                                                    <th>Profesor/a</th>
-                                                    <th>Departamento</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {% for profe in actividad.Profesorado.all %}
-                                                    <tr data-id="{{ profe.id }}">
-                                                        <td>{{ profe }}</td>
-                                                        <td>
-                                                            {{ profe.Departamento }}
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
+                            <div class="col-lg-6">
+                                <h5 class="fw-bold mb-3">Profesorado participante</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead class="table-light">
+                                        <tr>
+                                            <th>Profesor/a</th>
+                                            <th>Departamento</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for profe in actividad.Profesorado.all %}
+                                            <tr data-id="{{ profe.id }}">
+                                                <td>{{ profe }}</td>
+                                                <td>{{ profe.Departamento }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="mt-3">
+                            <a href="{% url 'actividadesdace' %}" class="btn btn-secondary">Volver</a>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="modal fade" id="modal-alumnos-unidad" tabindex="-1" role="dialog"
-             aria-labelledby="modalAlumnosUnidadLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+        <!-- Modal alumnado -->
+        <div class="modal fade" id="modal-alumnos-unidad" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3 class="modal-title" id="modalAlumnosUnidadLabel">Alumnado Participante - Unidad: <span
-                                id="unidad-nombre"></span></h3>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <h4 class="modal-title">Alumnado Participante - Unidad: <span id="unidad-nombre"></span></h4>
+
                     </div>
                     <div class="modal-body">
-
+                        <div style="max-height: 400px; overflow-y: auto;">
                         <table class="table table-striped" id="tabla-alumnos-unidad">
-                            <thead>
+                            <thead class="table-light position-sticky top-0" style="z-index: 1;">
                             <tr>
                                 <th>Nombre</th>
                                 <th class="text-center">Participa</th>
@@ -169,141 +167,10 @@
                             <!-- Filas dinámicas -->
                             </tbody>
                         </table>
+                        </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h2>Economía Actividad DACE</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <form method="post">
-                            {% csrf_token %}
-                            <div class="row">
-                                <div class="col-lg-5">
-                                    <div class="panel panel-info">
-                                        <div class="panel-heading">
-                                            <h3>Listado de alumnado participante</h3>
-                                        </div>
-                                        <div class="panel-body">
-                                            <h4 class="text-center" style="margin-bottom: 20px;">Total
-                                                alumnos/as: {{ alumnos_total }}</h4>
-
-                                            <div class="panel-group" id="accordion">
-                                                {% for unidad, alumnos in alumnos_por_unidad.items %}
-                                                    <div class="panel panel-default">
-                                                        <div class="panel-heading">
-                                                            <h4 class="panel-title">
-                                                                <a data-toggle="collapse" data-parent="#accordion"
-                                                                   href="#collapse{{ forloop.counter }}">
-                                                                    Alumnado de {{ unidad }} ({{ alumnos|length }})
-                                                                </a>
-                                                            </h4>
-                                                        </div>
-                                                        <div id="collapse{{ forloop.counter }}"
-                                                             class="panel-collapse collapse {% if forloop.first %}in{% endif %}">
-                                                            <div class="panel-body">
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-striped">
-                                                                        <thead>
-                                                                        <tr>
-                                                                            <th>Nombre</th>
-                                                                            <th class="text-center">COMPE</th>
-                                                                            <th class="text-center">Pagado</th>
-                                                                        </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                        {% for alumno in alumnos %}
-                                                                            <tr>
-                                                                                <td>{{ alumno.alumno.Nombre }}</td>
-                                                                                <td class="text-center">
-                                                                                    <input type="checkbox" disabled
-                                                                                           class="i-checks"
-                                                                                           name="compe_{{ alumno.id }}"
-                                                                                           {% if alumno.compe %}checked{% endif %}>
-                                                                                </td>
-                                                                                <td class="text-center">
-                                                                                    <input type="checkbox" disabled
-                                                                                           class="i-checks"
-                                                                                           name="pagado_{{ alumno.id }}"
-                                                                                           {% if alumno.ha_pagado %}checked{% endif %}>
-                                                                                </td>
-                                                                            </tr>
-                                                                        {% endfor %}
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-
-                                </div>
-                                <div class="col-lg-7">
-                                    <div class="panel panel-info">
-                                        <div class="panel-heading">
-                                            <h3>Control de gastos</h3>
-                                        </div>
-                                        <div class="panel-body">
-
-                                            <div class="form-group row">
-                                                <label class="col-lg-4 col-form-label text-right">Aportación Externa
-                                                    (€):</label>
-                                                <div class="col-lg-2">
-                                                    <p class="form-control-static">{{ actividad.AportacionCentro|default:"-" }}</p>
-                                                </div>
-
-                                                <label class="col-lg-4 col-form-label text-right"><strong>Coste por
-                                                    Alumnado (€): </strong></label>
-                                                <div class="col-lg-2">
-                                                    <p class="form-control-static">{{ actividad.CosteAlumnado|default:"-" }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered" id="tabla_gastos">
-                                                    <thead>
-                                                    <tr>
-                                                        <th>Concepto</th>
-                                                        <th>Importe (€)</th>
-                                                        <th>Tipo</th>
-                                                    </tr>
-                                                    </thead>
-                                                    <tbody>
-
-                                                    {% for gasto in gastos %}
-                                                        <tr>
-                                                            <td>{{ gasto.concepto }}</td>
-                                                            <td>{{ gasto.importe }}</td>
-                                                            <td>{{ gasto.tipo }}</td>
-                                                        </tr>
-                                                    {% empty %}
-                                                        <tr>
-                                                            <td colspan="3" class="text-center">No hay gastos
-                                                                registrados.
-                                                            </td>
-                                                        </tr>
-                                                    {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <a href="{% url 'actividadesdace' %}" class="btn btn-secondary">Volver</a>
-                        </form>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
                     </div>
                 </div>
             </div>
@@ -312,61 +179,43 @@
     </div>
 {% endblock %}
 
+
 {% block js %}
-    <script src="{% static 'js/plugins/datapicker/bootstrap-datepicker.js' %}"></script>
-    <script src="{% static 'js/plugins/datapicker/locales/bootstrap-datepicker.es.min.js' %}"></script>
-    <script src="{% static 'js/plugins/clockpicker/clockpicker.js' %}"></script>
-    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
 
     <script>
         $(document).ready(function () {
 
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            });
-
-
-            $('.i-checks').each(function () {
-                if ($(this).prop('checked')) {
-                    $(this).iCheck('check'); // Marca el checkbox en iCheck
-                } else {
-                    $(this).iCheck('uncheck'); // Desmarca el checkbox en iCheck
-                }
-            });
-
-
-            $('#id_FechaInicio').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker();
-
-            $('#id_FechaFin').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker();
-
-
-            $('.clockpicker').clockpicker({
-                donetext: 'Hecho'
-            });
-
-            function actualizarCheckboxesICheck() {
+            function actualizarCheckboxes() {
                 const checkboxes = $('#tabla-alumnos-unidad input.chk-alumno');
 
-                // Aplicar iCheck
-                checkboxes.iCheck({
-                    checkboxClass: 'icheckbox_square-green',
-                    radioClass: 'iradio_square-green'
-                }).off('ifChanged').on('ifChanged', function (event) {
+                checkboxes.off('change').on('change', function () {
                     const $checkbox = $(this);
                     const fila = $checkbox.closest('tr');
                     const alumnoId = fila.data('alumno-id');
@@ -386,7 +235,6 @@
                         }
                     }
                 });
-
             }
 
             const unidadesInput = $('#unidades-afectadas');
@@ -398,7 +246,7 @@
             const alumnosParticipantes = {}; // Objeto para almacenar los alumnos seleccionados por unidad
 
             $('#modal-alumnos-unidad').on('shown.bs.modal', function (event) {
-                actualizarCheckboxesICheck();
+                actualizarCheckboxes();
             });
 
 
@@ -479,7 +327,7 @@
                 `);
                         });
 
-                        actualizarCheckboxesICheck();
+                        actualizarCheckboxes();
 
                         $('#unidad-nombre').text(unidadNombre);
 

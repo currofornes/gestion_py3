@@ -1,23 +1,53 @@
 {% extends "base.html" %}
 {% load static %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
 
 {% block css %}
-    <link href="{% static 'css/plugins/datapicker/datepicker3.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/clockpicker/clockpicker.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+
+    <style>
+        .strikethrough {
+            /*text-decoration: line-through;*/
+            background-color: #ddbcbc !important;
+        }
+    </style>
+
 {% endblock %}
 
-{% block title %}Editar Actividad{% endblock %}
+
+
 
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
+
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Gestión de participantes actividad DACE</h4>
+            </div>
+        </div>
+
+
         <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h2>Gestión Participantes Actividad DACE</h2>
-                    </div>
-                    <div class="ibox-content">
+            <div class="col-12">
+                <div class="card">
+
+
+                    <div class="card-body" style="height: calc(100% - 350px);" data-simplebar data-simplebar-md>
+
                         <form action="" method="post">
                             {% csrf_token %}
 
@@ -138,29 +168,37 @@
                             <a href="{% url 'actividadesdace' %}" class="btn btn-secondary">Cancelar</a>
                         </form>
                     </div>
-                </div>
+
+
+                </div> <!-- end card-body -->
+
+
             </div>
+
         </div>
 
+    </div><!-- end col -->
 
-        <div class="modal fade" id="modal-alumnos-unidad" tabindex="-1" role="dialog"
-             aria-labelledby="modalAlumnosUnidadLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 class="modal-title" id="modalAlumnosUnidadLabel">Alumnado Participante - Unidad: <span
-                                id="unidad-nombre"></span></h3>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+
+    </div><!-- end row -->
+
+
+    <div class="modal fade" id="modal-alumnos-unidad" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modalAlumnosUnidadLabel">Alumnado Participante - Unidad: <span
+                            id="unidad-nombre"></span></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <button id="btn-marcar-todos" class="btn btn-primary btn-sm">Marcar Todos</button>
+                        <button id="btn-desmarcar-todos" class="btn btn-danger btn-sm">Desmarcar Todos</button>
                     </div>
-                    <div class="modal-body">
-                        <div class="d-flex justify-content-between mb-3">
-                            <button id="btn-marcar-todos" class="btn btn-primary btn-sm">Marcar Todos</button>
-                            <button id="btn-desmarcar-todos" class="btn btn-danger btn-sm">Desmarcar Todos</button>
-                        </div>
+
+                    <div style="max-height: 400px; overflow-y: auto;">
                         <table class="table table-striped" id="tabla-alumnos-unidad">
-                            <thead>
+                            <thead class="table-light position-sticky top-0" style="z-index: 1;">
                             <tr>
                                 <th>Nombre</th>
                                 <th class="text-center">Participa</th>
@@ -171,25 +209,55 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="modal-footer">
+
+                    <div class="d-flex justify-content-end gap-2 mt-3">
                         <button type="button" class="btn btn-primary" id="guardar-alumnos-unidad">Guardar</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
                     </div>
                 </div>
             </div>
         </div>
-
-
     </div>
+
+
+
+    <!-- end modal dialog-->
+
+
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/plugins/datapicker/bootstrap-datepicker.js' %}"></script>
-    <script src="{% static 'js/plugins/datapicker/locales/bootstrap-datepicker.es.min.js' %}"></script>
-    <script src="{% static 'js/plugins/clockpicker/clockpicker.js' %}"></script>
-    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
 
     <script>
+
         $(document).ready(function () {
             $("#profesores-select").select2({
                 theme: 'bootstrap4',
@@ -203,23 +271,6 @@
                 allowClear: true
             });
 
-            $('#id_FechaInicio').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker();
-
-            $('#id_FechaFin').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker();
 
             $('form').on('keypress', 'input, select', function (e) {
                 if (e.which === 13) {
@@ -231,18 +282,10 @@
                 $('button[type="submit"]').prop('disabled', true).text('Procesando...');
             });
 
-            $('.clockpicker').clockpicker({
-                donetext: 'Hecho'
-            });
-
-            function actualizarCheckboxesICheck() {
+            function actualizarCheckboxes() {
                 const checkboxes = $('#tabla-alumnos-unidad input.chk-alumno');
 
-                // Aplicar iCheck
-                checkboxes.iCheck({
-                    checkboxClass: 'icheckbox_square-green',
-                    radioClass: 'iradio_square-green'
-                }).off('ifChanged').on('ifChanged', function (event) {
+                checkboxes.off('change').on('change', function () {
                     const $checkbox = $(this);
                     const fila = $checkbox.closest('tr');
                     const alumnoId = fila.data('alumno-id');
@@ -262,7 +305,6 @@
                         }
                     }
                 });
-
             }
 
             const unidadesInput = $('#unidades-afectadas');
@@ -274,15 +316,15 @@
             const alumnosParticipantes = {}; // Objeto para almacenar los alumnos seleccionados por unidad
 
             $('#modal-alumnos-unidad').on('shown.bs.modal', function (event) {
-                actualizarCheckboxesICheck();
+                actualizarCheckboxes();
             });
 
             $('#btn-marcar-todos').on('click', function () {
-                $('#tabla-alumnos-unidad input.chk-alumno').iCheck('check');
+                $('#tabla-alumnos-unidad input.chk-alumno').prop('checked', true).trigger('change');
             });
 
             $('#btn-desmarcar-todos').on('click', function () {
-                $('#tabla-alumnos-unidad input.chk-alumno').iCheck('uncheck');
+                $('#tabla-alumnos-unidad input.chk-alumno').prop('checked', false).trigger('change');
             });
 
             function reconstruirAlumnado() {
@@ -420,9 +462,9 @@
                 `);
                         });
 
-                        actualizarCheckboxesICheck();
+                         actualizarCheckboxes();
 
-                         $('#unidad-nombre').text(unidadNombre);
+                        $('#unidad-nombre').text(unidadNombre);
 
                         // Abrir el modal
                         $('#modal-alumnos-unidad').modal('show');
@@ -465,4 +507,3 @@
 
     </script>
 {% endblock %}
-

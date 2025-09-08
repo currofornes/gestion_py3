@@ -1,156 +1,160 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col">
-                <h2>Calendario de amonestaciones de: {{ alumno.Nombre }}</h2>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <span class="bg-secondary text-white">  Amonestación grave </span>
-                <span> &nbsp; </span>
-                <span class="bg-warning"> Amonestación leve </span>
-                <span> &nbsp; </span>
-                <span class="bg-danger"> Sanción </span>
-            </div>
-        </div>
-        <div class="row">
-            <div id="cal-sep_dic" class="col-sm"></div>
-        </div>
-        <div class="row">
-            <div id="cal-ene_jun" class="col-sm"></div>
-        </div>
-    </div>
+{% block css %}
 
-    <!-- Modal para mostrar detalles de la amonestación o sanción -->
-    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="eventModalLabel">Detalles del Evento</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
 
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
 
+    <style>
+        .strikethrough {
+            /*text-decoration: line-through;*/
+            background-color: #ddbcbc !important;
+        }
+    </style>
 
 {% endblock %}
 
+{% block content %}
+<div class="container-fluid wrapper wrapper-content animated fadeInRight py-3">
+    <div class="row mb-3">
+        <div class="col">
+            <h2 class="fw-semibold">Calendario de amonestaciones de: {{ alumno.Nombre }} ({{ alumno.Unidad|default:"Sin unidad" }})</h2>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col d-flex flex-wrap gap-3">
+            <span class="badge bg-secondary text-white px-3 py-2">Amonestación grave</span>
+            <span class="badge bg-warning text-dark px-3 py-2">Amonestación leve</span>
+            <span class="badge bg-danger text-white px-3 py-2">Sanción</span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light border-light">
+                    <h5 class="mb-0">Septiembre a Diciembre 2025</h5>
+                </div>
+                <div class="card-body p-3" style="min-height: 400px;">
+                    <div id="cal-sep_dic"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light border-light">
+                    <h5 class="mb-0">Enero a Junio 2026</h5>
+                </div>
+                <div class="card-body p-3" style="min-height: 400px;">
+                    <div id="cal-ene_jun"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal detalles evento -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">Detalles del Evento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block js %}
-    <script src="{% static 'js/plugins/fullcalendar/index.global.js' %}"></script>
-    <script src="{% static 'js/plugins/fullcalendar/locales/es.global.js' %}"></script>
+<!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
 
-    <script>
-        $(document).ready(function () {
-            // Cargo la configuración inicial del calendario: inicio y final de curso y los festivos.
-            $.getJSON("{% static 'data/calendario.json' %}", function(data) {
-                const inicio_curso = data.inicio_curso;
-                const final_curso = data.final_curso;
-                const festivos = data.festivos;
+    <!-- Fullcalendar js -->
+    <script src="{% static 'plugins/fullcalendar/index.global.min.js' %}"></script>
 
-                // Inicializar los calendarios
-                const calendar_1 = new FullCalendar.Calendar($('#cal-sep_dic')[0], {
-                    locale: 'es',
-                    editable: false,
-                    droppable: false,
-                    weekends: false,
-                    validRange: { start: inicio_curso, end: '2024-12-31' },
-                    initialView: 'sept_dic',
-                    views: { sept_dic: { type: 'multiMonth', duration: { months: 4 } } },
-                    initialDate: inicio_curso,
-                    headerToolbar: { start: 'title', center: '', end: '' }
-                });
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        $.getJSON("{% static 'data/calendario.json' %}", function(data) {
+            const inicio_curso = data.inicio_curso;
+            const final_curso = data.final_curso;
+            const festivos = data.festivos;
 
-                const calendar_2 = new FullCalendar.Calendar($('#cal-ene_jun')[0], {
-                    locale: 'es',
-                    editable: false,
-                    droppable: false,
-                    weekends: false,
-                    validRange: { start: '2025-01-01', end: final_curso },
-                    initialView: 'ene_jun',
-                    views: { ene_jun: { type: 'multiMonth', duration: { months: 6 } } },
-                    headerToolbar: { start: 'title', center: '', end: '' }
-                });
-
-                function showEventDetails(eventData) {
-                    const modalBody = document.querySelector("#eventModal .modal-body");
-
-                    // Limpia cualquier contenido previo en el modal
-                    modalBody.innerHTML = '';
-
-                    // Verifica si el campo `modalInfo` existe y no está vacío
-                    if (eventData.extendedProps.modalInfo && eventData.extendedProps.modalInfo.length > 0) {
-                        // Itera sobre los elementos de `modalInfo` para crear los párrafos <p>
-                        eventData.extendedProps.modalInfo.forEach(info => {
-                            const paragraph = document.createElement("p");
-                            paragraph.innerHTML = `<strong>${info.label}:</strong> ${info.text}`;
-                            modalBody.appendChild(paragraph);
-                        });
-                        $('#eventModal').modal('show');
-                    }
-                }
-                // Configurar el evento `eventClick` para ambos calendarios
-                function configurarCalendario(calendar) {
-                    calendar.on('eventClick', function(info) {
-                        const evento = info.event;
-                        if (evento.extendedProps.modalInfo && evento.extendedProps.modalInfo.length > 0) {
-                            showEventDetails(evento)
-                        }
-                    });
-                }
-
-                configurarCalendario(calendar_1);
-                configurarCalendario(calendar_2);
-
-                // Función para agregar eventos a los calendarios correctos
-                function addEvent(evento) {
-                    const inicio = new Date(evento.start);
-
-                    if (inicio.getFullYear() === 2024) {
-                        calendar_1.addEvent(evento);
-                    } else if (inicio.getFullYear() === 2025) {
-                        calendar_2.addEvent(evento);
-                    }
-                }
-
-                // Añadir eventos de festivos
-                festivos.forEach(function(festivo) {
-                    addEvent(festivo);
-                });
-
-                // Cargar eventos de amonestaciones y sanciones
-                $.getJSON("{% url 'amonestaciones_json' alum_id=alumno.id %}", function(data) {
-                    data.graves.forEach(function(evento) {
-                        addEvent(evento);
-                    });
-                    data.leves.forEach(function(evento) {
-                        addEvent(evento);
-                    });
-                    data.sanciones.forEach(function(evento) {
-                        addEvent(evento);
-                    });
-                });
-
-                // Renderizar ambos calendarios
-                calendar_1.render();
-                calendar_2.render();
+            const calendar_1 = new FullCalendar.Calendar(document.getElementById('cal-sep_dic'), {
+                locale: 'es',
+                editable: false,
+                droppable: false,
+                weekends: false,
+                validRange: { start: inicio_curso, end: '2025-12-31' },
+                initialView: 'multiMonthFour',
+                views: {
+                    multiMonthFour: { type: 'multiMonth', duration: { months: 4 } }
+                },
+                initialDate: inicio_curso,
+                headerToolbar: { start: 'title', center: '', end: '' }
             });
+
+            const calendar_2 = new FullCalendar.Calendar(document.getElementById('cal-ene_jun'), {
+                locale: 'es',
+                editable: false,
+                droppable: false,
+                weekends: false,
+                validRange: { start: '2026-01-01', end: final_curso },
+                initialView: 'multiMonthSix',
+                views: {
+                    multiMonthSix: { type: 'multiMonth', duration: { months: 6 } }
+                },
+                headerToolbar: { start: 'title', center: '', end: '' }
+            });
+
+            function showEventDetails(eventData) {
+                const modalBody = document.querySelector("#eventModal .modal-body");
+                modalBody.innerHTML = '';
+                if (eventData.extendedProps.modalInfo && eventData.extendedProps.modalInfo.length > 0) {
+                    eventData.extendedProps.modalInfo.forEach(info => {
+                        const p = document.createElement("p");
+                        p.innerHTML = `<strong>${info.label}:</strong> ${info.text}`;
+                        modalBody.appendChild(p);
+                    });
+                    var modal = new bootstrap.Modal(document.getElementById('eventModal'));
+                    modal.show();
+                }
+            }
+
+            [calendar_1, calendar_2].forEach(function(calendar) {
+                calendar.on('eventClick', function(info) {
+                    if (info.event.extendedProps.modalInfo && info.event.extendedProps.modalInfo.length > 0) {
+                        showEventDetails(info.event);
+                    }
+                });
+            });
+
+            function addEvent(evento) {
+                const inicio = new Date(evento.start);
+                if (inicio.getFullYear() === 2024) {
+                    calendar_1.addEvent(evento);
+                } else if (inicio.getFullYear() === 2025) {
+                    calendar_2.addEvent(evento);
+                }
+            }
+
+            festivos.forEach(addEvent);
+
+            $.getJSON("{% url 'amonestaciones_json' alum_id=alumno.id %}", function(data) {
+                ['graves', 'leves', 'sanciones'].forEach(tipo => {
+                    data[tipo].forEach(addEvent);
+                });
+            });
+
+            calendar_1.render();
+            calendar_2.render();
         });
-    </script>
-
-
-
-
+    });
+</script>
 {% endblock %}

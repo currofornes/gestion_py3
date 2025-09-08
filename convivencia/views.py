@@ -1,14 +1,19 @@
 from collections import defaultdict
 from sqlite3 import IntegrityError
 
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django.views.decorators.http import require_POST
+from django.views.generic import DetailView
 
 from centro.utils import get_current_academic_year, get_previous_academic_years
-from convivencia.forms import AmonestacionForm, SancionForm, FechasForm, AmonestacionProfeForm, ResumenForm
+from convivencia.forms import AmonestacionForm, SancionForm, FechasForm, AmonestacionProfeForm, ResumenForm, \
+    IntervencionAulaHorizonteForm
 from centro.models import Alumnos, Profesores, Niveles, CursoAcademico
 from centro.views import group_check_je, group_check_prof, group_check_prof_and_tutor_or_je
-from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones, PropuestasSancion
+from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones, PropuestasSancion, \
+    IntervencionAulaHorizonte
 from centro.models import Cursos
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
@@ -28,16 +33,30 @@ from prevision_plazas_enero import curso_academico_actual
 # Create your views here.
 
 def procesar_amonestacion(amon):
-    destinatarios = list(amon.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
-    destinatarios.append(amon.IdAlumno.Unidad.Tutor)
+    # Obtener el curso académico del alumno
+    curso_academico = get_current_academic_year()
+
+    # Obtener los profesores del curso donde el alumno está matriculado
+    curso = amon.IdAlumno.Unidad  # Obtener el curso (Unidad) del alumno
+    # Filtramos los profesores que están asignados a ese curso en el curso académico actual
+    destinatarios = list(MateriaImpartida.objects.filter(curso=curso, curso_academico=curso_academico)
+                         .values_list('profesor', flat=True))
+
+    # Añadir al tutor del alumno
+    destinatarios.append(curso.Tutor)
+
+    # Obtener las direcciones de correo electrónico de los destinatarios
+    correos = []
+    for prof_id in destinatarios:
+        profe = Profesores.objects.get(id=prof_id)
+        correo = profe.Email
+        if correo:
+            correos.append(correo)
+
+    # Preparar el correo para los destinatarios de la amonestación
     template = get_template("correo_amonestacion.html")
     contenido = template.render({'amon': amon})
 
-    correos = []
-    for prof in destinatarios:
-        correo = Profesores.objects.get(id=prof.id).Email
-        if correo != "":
-            correos.append(correo)
     try:
         send_mail(
             'Nueva amonestación',
@@ -49,7 +68,7 @@ def procesar_amonestacion(amon):
     except ConnectionRefusedError:
         print("Error al enviar el correo")
 
-    # Enviar amonestaciones graves a JEs
+    # Enviar amonestaciones graves a Jefatura de Estudios (JE)
     if amon.Tipo.TipoAmonestacion in [
         'Acoso escolar',
         'Agresión física a algún miembro de la comunidad educativa',
@@ -60,26 +79,30 @@ def procesar_amonestacion(amon):
     ]:
         JE = Group.objects.get(name="jefatura de estudios")
         JEs = User.objects.filter(groups=JE).all()
-        destinatarios = list(JEs)
+        destinatarios_je = list(JEs)
+
+        # Preparar el correo para la Jefatura de Estudios (JE)
         template = get_template("correo_amonestacion_grave.html")
         contenido = template.render({'amon': amon})
 
-        correos = []
-        for prof in destinatarios:
+        correos_je = []
+        for prof in destinatarios_je:
             profe = Profesores.objects.filter(user=prof).first()
             correo = profe.Email
-            if correo != "" and 'g.educaand.es' in correo:
-                correos.append(correo)
+            if correo and 'g.educaand.es' in correo:
+                correos_je.append(correo)
+
         try:
             send_mail(
                 'AMONESTACIÓN GRAVE',
                 contenido,
                 '41011038.jestudios.edu@juntadeandalucia.es',
-                correos,
+                correos_je,
                 fail_silently=False,
             )
         except ConnectionRefusedError:
             print("Error al enviar el correo")
+
 
 # Curro Jul 24: Modifico para que solo pueda usarse por JE
 @login_required(login_url='/')
@@ -87,11 +110,8 @@ def procesar_amonestacion(amon):
 def parte(request, tipo, alum_id):
     alum = Alumnos.objects.get(pk=alum_id)
 
-    # if request.user.username[:5]=="tutor" and alum.Unidad.Abe!=request.user.username[5:]:
-    #	return redirect("/")
     if request.method == 'POST':
         if tipo == "amonestacion":
-            # print(request.POST)
             form = AmonestacionForm(request.POST)
             titulo = "Amonestaciones"
         elif tipo == "sancion":
@@ -101,71 +121,75 @@ def parte(request, tipo, alum_id):
             return redirect("/")
 
         if form.is_valid():
-                if tipo == "amonestacion":
-
-                    # Comprobar si ya existe una amonestación similar para evitar duplicados
-                    if not Amonestaciones.objects.filter(IdAlumno=form.cleaned_data['IdAlumno'],
-                                                         Fecha=form.cleaned_data['Fecha'],
-                                                         Profesor=form.cleaned_data['Profesor'],
-                                                         Hora=form.cleaned_data['Hora'],
-                                                         Tipo=form.cleaned_data['Tipo'],
-                                                         Comentario=form.cleaned_data['Comentario']).exists():
-
-                        try:
-
-                            form.save()
-
-                            amon = form.instance
-                            procesar_amonestacion(amon)
-
-                        except IntegrityError:
-                            print("Ya existe una amonestación igual")
-
-                if tipo == "sancion":
+            if tipo == "amonestacion":
+                # Comprobar si ya existe una amonestación similar para evitar duplicados
+                if not Amonestaciones.objects.filter(IdAlumno=form.cleaned_data['IdAlumno'],
+                                                     Fecha=form.cleaned_data['Fecha'],
+                                                     Profesor=form.cleaned_data['Profesor'],
+                                                     Hora=form.cleaned_data['Hora'],
+                                                     Tipo=form.cleaned_data['Tipo'],
+                                                     Comentario=form.cleaned_data['Comentario']).exists():
                     try:
                         form.save()
-                        sanc = form.instance
-                        destinatarios = list(sanc.IdAlumno.Unidad.EquipoEducativo.filter(Baja=False).all())
-                        destinatarios.append(sanc.IdAlumno.Unidad.Tutor)
-                        template = get_template("correo_sancion.html")
-                        contenido = template.render({'sanc': sanc})
 
-                        correos = []
-                        for prof in destinatarios:
-                            correo = Profesores.objects.get(id=prof.id).Email
-                            if correo != "":
-                                correos.append(correo)
-
-
-                        try:
-                            send_mail(
-                                'Nueva sanción',
-                                contenido,
-                                '41011038.jestudios.edu@juntadeandalucia.es',
-                                correos,
-                                fail_silently=False,
-                            )
-                        except ConnectionRefusedError:
-                            print("Error de conexión al enviar el correo")
-
+                        amon = form.instance
+                        procesar_amonestacion(amon)
 
                     except IntegrityError:
-                        print("Ya existe una sanción igual")
+                        print("Ya existe una amonestación igual")
 
-                return redirect('/centro/alumnos')
+            if tipo == "sancion":
+                try:
+                    form.save()
+                    sanc = form.instance
+
+                    # Obtener los profesores del curso académico y la unidad del alumno
+                    curso_academico = get_current_academic_year()
+                    curso = alum.Unidad  # Obtener la unidad del alumno (curso)
+                    # Filtramos los profesores que imparten asignaturas en ese curso académico
+                    destinatarios = list(MateriaImpartida.objects.filter(curso=curso, curso_academico=curso_academico)
+                                         .values_list('profesor', flat=True))
+                    destinatarios.append(curso.Tutor)
+
+                    # Preparar el correo para los destinatarios de la sanción
+                    template = get_template("correo_sancion.html")
+                    contenido = template.render({'sanc': sanc})
+
+                    correos = []
+                    for prof_id in destinatarios:
+                        profe = Profesores.objects.get(id=prof_id)
+                        correo = profe.Email
+                        if correo:
+                            correos.append(correo)
+
+                    try:
+                        send_mail(
+                            'Nueva sanción',
+                            contenido,
+                            '41011038.jestudios.edu@juntadeandalucia.es',
+                            correos,
+                            fail_silently=False,
+                        )
+                    except ConnectionRefusedError:
+                        print("Error de conexión al enviar el correo")
+
+                except IntegrityError:
+                    print("Ya existe una sanción igual")
+
+            return redirect('/centro/alumnos')
+
     else:
         if tipo == "amonestacion":
             profe = Profesores.objects.filter(user=request.user).first()
             form = AmonestacionForm({'IdAlumno': alum.id, 'Fecha': time.strftime("%d/%m/%Y"), 'Hora': 1, 'Profesor': profe.id})
-
             titulo = "Amonestaciones"
         elif tipo == "sancion":
-            form = SancionForm(
-                {'IdAlumno': alum.id, 'Fecha': time.strftime("%d/%m/%Y"), 'Fecha_fin': time.strftime("%d/%m/%Y"),
-                 'Profesor': 1})
+            form = SancionForm({'IdAlumno': alum.id, 'Fecha': time.strftime("%d/%m/%Y"), 'Fecha_fin': time.strftime("%d/%m/%Y"),
+                                'Profesor': 1})
             titulo = "Sanciones"
         else:
             return redirect("/")
+
     context = {'alum': alum, 'form': form, 'titulo': titulo, 'tipo': tipo, 'menu_convivencia': True}
     return render(request, 'parte.html', context)
 
@@ -617,7 +641,7 @@ def profesores(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def grupos(request):
-    cursos_queryset = Cursos.objects.order_by('Curso')
+    cursos_queryset = Cursos.objects.all()
     cursos_nombres = []
 
     # Obtener todos los cursos académicos
@@ -1326,3 +1350,129 @@ def historial_sanciones(request, alum_id):
         IdAlumno=alumno, curso_academico=curso_academico_actual
     ).order_by('-Fecha')
     return render(request, 'historial_sanciones.html', {'alumno': alumno, 'sanciones': sanciones})
+
+
+def crear_intervencion_horizonte(request):
+    if request.method == "POST":
+        form = IntervencionAulaHorizonteForm(request.POST)
+        if form.is_valid():
+            intervencion = form.save(commit=False)
+            intervencion.profesor_atiende = request.user.profesor
+            intervencion.creada_por = request.user.profesor
+            intervencion.curso_academico = get_current_academic_year()
+            intervencion.save()
+            return redirect('listado_intervenciones_horizonte')  # o a donde prefieras
+    else:
+        form = IntervencionAulaHorizonteForm()
+
+    return render(request, 'intervencion-horizonte.html', {
+        'form': form,
+        'profesor': request.user.profesor
+    })
+
+def listado_intervenciones_horizonte(request):
+    curso_actual = get_current_academic_year()
+
+    intervenciones = (
+        IntervencionAulaHorizonte.objects
+        .filter(curso_academico=curso_actual)
+        .select_related('alumno', 'alumno__Unidad', 'profesor_envia', 'profesor_atiende')
+        .order_by('-fecha')
+    )
+
+    profesores = Profesores.objects.filter(Baja=False)
+    cursos = Cursos.objects.all()
+
+    return render(request, 'listado_intervenciones_horizonte.html', {
+        'intervenciones': intervenciones,
+        'curso': curso_actual,
+        'profesores': profesores,
+        'cursos': cursos,
+    })
+
+
+@require_POST
+def eliminar_intervencion_horizonte(request):
+
+    intervencion_id = request.POST.get('id')
+
+    if intervencion_id:
+        try:
+            intervencion = IntervencionAulaHorizonte.objects.get(pk=intervencion_id)
+            intervencion.delete()
+            return JsonResponse({'success': True})
+        except IntervencionAulaHorizonte.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'No encontrada'})
+    return JsonResponse({'success': False, 'error': 'ID inválido'})
+
+
+class IntervencionDetalleView(DetailView):
+    model = IntervencionAulaHorizonte
+    template_name = 'detalle_intervencion_horizonte.html'
+    context_object_name = 'intervencion'
+
+
+def listado_derivaciones_aula_horizonte(request):
+    curso_actual = get_current_academic_year()
+
+    amonestaciones = Amonestaciones.objects.filter(
+        DerivadoConvivencia=True,
+        curso_academico=curso_actual
+    ).select_related('IdAlumno', 'Profesor', 'IdAlumno__Unidad')
+
+    intervenciones = IntervencionAulaHorizonte.objects.filter(
+        curso_academico=curso_actual
+    )
+
+    intervenciones_indexadas = set(
+        (i.alumno_id, i.fecha, i.tramo_horario, i.profesor_envia_id)
+        for i in intervenciones
+    )
+
+    for amon in amonestaciones:
+        clave = (amon.IdAlumno_id, amon.Fecha, amon.Hora, amon.Profesor_id)
+        amon.tiene_intervencion = clave in intervenciones_indexadas
+
+    profesores = Profesores.objects.filter(Baja=False)
+    cursos = Cursos.objects.all()
+
+    return render(request, 'listado_derivaciones_horizonte.html', {
+        'amonestaciones': amonestaciones,
+        'profesores': profesores,
+        'cursos': cursos,
+    })
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def busq_amonestaciones(request):
+
+
+    horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
+
+
+    curso_academico_actual = get_current_academic_year()
+
+    # Filtrar las amonestaciones y sanciones del curso académico actual
+    amon_actual = Amonestaciones.objects.filter(curso_academico=curso_academico_actual).order_by(
+        'Fecha')[:20]
+
+
+    historial_actual = list(amon_actual)
+    historial_actual = sorted(historial_actual, key=lambda x: x.Fecha, reverse=False)
+
+    tipo_actual = ["Amonestación" if isinstance(h, Amonestaciones) else "Sanción" for h in historial_actual]
+    hist_actual = zip(historial_actual, tipo_actual, range(1, len(historial_actual) + 1))
+
+    profesores = Profesores.objects.filter(Baja=False)
+    cursos = Cursos.objects.all()
+
+
+    context = {
+        'historial_actual': hist_actual,
+        'menu_convivencia': True,
+        'horas': horas,
+        'profesores': profesores,
+        'cursos': cursos,
+    }
+
+    return render(request, 'busq_amonestaciones.html', context)

@@ -1,591 +1,525 @@
 {% extends "base.html" %}
 {% load static %}
+{% load grupo_tags %}
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+    <!-- Datepicker CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+{% endblock %}
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h3>{{ titulo }}</h3>
-                    </div>
-                    <div class="ibox-content">
-                        <h2>Estadística General ({{ curso_seleccionado.nombre }})</h2>
-                        <br>
 
-                        <form id="curso-academico-form" method="GET" action="/convivencia/estadistica">
+<div class="container-fluid">
+    <div class="page-title-head d-flex align-items-center">
+        <div class="flex-grow-1">
+            <h4 class="fs-sm text-uppercase fw-bold m-0">{{ titulo }}</h4>
+        </div>
+    </div>
 
-                            <div class="form-group row">
-
-                                <label class="col-lg-2 col-form-label" for="curso_academico">Seleccionar Curso
-                                    Académico:</label>
-                                <div class="col-lg-10">
-                                    <select name="curso_academico" id="curso_academico" onchange="this.form.submit();"
-                                            class="form-control select2_CursoAcademico">
-                                        {% for curso in cursos_academicos %}
-                                            <option value="{{ curso.id }}"
-                                                    {% if curso.id == curso_seleccionado.id %}selected{% endif %}>
-                                                {{ curso }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+    <!-- Cabecera / selector de curso -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light justify-content-between">
+                    <h4 class="card-title">Estadística General ({{ curso_seleccionado.nombre }})</h4>
+                </div>
+                <div class="card-body">
+                    <form id="curso-academico-form" method="GET" action="/convivencia/estadistica">
+                        <div class="row g-2 align-items-end">
+                            <div class="mb-3 col-md-8">
+                                <label for="curso_academico" class="form-label">Seleccionar Curso Académico</label>
+                                <select name="curso_academico" id="curso_academico"
+                                        class="form-select select2_CursoAcademico"
+                                        onchange="this.form.submit();">
+                                    {% for curso in cursos_academicos %}
+                                        <option value="{{ curso.id }}" {% if curso.id == curso_seleccionado.id %}selected{% endif %}>
+                                            {{ curso }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                        </form>
+                        </div>
+                    </form>
 
-                        <br>
-                        <form action="/convivencia/estadistica" method="post">
-                            {% csrf_token %}
-
-                            <div class="form-group row">
-
-
-                                <label class="col-lg-1 col-form-label">{{ form.Fecha1.label_tag }}</label>
-                                <div class="col-lg-4">
+                    <form action="/convivencia/estadistica" method="post">
+                        {% csrf_token %}
+                        <div class="row g-2 align-items-end">
+                            <div class="mb-3 col-md-4">
+                                <label class="form-label">{{ form.Fecha1.label_tag }}</label>
+                                <div class="date-search">
                                     {{ form.Fecha1 }}
-                                    {% if form.Fecha.help_text %}
-                                        <span class="help-block">{{ form.Fecha1.help_text }}</span>
+                                    {% if form.Fecha1.help_text %}
+                                        <div class="form-text">{{ form.Fecha1.help_text }}</div>
                                     {% endif %}
                                     {% for error in form.Fecha1.errors %}
-                                        <span class="text-danger">{{ error }}</span>
+                                        <div class="text-danger small">{{ error }}</div>
                                     {% endfor %}
                                 </div>
-                                <label class="col-lg-1 col-form-label">{{ form.Fecha2.label_tag }}</label>
-                                <div class="col-lg-4">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label class="form-label">{{ form.Fecha2.label_tag }}</label>
+                                <div class="date-search">
                                     {{ form.Fecha2 }}
                                     {% if form.Fecha2.help_text %}
-                                        <span class="help-block">{{ form.Fecha2.help_text }}</span>
+                                        <div class="form-text">{{ form.Fecha2.help_text }}</div>
                                     {% endif %}
                                     {% for error in form.Fecha2.errors %}
-                                        <span class="text-danger">{{ error }}</span>
+                                        <div class="text-danger small">{{ error }}</div>
                                     {% endfor %}
                                 </div>
-                                <input type="hidden" name="curso_academico" value="{{ curso_seleccionado.id }}">
-                                <div class="col-lg-2">
-                                    <button type="submit" class="btn btn-primary">Filtrar</button>
-                                </div>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        {% if not filtro %}
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="ibox ">
-                        <div class="ibox-title">
-                            <h3>Gráficos</h3>
-                        </div>
-                        <div class="ibox-content">
-                            <div>
-                                <canvas id="barChart" height="60"></canvas>
+                            <input type="hidden" name="curso_academico" value="{{ curso_seleccionado.id }}">
+                            <div class="mb-3 col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
                             </div>
                         </div>
-                    </div>
+                    </form>
+
                 </div>
-            </div>
-        {% endif %}
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h3>Detalles</h3>
-                    </div>
-                    <div class="ibox-content">
-                        {% if not filtro %}
-
-                            <div class="panel panel-primary">
-                                <div class="panel-heading">
-                                    1er Trimestre (1/9/{{ fechas.0|date:"Y" }} - 31/12/{{ fechas.0|date:"Y" }})
-                                </div>
-                                <div class="panel-body">
-
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="row">
-                                                <div class="col-lg-8">
-                                                    <div class="ibox ">
-                                                        <div class="ibox-title">
-                                                            <div class="ibox-tools">
-                                                                <span class="label label-warning float-right">Total: {{ datos1t.0 }}</span>
-                                                            </div>
-                                                            <h5>Amonestaciones</h5>
-                                                        </div>
-                                                        <div class="ibox-content">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <h1 class="no-margins">{{ datos1t.1 }}</h1>
-                                                                    <div class="font-bold text-warning">Amon.
-                                                                        Leves
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <h1 class="no-margins">{{ datos1t.2 }}</h1>
-                                                                    <div class="font-bold text-danger">Amon.
-                                                                        Graves
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-4">
-                                                    <div class="ibox ">
-                                                        <div class="ibox-title">
-                                                            <div class="ibox-tools">
-                                                                <span class="label label-danger float-right">Total: {{ datos1t.3 }}</span>
-                                                            </div>
-                                                            <h5>Sanciones</h5>
-                                                        </div>
-                                                        <div class="ibox-content">
-                                                            <h1 class="no-margins">{{ datos1t.3 }}</h1>
-                                                            <div class="font-bold text-danger">Sanciones</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-12">
-                                                    <div>
-                                                        <canvas id="barChart1T" height="80px"></canvas>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="tabs-container">
-                                                <ul class="nav nav-tabs" role="tablist">
-                                                    <li><a class="nav-link active" data-toggle="tab" href="#tab-1">
-                                                        Amon.
-                                                        Leves</a></li>
-                                                    <li><a class="nav-link" data-toggle="tab" href="#tab-2">Amon.
-                                                        Graves</a>
-                                                    </li>
-                                                    <li><a class="nav-link" data-toggle="tab"
-                                                           href="#tab-3">Sanciones</a></li>
-                                                </ul>
-                                                <div class="tab-content">
-                                                    <div id="tab-1" class="tab-pane active">
-                                                        <div class="panel-body">
-                                                            <strong>Amonestaciones Leves</strong>
-                                                            <ul>
-                                                                {% for i,j,k,l,m in tipos %}
-                                                                    {% if m == "L" %}
-                                                                        <li>{{ i }}: <strong>{{ j }}</strong></li>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div id="tab-2" class="tab-pane">
-                                                        <div class="panel-body">
-                                                            <strong>Amonestaciones Graves</strong>
-
-                                                            <ul>
-                                                                {% for i,j,k,l,m in tipos %}
-                                                                    {% if m == "G" %}
-                                                                        <li>{{ i }}: <strong>{{ j }}</strong></li>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div id="tab-3" class="tab-pane">
-                                                        <div class="panel-body">
-                                                            <strong>Sanciones</strong>
-
-                                                            <ul>
-                                                                <li>Sanciones: <strong>{{ datos1t.3 }}</strong> (Sin
-                                                                    expulsión:
-                                                                    <strong>{{ datos1t.4 }})</strong></li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-
-
-                            <div class="panel panel-primary">
-                                <div class="panel-heading">
-                                    2º Trimestre (1/1/{{ fechas.1|date:"Y" }} - 31/3/{{ fechas.1|date:"Y" }})
-                                </div>
-                                <div class="panel-body">
-
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="row">
-                                                <div class="col-lg-8">
-                                                    <div class="ibox ">
-                                                        <div class="ibox-title">
-                                                            <div class="ibox-tools">
-                                                                <span class="label label-warning float-right">Total: {{ datos2t.0 }}</span>
-                                                            </div>
-                                                            <h5>Amonestaciones</h5>
-                                                        </div>
-                                                        <div class="ibox-content">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <h1 class="no-margins">{{ datos2t.1 }}</h1>
-                                                                    <div class="font-bold text-warning">Amon.
-                                                                        Leves
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <h1 class="no-margins">{{ datos2t.2 }}</h1>
-                                                                    <div class="font-bold text-danger">Amon.
-                                                                        Graves
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-4">
-                                                    <div class="ibox ">
-                                                        <div class="ibox-title">
-                                                            <div class="ibox-tools">
-                                                                <span class="label label-danger float-right">Total: {{ datos2t.3 }}</span>
-                                                            </div>
-                                                            <h5>Sanciones</h5>
-                                                        </div>
-                                                        <div class="ibox-content">
-                                                            <h1 class="no-margins">{{ datos2t.3 }}</h1>
-                                                            <div class="font-bold text-danger">Sanciones</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-12">
-                                                    <div>
-                                                        <canvas id="barChart2T" height="80px"></canvas>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="tabs-container">
-                                                <ul class="nav nav-tabs" role="tablist">
-                                                    <li><a class="nav-link active" data-toggle="tab" href="#tab-4">
-                                                        Amon.
-                                                        Leves</a></li>
-                                                    <li><a class="nav-link" data-toggle="tab" href="#tab-4">Amon.
-                                                        Graves</a>
-                                                    </li>
-                                                    <li><a class="nav-link" data-toggle="tab"
-                                                           href="#tab-6">Sanciones</a></li>
-                                                </ul>
-                                                <div class="tab-content">
-                                                    <div id="tab-4" class="tab-pane active">
-                                                        <div class="panel-body">
-                                                            <strong>Amonestaciones Leves</strong>
-                                                            <ul>
-                                                                {% for i,j,k,l,m in tipos %}
-                                                                    {% if m == "L" %}
-                                                                        <li>{{ i }}: <strong>{{ k }}</strong></li>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div id="tab-5" class="tab-pane">
-                                                        <div class="panel-body">
-                                                            <strong>Amonestaciones Graves</strong>
-
-                                                            <ul>
-                                                                {% for i,j,k,l,m in tipos %}
-                                                                    {% if m == "G" %}
-                                                                        <li>{{ i }}: <strong>{{ k }}</strong></li>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div id="tab-6" class="tab-pane">
-                                                        <div class="panel-body">
-                                                            <strong>Sanciones</strong>
-
-                                                            <ul>
-                                                                <li>Sanciones: <strong>{{ datos2t.3 }}</strong> (Sin
-                                                                    expulsión:
-                                                                    <strong>{{ datos2t.4 }})</strong></li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-
-
-                            <div class="panel panel-primary">
-                                <div class="panel-heading">
-                                    3er Trimestre (1/4/{{ fechas.1|date:"Y" }} - 30/6/{{ fechas.1|date:"Y" }})
-                                </div>
-                                <div class="panel-body">
-
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="row">
-                                                <div class="col-lg-8">
-                                                    <div class="ibox ">
-                                                        <div class="ibox-title">
-                                                            <div class="ibox-tools">
-                                                                <span class="label label-warning float-right">Total: {{ datos3t.0 }}</span>
-                                                            </div>
-                                                            <h5>Amonestaciones</h5>
-                                                        </div>
-                                                        <div class="ibox-content">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <h1 class="no-margins">{{ datos3t.1 }}</h1>
-                                                                    <div class="font-bold text-warning">Amon.
-                                                                        Leves
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <h1 class="no-margins">{{ datos3t.2 }}</h1>
-                                                                    <div class="font-bold text-danger">Amon.
-                                                                        Graves
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-4">
-                                                    <div class="ibox ">
-                                                        <div class="ibox-title">
-                                                            <div class="ibox-tools">
-                                                                <span class="label label-danger float-right">Total: {{ datos3t.3 }}</span>
-                                                            </div>
-                                                            <h5>Sanciones</h5>
-                                                        </div>
-                                                        <div class="ibox-content">
-                                                            <h1 class="no-margins">{{ datos3t.3 }}</h1>
-                                                            <div class="font-bold text-danger">Sanciones</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-12">
-                                                    <div>
-                                                        <canvas id="barChart3T" height="80px"></canvas>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="tabs-container">
-                                                <ul class="nav nav-tabs" role="tablist">
-                                                    <li><a class="nav-link active" data-toggle="tab" href="#tab-7">
-                                                        Amon.
-                                                        Leves</a></li>
-                                                    <li><a class="nav-link" data-toggle="tab" href="#tab-8">Amon.
-                                                        Graves</a>
-                                                    </li>
-                                                    <li><a class="nav-link" data-toggle="tab"
-                                                           href="#tab-9">Sanciones</a></li>
-                                                </ul>
-                                                <div class="tab-content">
-                                                    <div id="tab-7" class="tab-pane active">
-                                                        <div class="panel-body">
-                                                            <strong>Amonestaciones Leves</strong>
-                                                            <ul>
-                                                                {% for i,j,k,l,m in tipos %}
-                                                                    {% if m == "L" %}
-                                                                        <li>{{ i }}: <strong>{{ l }}</strong></li>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div id="tab-8" class="tab-pane">
-                                                        <div class="panel-body">
-                                                            <strong>Amonestaciones Graves</strong>
-
-                                                            <ul>
-                                                                {% for i,j,k,l,m in tipos %}
-                                                                    {% if m == "G" %}
-                                                                        <li>{{ i }}: <strong>{{ l }}</strong></li>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div id="tab-9" class="tab-pane">
-                                                        <div class="panel-body">
-                                                            <strong>Sanciones</strong>
-
-                                                            <ul>
-                                                                <li>Sanciones: <strong>{{ datos3t.3 }}</strong> (Sin
-                                                                    expulsión:
-                                                                    <strong>{{ datos3t.4 }})</strong></li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-
-                        {% else %}
-
-                            <div class="panel panel-primary">
-                                <div class="panel-heading">
-                                    {{ fechas.0|date:"d/m/Y" }} - {{ fechas.1|date:"d/m/Y" }}
-                                </div>
-                                <div class="panel-body">
-
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="row">
-                                                <div class="col-lg-8">
-                                                    <div class="ibox ">
-                                                        <div class="ibox-title">
-                                                            <div class="ibox-tools">
-                                                                <span class="label label-warning float-right">Total: {{ datos3t.0 }}</span>
-                                                            </div>
-                                                            <h5>Amonestaciones</h5>
-                                                        </div>
-                                                        <div class="ibox-content">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <h1 class="no-margins">{{ datos3t.1 }}</h1>
-                                                                    <div class="font-bold text-warning">Amon.
-                                                                        Leves
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <h1 class="no-margins">{{ datos3t.2 }}</h1>
-                                                                    <div class="font-bold text-danger">Amon.
-                                                                        Graves
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-4">
-                                                    <div class="ibox ">
-                                                        <div class="ibox-title">
-                                                            <div class="ibox-tools">
-                                                                <span class="label label-danger float-right">Total: {{ datos3t.3 }}</span>
-                                                            </div>
-                                                            <h5>Sanciones</h5>
-                                                        </div>
-                                                        <div class="ibox-content">
-                                                            <h1 class="no-margins">{{ datos3t.3 }}</h1>
-                                                            <div class="font-bold text-danger">Sanciones</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-12">
-                                                    <div>
-                                                        <canvas id="barChart3T" height="80px"></canvas>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="tabs-container">
-                                                <ul class="nav nav-tabs" role="tablist">
-                                                    <li><a class="nav-link active" data-toggle="tab" href="#tab-7">
-                                                        Amon.
-                                                        Leves</a></li>
-                                                    <li><a class="nav-link" data-toggle="tab" href="#tab-8">Amon.
-                                                        Graves</a>
-                                                    </li>
-                                                    <li><a class="nav-link" data-toggle="tab"
-                                                           href="#tab-9">Sanciones</a></li>
-                                                </ul>
-                                                <div class="tab-content">
-                                                    <div id="tab-7" class="tab-pane active">
-                                                        <div class="panel-body">
-                                                            <strong>Amonestaciones Leves</strong>
-                                                            <ul>
-                                                                {% for i,j,k in tipos %}
-                                                                    {% if k == "L" %}
-                                                                        <li>{{ i }}: <strong>{{ j }}</strong></li>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div id="tab-8" class="tab-pane">
-                                                        <div class="panel-body">
-                                                            <strong>Amonestaciones Graves</strong>
-
-                                                            <ul>
-                                                                {% for i,j,k in tipos %}
-                                                                    {% if k == "G" %}
-                                                                        <li>{{ i }}: <strong>{{ j }}</strong></li>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div id="tab-9" class="tab-pane">
-                                                        <div class="panel-body">
-                                                            <strong>Sanciones</strong>
-
-                                                            <ul>
-                                                                <li>Sanciones: <strong>{{ datos3t.3 }}</strong> (Sin
-                                                                    expulsión:
-                                                                    <strong>{{ datos3t.4 }})</strong></li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-
-                        {% endif %}
-
-
-                    </div>
-                </div>
+                <div class="card-footer border-0"></div>
             </div>
         </div>
-
-
     </div>
+
+    {% if not filtro %}
+    <!-- Gráfico general -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light justify-content-between">
+                    <h4 class="card-title">Gráficos</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="barChart" height="60"></canvas>
+                </div>
+                <div class="card-footer border-0"></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Detalles -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light justify-content-between">
+                    <h4 class="card-title">Detalles</h4>
+                </div>
+                <div class="card-body">
+
+                {% if not filtro %}
+
+                    <!-- 1er Trimestre -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                1er Trimestre (1/9/{{ fechas.0|date:"Y" }} - 31/12/{{ fechas.0|date:"Y" }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <div class="row g-3">
+                                        <div class="col-lg-8">
+                                            <div class="card h-100">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="card-title mb-0">Amonestaciones</h6>
+                                                    <span class="badge bg-warning text-dark">Total: {{ datos1t.0 }}</span>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row text-center">
+                                                        <div class="col-md-6">
+                                                            <h1 class="m-0">{{ datos1t.1 }}</h1>
+                                                            <div class="fw-bold text-warning">Amon. Leves</div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h1 class="m-0">{{ datos1t.2 }}</h1>
+                                                            <div class="fw-bold text-danger">Amon. Graves</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="card h-100">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="card-title mb-0">Sanciones</h6>
+                                                    <span class="badge bg-danger">Total: {{ datos1t.3 }}</span>
+                                                </div>
+                                                <div class="card-body text-center">
+                                                    <h1 class="m-0">{{ datos1t.3 }}</h1>
+                                                    <div class="fw-bold text-danger">Sanciones</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <canvas id="barChart1T" height="80"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <ul class="nav nav-tabs" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-bs-toggle="tab" href="#tab-1" role="tab">Amon. Leves</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#tab-2" role="tab">Amon. Graves</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#tab-3" role="tab">Sanciones</a>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content p-3 border border-top-0 rounded-bottom">
+                                        <div id="tab-1" class="tab-pane fade show active" role="tabpanel">
+                                            <strong>Amonestaciones Leves</strong>
+                                            <ul>
+                                                {% for i,j,k,l,m in tipos %}
+                                                    {% if m == "L" %}
+                                                        <li>{{ i }}: <strong>{{ j }}</strong></li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div id="tab-2" class="tab-pane fade" role="tabpanel">
+                                            <strong>Amonestaciones Graves</strong>
+                                            <ul>
+                                                {% for i,j,k,l,m in tipos %}
+                                                    {% if m == "G" %}
+                                                        <li>{{ i }}: <strong>{{ j }}</strong></li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div id="tab-3" class="tab-pane fade" role="tabpanel">
+                                            <strong>Sanciones</strong>
+                                            <ul>
+                                                <li>Sanciones: <strong>{{ datos1t.3 }}</strong> (Sin expulsión:
+                                                    <strong>{{ datos1t.4 }})</strong></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> <!-- row -->
+                        </div>
+                    </div>
+
+                    <!-- 2º Trimestre -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                2º Trimestre (1/1/{{ fechas.1|date:"Y" }} - 31/3/{{ fechas.1|date:"Y" }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <div class="row g-3">
+                                        <div class="col-lg-8">
+                                            <div class="card h-100">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="card-title mb-0">Amonestaciones</h6>
+                                                    <span class="badge bg-warning text-dark">Total: {{ datos2t.0 }}</span>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row text-center">
+                                                        <div class="col-md-6">
+                                                            <h1 class="m-0">{{ datos2t.1 }}</h1>
+                                                            <div class="fw-bold text-warning">Amon. Leves</div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h1 class="m-0">{{ datos2t.2 }}</h1>
+                                                            <div class="fw-bold text-danger">Amon. Graves</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="card h-100">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="card-title mb-0">Sanciones</h6>
+                                                    <span class="badge bg-danger">Total: {{ datos2t.3 }}</span>
+                                                </div>
+                                                <div class="card-body text-center">
+                                                    <h1 class="m-0">{{ datos2t.3 }}</h1>
+                                                    <div class="fw-bold text-danger">Sanciones</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <canvas id="barChart2T" height="80"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <ul class="nav nav-tabs" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-bs-toggle="tab" href="#tab-4" role="tab">Amon. Leves</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#tab-5" role="tab">Amon. Graves</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#tab-6" role="tab">Sanciones</a>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content p-3 border border-top-0 rounded-bottom">
+                                        <div id="tab-4" class="tab-pane fade show active" role="tabpanel">
+                                            <strong>Amonestaciones Leves</strong>
+                                            <ul>
+                                                {% for i,j,k,l,m in tipos %}
+                                                    {% if m == "L" %}
+                                                        <li>{{ i }}: <strong>{{ k }}</strong></li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div id="tab-5" class="tab-pane fade" role="tabpanel">
+                                            <strong>Amonestaciones Graves</strong>
+                                            <ul>
+                                                {% for i,j,k,l,m in tipos %}
+                                                    {% if m == "G" %}
+                                                        <li>{{ i }}: <strong>{{ k }}</strong></li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div id="tab-6" class="tab-pane fade" role="tabpanel">
+                                            <strong>Sanciones</strong>
+                                            <ul>
+                                                <li>Sanciones: <strong>{{ datos2t.3 }}</strong> (Sin expulsión:
+                                                    <strong>{{ datos2t.4 }})</strong></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> <!-- row -->
+                        </div>
+                    </div>
+
+                    <!-- 3er Trimestre -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                3er Trimestre (1/4/{{ fechas.1|date:"Y" }} - 30/6/{{ fechas.1|date:"Y" }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <div class="row g-3">
+                                        <div class="col-lg-8">
+                                            <div class="card h-100">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="card-title mb-0">Amonestaciones</h6>
+                                                    <span class="badge bg-warning text-dark">Total: {{ datos3t.0 }}</span>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row text-center">
+                                                        <div class="col-md-6">
+                                                            <h1 class="m-0">{{ datos3t.1 }}</h1>
+                                                            <div class="fw-bold text-warning">Amon. Leves</div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h1 class="m-0">{{ datos3t.2 }}</h1>
+                                                            <div class="fw-bold text-danger">Amon. Graves</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="card h-100">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="card-title mb-0">Sanciones</h6>
+                                                    <span class="badge bg-danger">Total: {{ datos3t.3 }}</span>
+                                                </div>
+                                                <div class="card-body text-center">
+                                                    <h1 class="m-0">{{ datos3t.3 }}</h1>
+                                                    <div class="fw-bold text-danger">Sanciones</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <canvas id="barChart3T" height="80"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <ul class="nav nav-tabs" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-bs-toggle="tab" href="#tab-7" role="tab">Amon. Leves</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#tab-8" role="tab">Amon. Graves</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#tab-9" role="tab">Sanciones</a>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content p-3 border border-top-0 rounded-bottom">
+                                        <div id="tab-7" class="tab-pane fade show active" role="tabpanel">
+                                            <strong>Amonestaciones Leves</strong>
+                                            <ul>
+                                                {% for i,j,k,l,m in tipos %}
+                                                    {% if m == "L" %}
+                                                        <li>{{ i }}: <strong>{{ l }}</strong></li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div id="tab-8" class="tab-pane fade" role="tabpanel">
+                                            <strong>Amonestaciones Graves</strong>
+                                            <ul>
+                                                {% for i,j,k,l,m in tipos %}
+                                                    {% if m == "G" %}
+                                                        <li>{{ i }}: <strong>{{ l }}</strong></li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div id="tab-9" class="tab-pane fade" role="tabpanel">
+                                            <strong>Sanciones</strong>
+                                            <ul>
+                                                <li>Sanciones: <strong>{{ datos3t.3 }}</strong> (Sin expulsión:
+                                                    <strong>{{ datos3t.4 }})</strong></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> <!-- row -->
+                        </div>
+                    </div>
+
+                {% else %}
+
+                    <!-- Rango personalizado -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                {{ fechas.0|date:"d/m/Y" }} - {{ fechas.1|date:"d/m/Y" }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <div class="row g-3">
+                                        <div class="col-lg-8">
+                                            <div class="card h-100">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="card-title mb-0">Amonestaciones</h6>
+                                                    <span class="badge bg-warning text-dark">Total: {{ datos3t.0 }}</span>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row text-center">
+                                                        <div class="col-md-6">
+                                                            <h1 class="m-0">{{ datos3t.1 }}</h1>
+                                                            <div class="fw-bold text-warning">Amon. Leves</div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h1 class="m-0">{{ datos3t.2 }}</h1>
+                                                            <div class="fw-bold text-danger">Amon. Graves</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="card-title mb-0">Sanciones</h6>
+                                                    <span class="badge bg-danger">Total: {{ datos3t.3 }}</span>
+                                                </div>
+                                                <div class="card-body text-center">
+                                                    <h1 class="m-0">{{ datos3t.3 }}</h1>
+                                                    <div class="fw-bold text-danger">Sanciones</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <canvas id="barChart3T" height="80"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <ul class="nav nav-tabs" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" data-bs-toggle="tab" href="#tab-7" role="tab">Amon. Leves</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#tab-8" role="tab">Amon. Graves</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" data-bs-toggle="tab" href="#tab-9" role="tab">Sanciones</a>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content p-3 border border-top-0 rounded-bottom">
+                                        <div id="tab-7" class="tab-pane fade show active" role="tabpanel">
+                                            <strong>Amonestaciones Leves</strong>
+                                            <ul>
+                                                {% for i,j,k in tipos %}
+                                                    {% if k == "L" %}
+                                                        <li>{{ i }}: <strong>{{ j }}</strong></li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div id="tab-8" class="tab-pane fade" role="tabpanel">
+                                            <strong>Amonestaciones Graves</strong>
+                                            <ul>
+                                                {% for i,j,k in tipos %}
+                                                    {% if k == "G" %}
+                                                        <li>{{ i }}: <strong>{{ j }}</strong></li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div id="tab-9" class="tab-pane fade" role="tabpanel">
+                                            <strong>Sanciones</strong>
+                                            <ul>
+                                                <li>Sanciones: <strong>{{ datos3t.3 }}</strong> (Sin expulsión:
+                                                    <strong>{{ datos3t.4 }})</strong></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> <!-- row -->
+                        </div>
+                    </div>
+
+                {% endif %}
+
+                </div>
+                <div class="card-footer border-0"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block js %}
+    <!-- Chart.js -->
     <script src="{% static 'js/plugins/chartJs/Chart.min.js' %}"></script>
-    <script>
 
+    <!-- Datepicker & deps -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Select2 -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <script>
         $(document).ready(function () {
 
+            // Select2
             $(".select2_CursoAcademico").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona un curso académico",
@@ -593,107 +527,75 @@
             });
 
             {% if not filtro %}
-
-                var barData = {
-                    labels: ["1er Trimestre", "2º Trimestre", "3er Trimestre"],
-                    datasets: [
-                        {
-                            label: "Amonestaciones",
-                            backgroundColor: 'rgba(250,144,32,0.5)',
-                            pointBorderColor: "#fff",
-                            data: [{{ datos1t.0 }}, {{ datos2t.0 }}, {{ datos3t.0 }}]
-                        },
-                        {
-                            label: "Sanciones",
-                            backgroundColor: 'rgba(255,2,2,0.5)',
-                            borderColor: "rgba(26,179,148,0.7)",
-                            pointBackgroundColor: "rgba(26,179,148,1)",
-                            pointBorderColor: "#fff",
-                            data: [{{ datos1t.3 }}, {{ datos2t.3 }}, {{ datos3t.3 }}]
-                        }
-                    ]
-                };
-
+            var barData = {
+                labels: ["1er Trimestre", "2º Trimestre", "3er Trimestre"],
+                datasets: [
+                    {
+                        label: "Amonestaciones",
+                        backgroundColor: 'rgba(250,144,32,0.5)',
+                        pointBorderColor: "#fff",
+                        data: [{{ datos1t.0 }}, {{ datos2t.0 }}, {{ datos3t.0 }}]
+                    },
+                    {
+                        label: "Sanciones",
+                        backgroundColor: 'rgba(255,2,2,0.5)',
+                        borderColor: "rgba(26,179,148,0.7)",
+                        pointBackgroundColor: "rgba(26,179,148,1)",
+                        pointBorderColor: "#fff",
+                        data: [{{ datos1t.3 }}, {{ datos2t.3 }}, {{ datos3t.3 }}]
+                    }
+                ]
+            };
             {% endif %}
 
-            var barOptions = {
-                responsive: true
-            };
+            var barOptions = { responsive: true };
 
             {% if not filtro %}
+            var bar1TData = {
+                labels: ["A. Leves", "A. Graves", "Sanciones"],
+                datasets: [{ label: "Amonestaciones/Sanciones",
+                             backgroundColor: 'rgba(250,144,32,0.5)',
+                             pointBorderColor: "#fff",
+                             data: [{{ datos1t.1 }}, {{ datos1t.2 }}, {{ datos1t.3 }}]}]
+            };
 
-                var bar1TData = {
-                    labels: ["A. Leves", "A. Graves", "Sanciones"],
-                    datasets: [
-                        {
-                            label: "Amonestaciones/Sanciones",
-                            backgroundColor: 'rgba(250,144,32,0.5)',
-                            pointBorderColor: "#fff",
-                            data: [{{ datos1t.1 }}, {{ datos1t.2 }}, {{ datos1t.3 }}]
-                        },
-                    ]
-                };
-
-                var bar2TData = {
-                    labels: ["A. Leves", "A. Graves", "Sanciones"],
-                    datasets: [
-                        {
-                            label: "Amonestaciones/Sanciones",
-                            backgroundColor: 'rgba(250,144,32,0.5)',
-                            pointBorderColor: "#fff",
-                            data: [{{ datos2t.1 }}, {{ datos2t.2 }}, {{ datos2t.3 }}]
-                        },
-                    ]
-                };
-
-            {%  endif %}
+            var bar2TData = {
+                labels: ["A. Leves", "A. Graves", "Sanciones"],
+                datasets: [{ label: "Amonestaciones/Sanciones",
+                             backgroundColor: 'rgba(250,144,32,0.5)',
+                             pointBorderColor: "#fff",
+                             data: [{{ datos2t.1 }}, {{ datos2t.2 }}, {{ datos2t.3 }}]}]
+            };
+            {% endif %}
 
             var bar3TData = {
                 labels: ["A. Leves", "A. Graves", "Sanciones"],
-                datasets: [
-                    {
-                        label: "Amonestaciones/Sanciones",
-                        backgroundColor: 'rgba(250,144,32,0.5)',
-                        pointBorderColor: "#fff",
-                        data: [{{ datos3t.1 }}, {{ datos3t.2 }}, {{ datos3t.3 }}]
-                    },
-                ]
+                datasets: [{ label: "Amonestaciones/Sanciones",
+                             backgroundColor: 'rgba(250,144,32,0.5)',
+                             pointBorderColor: "#fff",
+                             data: [{{ datos3t.1 }}, {{ datos3t.2 }}, {{ datos3t.3 }}]}]
             };
 
             {% if not filtro %}
+            var ctx2 = document.getElementById("barChart").getContext("2d");
+            new Chart(ctx2, {type: 'bar', data: barData, options: barOptions});
 
-                var ctx2 = document.getElementById("barChart").getContext("2d");
-                new Chart(ctx2, {type: 'bar', data: barData, options: barOptions});
+            var ctx3 = document.getElementById("barChart1T").getContext("2d");
+            new Chart(ctx3, {type: 'bar', data: bar1TData, options: barOptions});
 
-                var ctx3 = document.getElementById("barChart1T").getContext("2d");
-                new Chart(ctx3, {type: 'bar', data: bar1TData, options: barOptions});
-
-                var ctx4 = document.getElementById("barChart2T").getContext("2d");
-                new Chart(ctx4, {type: 'bar', data: bar2TData, options: barOptions});
-
+            var ctx4 = document.getElementById("barChart2T").getContext("2d");
+            new Chart(ctx4, {type: 'bar', data: bar2TData, options: barOptions});
             {% endif %}
 
             var ctx5 = document.getElementById("barChart3T").getContext("2d");
             new Chart(ctx5, {type: 'bar', data: bar3TData, options: barOptions});
 
-
+            // Utilidades de fecha (reutilizando tu lógica)
             function parseDateString(dateString) {
                 const months = {
-                    'enero': '01',
-                    'febrero': '02',
-                    'marzo': '03',
-                    'abril': '04',
-                    'mayo': '05',
-                    'junio': '06',
-                    'julio': '07',
-                    'agosto': '08',
-                    'septiembre': '09',
-                    'octubre': '10',
-                    'noviembre': '11',
-                    'diciembre': '12'
+                    'enero': '01','febrero': '02','marzo': '03','abril': '04','mayo': '05','junio': '06',
+                    'julio': '07','agosto': '08','septiembre': '09','octubre': '10','noviembre': '11','diciembre': '12'
                 };
-
-                // Check if the date is in "24 de septiembre de 2020" format
                 const longDateFormat = /^(\d{1,2}) de (\w+) de (\d{4})$/;
                 const shortDateFormat = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 
@@ -705,45 +607,24 @@
                     const [_, day, month, year] = dateString.match(shortDateFormat);
                     return new Date(`${year}-${month}-${day}`);
                 } else {
-                    // If the date format is not recognized, return the current date
                     return new Date();
                 }
             }
 
-
             var fecha1_value = '{{ form.Fecha1.value|default_if_none:"" }}';
             var fecha2_value = '{{ form.Fecha2.value|default_if_none:"" }}';
+            if (fecha1_value) fecha1_value = parseDateString(fecha1_value);
+            if (fecha2_value) fecha2_value = parseDateString(fecha2_value);
 
+            $('#id_Fecha1').datepicker({
+                todayBtn: "linked", keyboardNavigation: false, forceParse: false,
+                calendarWeeks: true, autoclose: true, language: "es"
+            }).datepicker('setDate', fecha1_value ? new Date(fecha1_value) : new Date());
 
-            if (fecha1_value) {
-                fecha1_value = parseDateString(fecha1_value);
-            }
-
-            if (fecha2_value) {
-                fecha2_value = parseDateString(fecha2_value);
-            }
-
-
-            var mem = $('#id_Fecha1').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker('setDate', fecha1_value ? new Date(fecha1_value) : new Date()); // Establecer la fecha de hoy;
-
-            var mem_fin = $('#id_Fecha2').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker('setDate', fecha2_value ? new Date(fecha2_value) : new Date()); // Establecer la fecha de hoy;
-
+            $('#id_Fecha2').datepicker({
+                todayBtn: "linked", keyboardNavigation: false, forceParse: false,
+                calendarWeeks: true, autoclose: true, language: "es"
+            }).datepicker('setDate', fecha2_value ? new Date(fecha2_value) : new Date());
         });
-
     </script>
 {% endblock %}
-

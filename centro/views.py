@@ -1,12 +1,16 @@
 import csv
 import io
+import json
 import os
 import time
 from collections import defaultdict
 
 import unicodedata
 from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
 from django.core.checks.urls import check_url_settings
+from django.db import transaction
 from django.db.models import Q, Count
 from django.forms import modelformset_factory
 from django.http import HttpResponseForbidden, FileResponse, HttpRequest, HttpResponse, JsonResponse
@@ -15,18 +19,22 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.timezone import now
 
 from centro.models import Alumnos, Cursos, Departamentos, Profesores, Niveles, Materia, MateriaImpartida, \
-    MatriculaMateria, LibroTexto, MomentoRevisionLibros, RevisionLibroAlumno, EstadoLibro, RevisionLibro, CursoAcademico
+    MatriculaMateria, LibroTexto, MomentoRevisionLibros, RevisionLibroAlumno, EstadoLibro, RevisionLibro, \
+    CursoAcademico, PreferenciaHorario
 from centro.utils import get_current_academic_year, get_previous_academic_years
 from convivencia.models import Amonestaciones, Sanciones
 from centro.forms import UnidadForm, DepartamentosForm, UnidadProfeForm, UnidadesProfeForm, SeleccionRevisionForm, \
-    RevisionLibroAlumnoForm, SeleccionRevisionProfeForm
+    RevisionLibroAlumnoForm, SeleccionRevisionProfeForm, ProfesorSustitutoForm
 from datetime import datetime, timedelta
 
 from gestion import settings
+from guardias.models import ItemGuardia
+from horarios.models import ItemHorario
 
 
 def group_check_je(user):
     return user.groups.filter(name__in=['jefatura de estudios'])
+
 
 # Curro Jul 24
 def group_check_je(user):
@@ -36,23 +44,30 @@ def group_check_je(user):
 def group_check_tde(user):
     return user.groups.filter(name__in=['jefatura de estudios', 'tde']).exists()
 
+
 def group_check_prof(user):
     return user.groups.filter(name__in=['jefatura de estudios', 'profesor']).exists()
+
 
 def group_check_prof_or_guardia(user):
     return user.groups.filter(name__in=['jefatura de estudios', 'profesor', 'guardia']).exists()
 
+
 def group_check_prof_and_tutor(user):
     return group_check_prof(user) and is_tutor(user)
+
 
 def group_check_prof_and_tutor_or_je(user):
     return group_check_prof_and_tutor(user) or group_check_je(user)
 
+
 def group_check_je_or_orientacion(user):
     return user.groups.filter(name__in=['jefatura de estudios', 'orientacion']).exists()
 
+
 def group_check_prof_and_tutor_or_je_or_orientacion(user):
     return group_check_prof_and_tutor(user) or group_check_je_or_orientacion(user)
+
 
 def is_tutor(user):
     # Comprueba si el usuario tiene un perfil de profesor asociado
@@ -62,6 +77,7 @@ def is_tutor(user):
         return Cursos.objects.filter(Tutor_id=profesor.id).exists()
 
     return False
+
 
 # Create your views here.
 
@@ -73,7 +89,7 @@ def alumnos(request):
         primer_id = request.POST.get("Unidad")
     else:
         try:
-            primer_id = request.session.get('Unidad', Cursos.objects.order_by('Curso').first().id)
+            primer_id = request.session.get('Unidad', Cursos.objects.all().first().id)
         except:
             primer_id = 0
 
@@ -117,10 +133,10 @@ def profesores(request):
     request.session['Departamento'] = dep_id
     form = DepartamentosForm({'Areas': area_id, 'Departamento': dep_id})
     if dep_id == "":
-        lista_profesores = Profesores.objects.all().order_by("Apellidos")
+        lista_profesores = Profesores.objects.filter(Baja=False).order_by("Apellidos")
         departamento = ""
     else:
-        lista_profesores = Profesores.objects.filter(Departamento__id=dep_id).order_by("Apellidos")
+        lista_profesores = Profesores.objects.filter(Departamento__id=dep_id, Baja=False).order_by("Apellidos")
         departamento = Departamentos.objects.get(id=dep_id).Nombre
 
     cursos = Tutorias(lista_profesores.values("id"))
@@ -137,8 +153,6 @@ def profesores_change(request, codigo, operacion):
     Profesores.objects.filter(id=codigo).update(**dato)
 
     return redirect("/centro/profesores")
-
-
 
 
 def Tutorias(lista_id):
@@ -170,7 +184,7 @@ def EstaSancionado(lista_id):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def cursos(request):
-    lista_cursos = Cursos.objects.all().order_by("Curso")
+    lista_cursos = Cursos.objects.all()
     context = {'cursos': lista_cursos, 'menu_cursos': True}
     return render(request, 'cursos.html', context)
 
@@ -183,8 +197,11 @@ def misalumnos(request):
         return render(request, 'error.html', {'message': 'No tiene un perfil de profesor asociado.'})
 
     profesor = request.user.profesor
-    cursos = Cursos.objects.filter(EquipoEducativo=profesor)
-    cursos_resto = Cursos.objects.exclude(EquipoEducativo=profesor)
+    curso_academico = get_current_academic_year()
+
+    # Obtener los cursos donde el profesor imparte materias en el curso académico actual
+    cursos = Cursos.objects.filter(materiaimpartida__profesor=profesor, materiaimpartida__curso_academico=curso_academico)
+    cursos_resto = Cursos.objects.exclude(materiaimpartida__profesor=profesor, materiaimpartida__curso_academico=curso_academico)
 
     if request.method == 'POST':
         if request.POST.get("FormTrigger") == "Unidad":
@@ -199,19 +216,38 @@ def misalumnos(request):
 
     request.session['Unidad'] = primer_id
 
+    # Obtener los alumnos del curso seleccionado
     lista_alumnos = Alumnos.objects.filter(Unidad__id=primer_id)
     lista_alumnos = sorted(lista_alumnos, key=lambda d: d.Nombre)
     ids = [{"id": elem.id} for elem in lista_alumnos]
 
+    # Crear el formulario con los cursos del profesor
     form = UnidadesProfeForm({'Unidad': request.POST.get("Unidad"), 'UnidadResto': request.POST.get("UnidadResto")},
-                             profesor=profesor)
+                             profesor=profesor, curso_academico=curso_academico)
+
+    # Preparar el listado de alumnos y sus estadísticas
     lista = zip(lista_alumnos, ContarFaltas(ids), ContarFaltasHistorico(ids), EstaSancionado(ids))
+
+    # Contexto para la plantilla
     try:
-        context = {'alumnos': lista, 'form': form, 'curso': Cursos.objects.get(id=primer_id), 'menu_convivencia': True,
-                   'profesor': profesor}
+        context = {
+            'alumnos': lista,
+            'form': form,
+            'curso': Cursos.objects.get(id=primer_id),
+            'menu_convivencia': True,
+            'profesor': profesor
+        }
     except:
-        context = {'alumnos': lista, 'form': form, 'curso': None, 'menu_convivencia': True, 'profesor': profesor}
+        context = {
+            'alumnos': lista,
+            'form': form,
+            'curso': None,
+            'menu_convivencia': True,
+            'profesor': profesor
+        }
+
     return render(request, 'misalumnos.html', context)
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
@@ -268,14 +304,16 @@ def ContarFaltas(lista_id):
 
     contar = []
     for alum in lista_id:
-        am = str(len(Amonestaciones.objects.filter(IdAlumno_id=list(alum.values())[0], curso_academico=curso_academico_actual)))
-        sa = str(len(Sanciones.objects.filter(IdAlumno_id=list(alum.values())[0], curso_academico=curso_academico_actual)))
+        am = str(len(Amonestaciones.objects.filter(IdAlumno_id=list(alum.values())[0],
+                                                   curso_academico=curso_academico_actual)))
+        sa = str(
+            len(Sanciones.objects.filter(IdAlumno_id=list(alum.values())[0], curso_academico=curso_academico_actual)))
 
         contar.append(am + "/" + sa)
     return contar
 
-def ContarFaltasHistorico(lista_id):
 
+def ContarFaltasHistorico(lista_id):
     contar = []
     for alum in lista_id:
         am = str(len(Amonestaciones.objects.filter(IdAlumno_id=list(alum.values())[0])))
@@ -285,53 +323,99 @@ def ContarFaltasHistorico(lista_id):
     return contar
 
 
+def _is_yes(value: str) -> bool:
+    """Devuelve True si la cadena indica afirmación (sí/si/yes/1/x), ignorando tildes y BOM."""
+    if value is None:
+        return False
+    s = str(value).strip().lstrip('\ufeff').lower()
+    # normalizaciones típicas
+    s = s.replace('í', 'i')  # sí -> si
+    return s in {'si', 'sí', 'yes', 'y', '1', 'true', 'x'}
+
+
+
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def importar_materias(request: HttpRequest):
     niveles = Niveles.objects.all()
+    curso_academico = get_current_academic_year()
 
     if request.method == "POST":
+        total_creadas_global = 0
+
         for nivel in niveles:
             file_key = f'csv_nivel_{nivel.id}'
             csv_file = request.FILES.get(file_key)
-
             if not csv_file:
                 continue  # No se ha subido archivo para este nivel
 
             try:
-                csv_reader = decode_file(csv_file)
+                csv_reader = decode_file(csv_file)  # <- tu helper existente (devuelve iterador CSV)
             except UnicodeDecodeError:
                 messages.error(request, f"No se pudo leer el archivo para {nivel.Nombre}. Usa codificación UTF-8.")
                 continue
 
-            # Ignorar encabezado
-            next(csv_reader, None)
+            # Saltar cabecera (por si acaso con BOM)
+            header = next(csv_reader, None)
 
-            materias_importadas = 0
-            for row in csv_reader:
-                if len(row) < 4:
-                    continue
+            creadas_nivel = 0
+            procesadas_nivel = 0
 
-                nombre = row[0].strip()
-                grupo = row[1].strip()
-                abrev = row[2].strip()
-                creditos = row[3].strip()
-                horas = int(creditos) if creditos.isdigit() else 0
+            with transaction.atomic():
+                for row in csv_reader:
+                    # Esperamos al menos 5 columnas según el CSV mostrado:
+                    # 0: ¿Se imparte en el centro?
+                    # 1: Materia
+                    # 2: Grupo de materias (ignorado)
+                    # 3: Abreviatura
+                    # 4: Número de créditos
+                    if len(row) < 5:
+                        continue
 
-                print(nivel.Nombre)
+                    impartida = _is_yes(row[0])
+                    if not impartida:
+                        continue  # ignorar materias no impartidas
 
-                materia, created = Materia.objects.update_or_create(
-                    nombre=nombre,
-                    nivel=nivel,
-                    defaults={
-                        'abr': abrev,
-                        'horas': horas
-                    }
-                )
-                if created:
-                    materias_importadas += 1
+                    nombre = (row[1] or "").strip().lstrip('\ufeff')
+                    abrev = (row[3] or "").strip()
+                    creditos = (row[4] or "").strip()
 
-            messages.success(request, f"Se importaron {materias_importadas} materias para {nivel.Nombre}.")
+                    # Horas a partir del número de créditos (si viene numérico)
+                    try:
+                        horas = int(creditos)
+                    except (TypeError, ValueError):
+                        horas = 0
+
+                    if not nombre:
+                        continue  # fila inválida sin nombre
+
+                    procesadas_nivel += 1
+
+                    # Crea/actualiza por (nombre, nivel, curso_academico)
+                    obj, created = Materia.objects.update_or_create(
+                        nombre=nombre,
+                        nivel=nivel,
+                        curso_academico=curso_academico,
+                        defaults={
+                            'abr': abrev,
+                            'horas': horas,
+                        }
+                    )
+                    if created:
+                        creadas_nivel += 1
+
+            messages.success(
+                request,
+                f"{nivel.Nombre}: procesadas {procesadas_nivel} impartidas, creadas {creadas_nivel}."
+            )
+            total_creadas_global += creadas_nivel
+
+        if total_creadas_global == 0:
+            messages.info(
+                request,
+                f"No se crearon materias nuevas en el curso {curso_academico}. "
+                f"Comprueba que el CSV tenga 'Sí' en la primera columna y que el curso actual sea el correcto."
+            )
 
         return redirect('importar_materias')
 
@@ -348,6 +432,7 @@ def decode_file_dict(file):
         except UnicodeDecodeError:
             continue
     raise UnicodeDecodeError("No se pudo leer el archivo con ninguna codificación válida.")
+
 
 def decode_file(file):
     """Intenta decodificar el archivo con varias codificaciones comunes."""
@@ -375,7 +460,6 @@ def importar_materias_impartidas(request):
 
         # Ignorar encabezado
         next(csv_reader, None)
-
 
         for row in csv_reader:
             nombre_nivel = row["Curso"].strip()
@@ -436,11 +520,13 @@ def importar_materias_impartidas(request):
 
     return render(request, 'importar_materias_impartidas.html')
 
+
 def quitar_tildes(texto):
     return ''.join(
         c for c in unicodedata.normalize('NFD', texto)
         if unicodedata.category(c) != 'Mn'
     )
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
@@ -517,9 +603,11 @@ def importar_matriculas_materias(request):
                     )
 
                     if creada:
-                        nuevas.append(f"{alumno.Nombre} → {materia_imp.materia.nombre} ({curso.Curso}) [{materia_imp.profesor}]")
+                        nuevas.append(
+                            f"{alumno.Nombre} → {materia_imp.materia.nombre} ({curso.Curso}) [{materia_imp.profesor}]")
                     else:
-                        existentes.append(f"{alumno.Nombre} ya estaba en {materia_imp.materia.nombre} ({curso.Curso}) [{materia_imp.profesor}]")
+                        existentes.append(
+                            f"{alumno.Nombre} ya estaba en {materia_imp.materia.nombre} ({curso.Curso}) [{materia_imp.profesor}]")
 
         resumen = {
             'nuevas': nuevas,
@@ -536,7 +624,7 @@ def importar_matriculas_materias(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def ver_matriculas(request):
-    cursos = Cursos.objects.all().order_by("Curso")
+    cursos = Cursos.objects.all()
     cursosacademicos = CursoAcademico.objects.all().order_by("nombre")
     datos = []
     curso_seleccionado = None
@@ -577,7 +665,7 @@ def ver_matriculas(request):
         "cursos": cursos,
         "curso_seleccionado": curso_seleccionado,
         "cursoacademico_seleccionado": cursoacademico_seleccionado,
-        "cursosacademicos" : cursosacademicos,
+        "cursosacademicos": cursosacademicos,
         "datos": datos
     })
 
@@ -585,7 +673,7 @@ def ver_matriculas(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def listar_materias_impartidas(request):
-    cursos_disponibles = Cursos.objects.order_by('Nivel__Abr', 'Curso')
+    cursos_disponibles = Cursos.objects.all()
     curso_id = request.GET.get('curso')
     cursoacademico_id = request.GET.get('CursoAcademico')
     registros = MateriaImpartida.objects.select_related('materia', 'curso', 'profesor')
@@ -616,9 +704,10 @@ def listar_materias_impartidas(request):
         'cursos_disponibles': cursos_disponibles,
         'curso_seleccionado': int(curso_id) if curso_id else None,
         'cursosacademicos': cursos_academicos,
-        'cursoacademico_seleccionado' : cursoacademico_seleccionado
+        'cursoacademico_seleccionado': cursoacademico_seleccionado
     }
     return render(request, 'listar_materias_impartidas.html', context)
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
@@ -630,6 +719,8 @@ def importar_libros_texto(request):
             return redirect('importar_libros_texto')
 
         csv_file = request.FILES['csv_libros']
+
+        curso_actual = get_current_academic_year()
 
         try:
             csv_reader = decode_file(csv_file)
@@ -647,7 +738,7 @@ def importar_libros_texto(request):
         nuevas = []
         errores = []
 
-        materias_nivel = Materia.objects.filter(nivel=nivel)
+        materias_nivel = Materia.objects.filter(nivel=nivel, curso_academico=curso_actual)
 
         for row_index, row in enumerate(csv_reader, start=2):
             nombre_materia_csv = quitar_tildes(row[0]).strip().lower()
@@ -674,10 +765,12 @@ def importar_libros_texto(request):
                 editorial=row[2].strip(),
                 titulo=titulo,
                 anyo_implantacion=int(row[4]) if row[4].isdigit() else None,
-                importe_estimado=float(row[5].replace(',', '.')) if row[5].replace(',', '.').replace('.', '', 1).isdigit() else None,
+                importe_estimado=float(row[5].replace(',', '.')) if row[5].replace(',', '.').replace('.', '',
+                                                                                                     1).isdigit() else None,
                 es_digital=row[6].strip().lower() == "sí",
                 incluir_en_cheque_libro=row[7].strip().lower() == "sí",
-                es_otro_material=row[8].strip().lower() == "sí"
+                es_otro_material=row[8].strip().lower() == "sí",
+                curso_academico = curso_actual
             )
             libro.save()
             nuevas.append(f"{materia.nombre} - {libro.titulo or 'Sin título'}")
@@ -693,6 +786,7 @@ def importar_libros_texto(request):
     return render(request, 'importar_libros_texto.html', {
         'niveles': Niveles.objects.all()
     })
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
@@ -711,19 +805,21 @@ def ver_libros_texto(request):
         try:
             nivel_seleccionado = Niveles.objects.get(id=nivel_id)
             cursoacademico_seleccionado = CursoAcademico.objects.get(id=cursoacademico_id)
-            libros = LibroTexto.objects.filter(nivel=nivel_seleccionado, curso_academico=cursoacademico_seleccionado).select_related('materia').order_by('materia__nombre')
+            libros = LibroTexto.objects.filter(nivel=nivel_seleccionado,
+                                               curso_academico=cursoacademico_seleccionado).select_related(
+                'materia').order_by('materia__nombre')
         except Niveles.DoesNotExist or CursoAcademico.DoesNotExist:
             nivel_seleccionado = None
             cursoacademico_seleccionado = None
-
 
     return render(request, 'ver_libros_texto.html', {
         'niveles': niveles,
         'libros': libros,
         'nivel_seleccionado': nivel_seleccionado,
         'cursoacademico_seleccionado': cursoacademico_seleccionado,
-        'cursosacademicos' : cursos_academicos
+        'cursosacademicos': cursos_academicos
     })
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
@@ -748,7 +844,6 @@ def seleccionar_revision_view(request):
 def revisar_libros(request):
     profesor = request.user.profesor
 
-
     form = SeleccionRevisionProfeForm(
         request.POST or None,
         profesor=profesor,
@@ -761,6 +856,7 @@ def revisar_libros(request):
         'profesor': profesor,
         'momentos': MomentoRevisionLibros.objects.all()
     })
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
@@ -791,6 +887,7 @@ def revisar_libros_view(request, profesor_id, momento_id, materia_id, libro_id):
         'alumnos': alumnos,
     })
 
+
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def revision_exitosa_view(request):
@@ -819,6 +916,7 @@ def obtener_libros_ajax(request):
 @user_passes_test(group_check_prof, login_url='/')
 def get_cursos_profesor(request):
     profesor_id = request.GET.get('profesor_id')
+    print(profesor_id)
     cursos = Cursos.objects.filter(materiaimpartida__profesor_id=profesor_id).distinct()
     data = [{'id': curso.id, 'nombre': str(curso)} for curso in cursos]
     return JsonResponse(data, safe=False)
@@ -901,7 +999,8 @@ def get_tabla_revision(request):
             curso=curso
         )
     except MateriaImpartida.DoesNotExist:
-        return JsonResponse({'error': 'No se encontró la asignación de esa materia con ese profesor en ese curso.'}, status=404)
+        return JsonResponse({'error': 'No se encontró la asignación de esa materia con ese profesor en ese curso.'},
+                            status=404)
 
     # Buscar alumnos matriculados en esa materia impartida
     alumnos = MatriculaMateria.objects.filter(
@@ -919,10 +1018,10 @@ def get_tabla_revision(request):
         'momento': momento,
     })
 
+
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def guardar_revision_libros(request):
-
     if request.method == 'POST':
         profesor_id = request.POST.get('profesor')
 
@@ -985,9 +1084,10 @@ def guardar_revision_libros(request):
             )
 
         messages.success(request, "Revisión guardada correctamente.")
-        return redirect('mis_revisiones')
+        return redirect('revision_libros_inicio')
 
-    return redirect('mis_revisiones')
+    return redirect('revision_libros_inicio')
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
@@ -1036,10 +1136,11 @@ def resumen_revisiones(request):
         'materias': materias,
         'libros': libros,
         'momentos': momentos,
-        'cursosacademicos' : cursosacademicos,
+        'cursosacademicos': cursosacademicos,
     }
 
     return render(request, 'resumen_revisiones.html', context)
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
@@ -1061,6 +1162,7 @@ def detalle_revision(request, revision_id):
         'curso_academico': revision.curso_academico,
         'fecha': revision.fecha
     })
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
@@ -1127,6 +1229,7 @@ def mis_revisiones(request):
 
     return render(request, 'mis_revisiones.html', context)
 
+
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def editar_revision_libros(request, revision_id):
@@ -1172,3 +1275,305 @@ def editar_revision_libros(request, revision_id):
         'estados': estados,
         'alumnos_revisionados': alumnos_revisionados,
     })
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def morosos_view(request):
+    niveles_deseados = ["3º ESO"]
+    curso_actual = get_current_academic_year()
+
+    alumnos = Alumnos.objects.filter(Unidad__Nivel__Abr__in=niveles_deseados).select_related('Unidad__Nivel')
+    alumnos_morosos = []
+
+    for alumno in alumnos:
+        # Set para evitar procesar una misma materia varias veces
+        materias_procesadas = set()
+        materias_faltantes = []
+        titulos_faltantes = []
+
+        matriculas = MatriculaMateria.objects.filter(
+            alumno=alumno,
+            curso_academico=curso_actual
+        ).select_related('materia_impartida__materia')
+
+        for matricula in matriculas:
+            materia = matricula.materia_impartida.materia
+
+            if materia.id in materias_procesadas:
+                continue  # ya procesada
+
+            materias_procesadas.add(materia.id)
+
+            nivel = alumno.Unidad.Nivel
+
+            libros_materia = LibroTexto.objects.filter(
+                materia=materia,
+                nivel=nivel,
+                curso_academico=curso_actual
+            )
+
+            if not libros_materia.exists():
+                continue
+
+            # Verificamos si el alumno ha devuelto al menos uno de los libros de esta materia
+            alguna_revision = RevisionLibroAlumno.objects.filter(
+                alumno=alumno,
+                revision__materia=materia,
+                revision__curso=alumno.Unidad,
+                revision__curso_academico=curso_actual,
+                revision__libro__in=libros_materia
+            ).exists()
+
+            if not alguna_revision:
+                materias_faltantes.append(materia.nombre)
+                titulos_comb = " / ".join(
+                    sorted(set(libro.titulo or "Sin título" for libro in libros_materia))
+                )
+                titulos_faltantes.append(titulos_comb)
+
+        if materias_faltantes:
+            alumnos_morosos.append({
+                'alumno': alumno.Nombre,
+                'alumnoObject': alumno,
+                'unidad': alumno.Unidad.Curso,
+                'num_faltan': len(materias_faltantes),
+                'materias': sorted(materias_faltantes),
+                'titulos': sorted(titulos_faltantes),
+            })
+
+    alumnos_morosos.sort(key=lambda x: x['unidad'])
+
+    context = {'morosos': alumnos_morosos}
+    return render(request, 'morosos.html', context)
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def destrozones_view(request):
+    curso_actual = get_current_academic_year()
+
+    estados_deteriorados = EstadoLibro.objects.filter(nombre__in=["Malo", "Necesita reposición"])
+    niveles_objetivo = Niveles.objects.filter(Abr__in=["3º ESO"])
+    print(niveles_objetivo)
+
+    alumnos_revisionados = RevisionLibroAlumno.objects.filter(
+        revision__curso_academico=curso_actual,
+        estado__in=estados_deteriorados
+    ).select_related('alumno', 'revision__curso', 'revision__libro', 'revision__materia')
+
+    resultado = {}
+    for rla in alumnos_revisionados:
+        alumno = rla.alumno
+        unidad = alumno.Unidad
+        if not unidad or not unidad.Nivel or unidad.Nivel not in niveles_objetivo:
+            print("continuamos: "+unidad.Nivel.Abr)
+            continue
+
+        key = alumno.id
+        if key not in resultado:
+            resultado[key] = {
+                'alumno': alumno.Nombre,
+                'unidad': unidad.Curso,
+                'libros_danados': set(),
+                'materias': set(),
+                'titulos': set(),
+            }
+
+        resultado[key]['libros_danados'].add(rla.revision.libro)
+        resultado[key]['materias'].add(rla.revision.materia.nombre)
+        resultado[key]['titulos'].add(rla.revision.libro.titulo or "Sin título")
+
+    lista_final = sorted([
+        {
+            'alumno': datos['alumno'],
+            'unidad': datos['unidad'],
+            'num_danados': len(datos['libros_danados']),
+            'materias': sorted(datos['materias']),
+            'titulos': sorted(datos['titulos']),
+        }
+        for datos in resultado.values()
+    ], key=lambda x: x['unidad'])
+
+    return render(request, 'destrozones.html', {
+        'datos': lista_final,
+    })
+
+
+def pruebacal(request):
+    context = {
+        'horas_antes_recreo': range(1, 4),
+        'horas_despues_recreo': range(4, 7),
+    }
+    return render(request, 'mi_preferencia_horaria.html', context)
+
+@login_required(login_url='/')
+@user_passes_test(group_check_prof, login_url='/')
+def mi_preferencia_horaria(request):
+    profesor = request.user.profesor
+    preferencia, created = PreferenciaHorario.objects.get_or_create(profesor=profesor)
+
+    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]
+
+    if request.method == 'POST':
+        # Recuperamos datos del POST
+        horario = json.loads(request.POST.get('horario_json'))
+        flex_inicio = request.POST.get('flex_inicio') == 'true'
+        flex_fin = request.POST.get('flex_fin') == 'true'
+        guardias = json.loads(request.POST.get('guardias_json'))
+        observaciones = request.POST.get('observaciones', '')
+
+        # Guardamos
+        preferencia.horario = horario
+        preferencia.flexibilidad_inicio = flex_inicio
+        preferencia.flexibilidad_fin = flex_fin
+        preferencia.guardias = guardias
+        preferencia.observaciones = observaciones
+        preferencia.save()
+
+        return redirect('mi_preferencia_horaria')  # o alguna vista de confirmación
+
+
+    guardias = preferencia.guardias if preferencia.guardias else []
+    # Filtrar valores nulos por si acaso
+    guardias = [g for g in guardias if g is not None]
+
+    return render(request, 'mi_preferencia_horaria.html', {
+        'preferencia': preferencia,
+        'dias': dias,
+        'horas_antes_recreo': range(1, 4),
+        'horas_despues_recreo': range(4, 7),
+        'horario_json': json.dumps(preferencia.horario),
+        'guardias_json': json.dumps(guardias),
+    })
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def preferencias_profesores(request):
+
+    profesores = Profesores.objects.filter(Baja=False)
+    preferencias = {p.profesor_id: p for p in PreferenciaHorario.objects.all()}
+
+    # Procesar resumen horario para cada preferencia
+    for pref in preferencias.values():
+        pref.horario_resumen = procesar_horario(pref.horario)
+
+    return render(request, 'listado_preferencias.html', {
+        'profesores': profesores,
+        'preferencias': preferencias
+    })
+
+def procesar_horario(horario):
+    """Convierte claves como 'Lunes-2' con valor True en 'L-2º', etc."""
+    map_dias = {
+        'Lunes': 'L',
+        'Martes': 'M',
+        'Miércoles': 'X',
+        'Jueves': 'J',
+        'Viernes': 'V',
+    }
+    if not horario:
+        return []
+    resultado = []
+    for clave, valor in horario.items():
+        if not valor:
+            continue
+        partes = clave.split('-')
+        if len(partes) != 2:
+            continue
+        dia, hora = partes
+        inicial = map_dias.get(dia, dia[0].upper())
+        resultado.append(f"{inicial}-{hora}º")
+    return resultado
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def copiar_horario(titular, sustituto):
+    curso_academico_actual = get_current_academic_year()
+    horarios = ItemHorario.objects.filter(profesor=titular, curso_academico=curso_academico_actual)
+    for h in horarios:
+        h.pk = None  # Clonar
+        h.profesor = sustituto
+        h.save()
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def copiar_guardias(titular, sustituto):
+    guardias = ItemGuardia.objects.filter(ProfesorAusente=titular)
+    for g in guardias:
+        horarios_guardia_orig = list(g.ProfesoresGuardia.all())
+        tiempos_guardia_orig = list(g.tiempos_guardia.all())
+
+        g.pk = None
+        g.ProfesorAusente = sustituto
+        g.save()
+        # Copiar relaciones M2M ProfesoresGuardia
+        g.ProfesoresGuardia.set(horarios_guardia_orig)
+
+        # Copiar tiempos asociados
+        for t in tiempos_guardia_orig:
+            t.pk = None
+            t.profesor = sustituto
+            t.item_guardia = g
+            t.save()
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def crear_sustituto(request):
+    if request.method == 'POST':
+        form = ProfesorSustitutoForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+
+            # Crear usuario
+            user = User.objects.create(
+                username=data['username'],
+                email=data['email'],
+                password=make_password(data['dni']),  # DNI como contraseña
+            )
+
+            # Copiar grupos del usuario titular
+            titular_user = data['profesor_sustituido'].user  # Usuario del profesor titular
+
+            if titular_user:
+                grupos = titular_user.groups.all()
+                user.groups.set(grupos)  # Asignar todos los grupos a nuevo usuario
+
+            # Crear Profesor sustituto
+            profesor_sustituto = Profesores.objects.create(
+                user=user,
+                Nombre=data['nombre'],
+                Apellidos=data['apellidos'],
+                DNI=data['dni'],
+                Email=data['email'],
+                SustitutoDe=data['profesor_sustituido'],
+                Baja=False,
+            )
+
+
+
+            # Copiar horario y guardias
+            copiar_horario(profesor_sustituto.SustitutoDe, profesor_sustituto)
+            copiar_guardias(profesor_sustituto.SustitutoDe, profesor_sustituto)
+
+            # Marcar titular como dado de baja
+            profesor_titular = data['profesor_sustituido']
+            profesor_titular.Baja = True
+            profesor_titular.save()
+
+            messages.success(request, "Profesor sustituto creado y datos sincronizados.")
+            return redirect('lista_sustitutos')  # Cambiar al nombre real de la URL
+    else:
+        form = ProfesorSustitutoForm()
+
+    return render(request, 'crear_sustituto.html', {'form': form})
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def lista_sustitutos(request):
+    # Obtener todos los profesores que son sustitutos (tienen el campo SustitutoDe != None)
+    sustitutos = Profesores.objects.filter(SustitutoDe__isnull=False, Baja=False).select_related('SustitutoDe').order_by('Apellidos')
+
+    context = {
+        'sustitutos': sustitutos,
+    }
+    return render(request, 'lista_sustitutos.html', context)

@@ -13,25 +13,27 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, UpdateView, DeleteView, CreateView
 
 from centro.models import Cursos, Aulas
+from centro.utils import get_current_academic_year
 from centro.views import group_check_prof, group_check_prof_or_guardia, group_check_je
+from prevision_plazas_enero import curso_academico_actual
 from .forms import ItemHorarioForm, CopiarHorarioForm
 from .models import Profesores, ItemHorario
 
 @login_required(login_url='/')
 @user_passes_test(group_check_prof_or_guardia, login_url='/')
 def horario_profesor_view(request):
+
+    curso_academico_actual = get_current_academic_year()
     profesor_id = request.GET.get('profesor')  # Obtener el ID del profesor seleccionado desde el GET
     profesores = Profesores.objects.filter(Baja=False)  # Lista de todos los profesores para el desplegable
 
     items_horario = None
     if profesor_id:
         profesor = Profesores.objects.get(id=profesor_id)
-        if profesor.SustitutoDe:
-            profesor_id = profesor.SustitutoDe.id
 
 
         # Filtrar los horarios por el profesor seleccionado y ordenar por día y tramo
-        items_horario = ItemHorario.objects.filter(profesor_id=profesor_id).order_by('dia', 'tramo')
+        items_horario = ItemHorario.objects.filter(profesor_id=profesor_id, curso_academico=curso_academico_actual).order_by('dia', 'tramo')
 
     # Crear un diccionario para el horario
     horario = {tramo: {dia: [] for dia in range(1, 6)} for tramo in range(1, 8)}
@@ -98,15 +100,13 @@ def mihorario(request):
         return render(request, 'error.html', {'message': 'No tiene un perfil de profesor asociado.'})
 
     profesor = request.user.profesor
+    curso_academico_actual = get_current_academic_year()
 
     items_horario = None
     if profesor:
 
-        if profesor.SustitutoDe:
-            profesor = profesor.SustitutoDe
-
         # Filtrar los horarios por el profesor seleccionado y ordenar por día y tramo
-        items_horario = ItemHorario.objects.filter(profesor=profesor).order_by('dia', 'tramo')
+        items_horario = ItemHorario.objects.filter(profesor=profesor, curso_academico=curso_academico_actual).order_by('dia', 'tramo')
 
     # Crear un diccionario para el horario
     horario = {tramo: {dia: [] for dia in range(1, 6)} for tramo in range(1, 8)}
@@ -146,11 +146,12 @@ def horario_curso_view(request):
     items_horario = None
     profesores_materias = defaultdict(list)
     tutor = None
+    curso_academico_actual = get_current_academic_year()
 
     if curso_id:
         # Filtrar los horarios por el curso seleccionado y ordenar por día y tramo
         items_horario = ItemHorario.objects.filter(
-            Q(unidad_id=curso_id) & Q(profesor__Baja=False)
+            Q(unidad_id=curso_id) & Q(profesor__Baja=False) & Q(curso_academico=curso_academico_actual)
         ).order_by('dia', 'tramo')
 
         # Obtener el curso y su tutor
@@ -194,11 +195,12 @@ def horario_aula_view(request):
 
     items_horario = None
     profesores_materias = defaultdict(list)
+    curso_academico_actual = get_current_academic_year()
 
     if aula_id:
         # Filtrar los horarios por el curso seleccionado y ordenar por día y tramo
         items_horario = ItemHorario.objects.filter(
-            Q(aula_id=aula_id) & Q(profesor__Baja=False)
+            Q(aula_id=aula_id) & Q(profesor__Baja=False) & Q(curso_academico=curso_academico_actual)
         ).order_by('dia', 'tramo')
 
         # Obtener el curso y su tutor
@@ -233,10 +235,11 @@ class EditarHorarioProfesorView(ListView):
     model = ItemHorario
     template_name = 'editar_horario_profesor.html'
     context_object_name = 'items_horario'
+    curso_academico_actual = get_current_academic_year()
 
     def get_queryset(self):
         profesor_id = self.kwargs['profesor_id']
-        return ItemHorario.objects.filter(profesor__id=profesor_id).order_by('dia', 'tramo')
+        return ItemHorario.objects.filter(profesor__id=profesor_id, curso_academico=curso_academico_actual).order_by('dia', 'tramo')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -331,7 +334,7 @@ def aulas_libres(request):
     tramos = ['1ª hora', '2ª hora', '3ª hora', 'RECREO', '4ª hora', '5ª hora', '6ª hora']
 
     # Obtener todos los ítems de horario
-    items_horario = ItemHorario.objects.all()
+    items_horario = ItemHorario.objects.filter(curso_academico=curso_academico_actual)
 
     # Crear un diccionario para las aulas libres
     horario_aulas_libres = {tramo: {dia: [] for dia in range(1, 6)} for tramo in range(1, 8)}
@@ -359,19 +362,21 @@ def aulas_libres(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def copiar_horario(request):
+
     if request.method == 'POST':
         form = CopiarHorarioForm(request.POST)
         if form.is_valid():
 
+            curso_academico_actual = get_current_academic_year()
             profe_origen = form.cleaned_data['ProfesorOrigen']
             profe_destino = form.cleaned_data['ProfesorDestino']
 
             # Copiar horario
             try:
-                horario_origen = ItemHorario.objects.filter(profesor=profe_origen)
+                horario_origen = ItemHorario.objects.filter(profesor=profe_origen, curso_academico=curso_academico_actual)
 
                 # Borrar horario del profesor de destino antes de copiar
-                ItemHorario.objects.filter(profesor=profe_destino).delete()
+                ItemHorario.objects.filter(profesor=profe_destino, curso_academico=curso_academico_actual).delete()
 
                 items_nuevos = []
                 for item in horario_origen:
@@ -381,7 +386,8 @@ def copiar_horario(request):
                         profesor=profe_destino,
                         unidad=item.unidad,
                         aula=item.aula,
-                        materia=item.materia
+                        materia=item.materia,
+                        curso_academico=curso_academico_actual
                     )
                     items_nuevos.append(nuevo_item)
 

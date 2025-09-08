@@ -1,0 +1,875 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+
+<!-- ============================================================== -->
+<!-- Start Main Content -->
+<!-- ============================================================== -->
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Bienvenido a Gestion@</h4>
+            </div>
+        </div>
+
+
+        <div class="row row-cols-xxl-2 row-cols-md-2 row-cols-1">
+
+            <div class="col">
+                <div class="card">
+                    <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                        <h5 class="card-title m-0">Alumnado sancionable</h5>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="/convivencia/alumnadosancionable/False"
+                               class="badge text-bg-primary d-inline-block">Ver listado completo</a>
+
+                            <div class="card-action m-0 d-flex align-items-center">
+                                <a href="#!" class="card-action-item" data-action="card-toggle"><i
+                                        class="ti ti-chevron-up"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if alumnado %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-sm">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th>Alumno/a</th>
+                                        <th>Unidad</th>
+                                        <th class="text-center">Leves</th>
+                                        <th class="text-center">Graves</th>
+                                        <th class="text-center">Peso</th>
+                                        <th class="text-center">Última amonestación</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for alum, l, g, p, fecha_ultima_amon, prop, ignorada, movil in alumnado %}
+                                        <tr>
+                                            <td>
+                                                <a href="/convivencia/historial_vigente/{{ alum.id }}/">
+                                                    {% if movil %}
+                                                        <i class="fa fa-mobile me-1" aria-hidden="true"></i>
+                                                    {% endif %}
+                                                    <strong>{{ alum.Nombre }}</strong>
+                                                    {% if alum.PDC %}(PDC){% endif %}
+                                                    {% if alum.NEAE %}(NEAE){% endif %}
+                                                </a>
+                                            </td>
+                                            <td><a href="/centro/alumnos/{{ alum.Unidad.id }}">{{ alum.Unidad }}</a>
+                                            </td>
+                                            <td class="text-center">{{ l }}</td>
+                                            <td class="text-center">{{ g }}</td>
+                                            <td class="text-center">{{ p }}</td>
+                                            <td class="text-center">{{ fecha_ultima_amon|date:"d/m/Y" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No hay alumnado sancionable actualmente.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col">
+                <div class="card">
+                    <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                        <h5 class="card-title m-0">Resumen diario de amonestaciones/sanciones</h5>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="/convivencia/show/"
+                               class="badge text-bg-warning-warning d-inline-block">Ver resumen completo</a>
+
+                            <div class="card-action m-0 d-flex align-items-center">
+                                <a href="#!" class="card-action-item" data-action="card-toggle"><i
+                                        class="ti ti-chevron-up"></i></a>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="card-body p-2">
+                        {% if datos %}
+                            <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                                <table class="table table-striped table-bordered table-sm mb-0">
+                                    <thead class="thead-sm text-uppercase fs-xxs">
+                                    <tr>
+                                        <th>Alumno/a</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha</th>
+                                        <th>Unidad</th>
+                                        <th>A/S</th>
+                                        <th>A/S Hist.</th>
+                                        <th>Tramo Horario</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for n,h,contar,contarhist in datos %}
+                                        <tr class=""
+                                            data-profesor="{{ h.Profesor|default:'' }}"
+                                            data-hora="{{ horas|slice:h.Hora|last }}"
+                                            data-comentario="{{ h.Comentario }}"
+                                            data-tipo="{{ h.Tipo }}"
+                                            data-derivado="{{ h.DerivadoConvivencia|yesno:"SÍ,NO" }}"
+                                            data-familiar="{{ h.FamiliarComunicado }}"
+                                            data-fecha="{{ h.FechaComunicado|date:"d/m/Y" }}"
+                                            data-hora-comunicado="{{ h.HoraComunicado }}"
+                                            data-medio="{{ h.get_Medio_display }}"
+                                            data-telefono="{{ h.TelefonoComunicado }}"
+                                            data-observacion="{{ h.ObservacionComunicado }}"
+                                            data-id="{{ h.id }}">
+
+                                            <td>
+                                                <a href="/convivencia/historial/{{ h.IdAlumno.id }}/"><strong>{{ h.IdAlumno.Nombre }}</strong>
+                                                    {% if h.IdAlumno.PDC %}(PDC){% endif %} {% if h.IdAlumno.NEAE %}
+                                                        (NEAE){% endif %}</a>
+                                            </td>
+                                            <td>
+                                                {% if tipo == 'amonestacion' %}
+                                                    {% if h.Tipo.TipoFalta == 'G' %}
+                                                        <span class="badge badge-label text-bg-warning-warning">Amonestación Grave</span>
+                                                    {% else %}
+                                                        <span class="badge badge-label text-bg-warning">Amonestación Leve</span>
+                                                    {% endif %}
+                                                {% elif tipo == 'sancion' %}
+                                                    <span class="badge badge-label text-bg-danger">Sanción</span>
+                                                {% endif %}
+                                            </td>
+                                            {% if h.Fecha_fin %}
+                                                <td>{{ h.Fecha|date:"d/m/Y" }} - {{ h.Fecha_fin|date:"d/m/Y" }}</td>
+                                            {% else %}
+                                                <td>{{ h.Fecha|date:"d/m/Y" }}</td>
+                                            {% endif %}
+                                            <td>
+                                                <a href="/centro/alumnos/{{ h.IdAlumno.Unidad.id }}">{{ h.IdAlumno.Unidad }}</a>
+                                            </td>
+                                            {% if tipo == 'amonestacion' %}
+                                                <td>{{ contar }}</td>
+                                                <td>{{ contarhist }}</td>
+                                                {% if h.Profesor %}
+                                                    <td>{{ horas|slice:h.Hora|last }}</td>
+                                                {% else %}
+                                                    <td></td>
+                                                {% endif %}
+                                            {% elif tipo == 'sancion' %}
+                                                {% if h.NoExpulsion %}
+                                                    <td>{{ h.Sancion }}<br/><strong>No expulsión</strong></td>
+                                                {% else %}
+                                                    <td>{{ h.Sancion }}</td>
+                                                {% endif %}
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center my-3">No hay datos para mostrar.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Total Orders Widget -->
+            <div class="col">
+                <div class="card">
+                    <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                        <h5 class="card-title m-0">Registro de Derivaciones al Aula Horizonte</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="/convivencia/derivaciones-aula-horizonte/"
+                               class="badge text-bg-danger d-inline-block">Ver listado completo</a>
+
+                            <div class="card-action m-0 d-flex align-items-center">
+                                <a href="#!" class="card-action-item" data-action="card-toggle"><i
+                                        class="ti ti-chevron-up"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-2">
+                        {% if amonestaciones %}
+                            <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                                <table class="table table-striped table-bordered table-sm mb-0">
+                                    <thead class="table-light small text-uppercase">
+                                    <tr>
+                                        <th>Alumno/a</th>
+                                        <th>Unidad</th>
+                                        <th>Fecha</th>
+                                        <th>Tramo</th>
+                                        <th>Profesor/a que deriva</th>
+                                        <th>Intervención registrada</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for amon in amonestaciones %}
+                                        <tr>
+                                            <td>{{ amon.IdAlumno.Nombre }}</td>
+                                            <td>{{ amon.IdAlumno.Unidad }}</td>
+                                            <td>{{ amon.Fecha|date:"d/m/Y" }}</td>
+                                            <td>{{ amon.get_Hora_display }}</td>
+                                            <td>{{ amon.Profesor }}</td>
+                                            <td>
+                                                {% if amon.tiene_intervencion %}
+                                                    <span class="badge bg-primary">SÍ</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">NO</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center my-3">No hay derivaciones registradas.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col">
+                <div class="card">
+                    <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                        <h5 class="card-title m-0">Registro de Intervenciones en Aula Horizonte</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="/convivencia/intervenciones-horizonte/"
+                               class="badge text-bg-info d-inline-block">Ver listado completo</a>
+
+                            <div class="card-action m-0 d-flex align-items-center">
+                                <a href="#!" class="card-action-item" data-action="card-toggle"><i
+                                        class="ti ti-chevron-up"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-2">
+                        {% if intervenciones %}
+                            <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                                <table class="table table-striped table-bordered table-sm mb-0">
+                                    <thead class="table-light small text-uppercase">
+                                    <tr>
+                                        <th>Alumno/a</th>
+                                        <th>Unidad</th>
+                                        <th>Fecha</th>
+                                        <th>Tramo</th>
+                                        <th>Profesor/a que deriva</th>
+                                        <th>Profesor/a que interviene</th>
+                                        <th>Tareas realizadas</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for intervencion in intervenciones %}
+                                        <tr>
+                                            <td>{{ intervencion.alumno.Nombre }}</td>
+                                            <td>{{ intervencion.alumno.Unidad }}</td>
+                                            <td>{{ intervencion.fecha|date:"d/m/Y" }}</td>
+                                            <td>{{ intervencion.get_tramo_horario_display }}</td>
+                                            <td>{{ intervencion.profesor_envia }}</td>
+                                            <td>{{ intervencion.profesor_atiende }}</td>
+                                            <td>{{ intervencion.tarea_realizada|default:"—" }}</td>
+                                            <td>
+                                                <a class="btn btn-sm btn-primary"
+                                                   href="{% url 'intervencion_horizonte_detalle' intervencion.pk %}">Detalles</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center my-3">No hay intervenciones registradas.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col">
+                <div class="card">
+
+                    <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                        <h5 class="card-title">Mi Horario hoy</h5>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="/horarios/mihorario" class="badge text-bg-dark">Ver Mi Horario</a>
+
+                            <div class="card-action m-0 d-flex align-items-center">
+                                <a href="#!" class="card-action-item" data-action="card-toggle"><i
+                                        class="ti ti-chevron-up"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        {% if horario_hoy %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="table-light text-center">
+                                    <tr>
+                                        <th>Tramo</th>
+                                        <th>Materia</th>
+                                        <th>Unidades</th>
+                                        <th>Aula</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for tramo, items in horario_hoy %}
+                                        {% if items %}
+                                            {% for item in items %}
+                                                <tr>
+                                                    <td class="text-center">{{ tramo }}</td>
+                                                    <td class="text-center"><strong>{{ item.materia }}</strong></td>
+                                                    <td class="text-center text-secondary">{{ item.unidades_combinadas }}</td>
+                                                    <td class="text-center text-danger">{{ item.aula }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td class="text-center">{{ tramo }}</td>
+                                                <td class="text-center" colspan="3"><em>-</em></td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No hay clases registradas para hoy.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div><!-- end col -->
+
+
+            <div class="col">
+                <div class="card">
+                    <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                        <h5 class="card-title">Parte de guardias de hoy</h5>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="/guardias/parteguardias" class="badge text-bg-secondary">Ver Parte de guardias</a>
+
+                            <div class="card-action m-0 d-flex align-items-center">
+                                <a href="#!" class="card-action-item" data-action="card-toggle"><i
+                                        class="ti ti-chevron-up"></i></a>
+                                {#                                <a href="#!" class="card-action-item" data-action="card-refresh"><i#}
+                                {#                                        class="ti ti-refresh"></i></a>#}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="card-body">
+                            <ul class="nav nav-tabs nav-justified nav-bordered nav-bordered-primary mb-3">
+                                <li class="nav-item"><a href="#tab-1h" data-bs-toggle="tab" class="nav-link active">1ª
+                                    Hora</a></li>
+                                <li class="nav-item"><a href="#tab-2h" data-bs-toggle="tab" class="nav-link">2ª Hora</a>
+                                </li>
+                                <li class="nav-item"><a href="#tab-3h" data-bs-toggle="tab" class="nav-link">3ª Hora</a>
+                                </li>
+                                <li class="nav-item"><a href="#tab-rec" data-bs-toggle="tab" class="nav-link">Recreo</a>
+                                </li>
+                                <li class="nav-item"><a href="#tab-4h" data-bs-toggle="tab" class="nav-link">4ª Hora</a>
+                                </li>
+                                <li class="nav-item"><a href="#tab-5h" data-bs-toggle="tab" class="nav-link">5ª Hora</a>
+                                </li>
+                                <li class="nav-item"><a href="#tab-6h" data-bs-toggle="tab" class="nav-link">6ª Hora</a>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content">
+                                {% for tramo in tramos %}
+                                    <div class="tab-pane {% if forloop.first %}active{% endif %}" id="tab-{{ tramo }}h">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-bordered table-sm mb-0">
+                                                <thead class="table-light">
+                                                <tr>
+                                                    <th>Profesor/a Ausente</th>
+                                                    <th>Unidad</th>
+                                                    <th>Aula</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for guardia in guardias_por_tramo|get_item:tramo %}
+                                                    <tr>
+                                                        <td>{{ guardia.ProfesorAusente }}</td>
+                                                        <td>{{ guardia.Unidad.Curso }}</td>
+                                                        <td>{{ guardia.Aula.Aula }}</td>
+                                                    </tr>
+                                                {% empty %}
+                                                    <tr>
+                                                        <td colspan="3" class="text-center text-muted">No hay ausencias
+                                                            registradas.
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- end col -->
+
+
+            <div class="col">
+                <div class="card">
+                    <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                        <h5 class="card-title m-0">Reservas de Espacio (Hoy y Mañana)</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="/reservas/verreservas" class="badge text-bg-warning">Ver Actividades Ext.</a>
+
+                            <div class="card-action m-0 d-flex align-items-center">
+                                <a href="#!" class="card-action-item" data-action="card-toggle"><i
+                                        class="ti ti-chevron-up"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-2">
+                        {% if reservas_info %}
+                            <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                                <table class="table table-striped table-bordered table-sm mb-0">
+                                    <thead class="table-light small text-uppercase">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tramo horario</th>
+                                        <th>Espacio/Recurso</th>
+                                        <th>Localización</th>
+                                        <th>Aula/Unidad</th>
+                                        <th>Profesor/a</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for item in reservas_info %}
+                                        <tr>
+
+                                            <td>{{ item.r.Fecha|date:"d/m/Y" }}</td>
+                                            <td><strong>{{ item.r.get_Hora_display }}</strong></td>
+                                            <td><strong>{{ item.r }}</strong></td>
+                                            <td>{{ item.r.Reservable.Descripcion }}</td>
+                                            {% if item.aula or item.curso %}
+                                                <td>{{ item.aula }} / {{ item.curso }}</td>
+                                            {% else %}
+                                                <td>Desconocido</td>
+                                            {% endif %}
+                                            <td><strong>{{ item.r.Profesor }}</strong></td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center my-3">No hay reservas de espacio para hoy o mañana.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Revenue Widget -->
+            <div class="col">
+                <div class="card">
+
+                    <div class="card-header d-flex border-dashed justify-content-between align-items-center">
+                        <h5 class="card-title">Calendario de actividades</h5>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="/DACE/calendario/" class="badge text-bg-purple">Ver Actividades Ext.</a>
+
+                            <div class="card-action m-0 d-flex align-items-center">
+                                <a href="#!" class="card-action-item" data-action="card-toggle"><i
+                                        class="ti ti-chevron-up"></i></a>
+                                {#                                <a href="#!" class="card-action-item" data-action="card-refresh"><i#}
+                                {#                                        class="ti ti-refresh"></i></a>#}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+            </div><!-- end col -->
+
+
+        </div><!-- end row -->
+
+
+    </div>
+    <!-- container -->
+
+    <div class="modal fade" id="event-modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modal-title">Datos de la actividad</h4>
+                </div>
+                <div class="modal-body">
+                    <!-- Título del evento -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Profesor/a responsable:</label>
+                        <p class="form-control-plaintext" id="event-responsable"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Descripción:</label>
+                        <p class="form-control-plaintext" id="event-descripcion"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Unidades afectadas:</label>
+                        <p class="form-control-plaintext" id="event-unidades"></p>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Fecha de inicio:</label>
+                            <p class="form-control-plaintext" id="event-start"></p>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Fecha de fin:</label>
+                            <p class="form-control-plaintext" id="event-end"></p>
+                        </div>
+                    </div>
+
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- end modal dialog-->
+
+
+    <!-- ============================================================== -->
+    <!-- End of Main Content -->
+    <!-- ============================================================== -->
+{% endblock %}
+
+
+{##}
+{#{% block title %}Home{% endblock %}#}
+{##}
+{#{% block content %}#}
+{##}
+{#    <div class="wrapper wrapper-content animated fadeInRight">#}
+{#        <div class="row">#}
+{#            {% if user|not_in_group:"guardia" %}#}
+{#            <div class="col-md-3">#}
+{#                <div class="ibox">#}
+{##}
+{#                    {% if user|has_group:"jefatura de estudios" %}#}
+{#                        <div class="ibox-content product-box" onclick="location.href='/centro/alumnos';"#}
+{#                             style="cursor: pointer;">#}
+{#                    {% elif user|has_group:"profesor" %}#}
+{#                        <div class="ibox-content product-box" onclick="location.href='/centro/misalumnos';"#}
+{#                             style="cursor: pointer;">#}
+{#                    {% else %}#}
+{#                        <div class="ibox-content product-box">#}
+{#                    {% endif %}#}
+{#                    <div class="product-imitation">#}
+{#                        <i class="fa fa-thumbs-down fa-5x" aria-hidden="true"></i>#}
+{#                    </div>#}
+{#                    <div class="product-desc">#}
+{#                        <a href="#" class="product-name"> CONVIVENCIA</a>#}
+{#                        <div class="small m-t-xs">#}
+{#                            Gestión de Amonestaciones/Sanciones del alumnado#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#                {% endif %}#}
+{##}
+{#            {% if is_tutor %}#}
+{#                <div class="col-md-3">#}
+{#                    <div class="ibox">#}
+{#                        <div class="ibox-content product-box" onclick="location.href='/absentismo/misalumnos';"#}
+{#                             style="cursor: pointer;">#}
+{#                            <div class="product-imitation">#}
+{#                                <i class="fa fa-university fa-5x" aria-hidden="true"></i>#}
+{#                            </div>#}
+{#                            <div class="product-desc">#}
+{#                                <a href="#" class="product-name"> ABSENTISMO</a>#}
+{#                                <div class="small m-t-xs">#}
+{#                                    Gestión de Absentismo en Tutoría#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            {% elif user|has_group:"jefatura de estudios" or user|has_group:"orientacion" %}#}
+{#                <div class="col-md-3">#}
+{#                    <div class="ibox">#}
+{#                        <div class="ibox-content product-box" onclick="location.href='/absentismo/alumnos';"#}
+{#                             style="cursor: pointer;">#}
+{#                            <div class="product-imitation">#}
+{#                                <i class="fa fa-university fa-5x" aria-hidden="true"></i>#}
+{#                            </div>#}
+{#                            <div class="product-desc">#}
+{#                                <a href="#" class="product-name"> ABSENTISMO</a>#}
+{#                                <div class="small m-t-xs">#}
+{#                                    Gestión de Absentismo en Tutoría#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+{#            <div class="col-md-3">#}
+{#                <div class="ibox">#}
+{#                    <div class="ibox-content product-box" onclick="location.href='/horarios/horarioprofe';"#}
+{#                         style="cursor: pointer;">#}
+{#                        <div class="product-imitation">#}
+{#                            <i class="fa fa-calendar-o fa-5x" aria-hidden="true"></i>#}
+{#                        </div>#}
+{#                        <div class="product-desc">#}
+{#                            <a href="#" class="product-name"> HORARIOS</a>#}
+{#                            <div class="small m-t-xs">#}
+{#                                Consulta horarios de profesorado#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <div class="col-md-3">#}
+{#                <div class="ibox">#}
+{#                    <div class="ibox-content product-box" onclick="location.href='/guardias/parteguardias';"#}
+{#                         style="cursor: pointer;">#}
+{#                        <div class="product-imitation">#}
+{#                            <i class="fa fa-users fa-5x" aria-hidden="true"></i>#}
+{#                        </div>#}
+{#                        <div class="product-desc">#}
+{#                            <a href="#" class="product-name"> GUARDIAS</a>#}
+{#                            <div class="small m-t-xs">#}
+{#                                Gestión de Guardias de profesorado#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <div class="col-md-3">#}
+{#                <div class="ibox">#}
+{#                    <div class="ibox-content product-box" onclick="location.href='/centro/mis-revisiones-libros';"#}
+{#                         style="cursor: pointer;">#}
+{#                        <div class="product-imitation">#}
+{#                            <i class="fa fa-book fa-5x" aria-hidden="true"></i>#}
+{#                        </div>#}
+{#                        <div class="product-desc">#}
+{#                            <a href="#" class="product-name"> G.L.T.</a>#}
+{#                            <div class="small m-t-xs">#}
+{#                                Gestión del programa de Gratuidad de Libros de Texto#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            {% if user|not_in_group:"guardia" %}#}
+{#            <div class="col-md-3">#}
+{#                <div class="ibox">#}
+{#                    {% if user|has_group:"jefatura de estudios" %}#}
+{#                        <div class="ibox-content product-box" onclick="location.href='/reservas/verreservas';"#}
+{#                             style="cursor: pointer;">#}
+{#                    {% else %}#}
+{#                        <div class="ibox-content product-box" onclick="location.href='/reservas/misreservas';"#}
+{#                             style="cursor: pointer;">#}
+{#                    {% endif %}#}
+{#                    <div class="product-imitation">#}
+{#                        <i class="fa fa-calendar fa-5x" aria-hidden="true"></i>#}
+{#                    </div>#}
+{#                    <div class="product-desc">#}
+{#                        <a href="#" class="product-name"> RESERVAS</a>#}
+{#                        <div class="small m-t-xs">#}
+{#                            Reserva los espacios y recursos comunes del centro#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            {% endif %}#}
+{#            {% if user|not_in_group:"guardia" %}#}
+{#            <div class="col-md-3">#}
+{#                <div class="ibox">#}
+{#                    <div class="ibox-content product-box" onclick="location.href='/tde/misincidenciastic';"#}
+{#                         style="cursor: pointer;">#}
+{#                        <div class="product-imitation">#}
+{#                            <i class="fa fa-keyboard-o fa-5x" aria-hidden="true"></i>#}
+{#                        </div>#}
+{#                        <div class="product-desc">#}
+{#                            <a href="#" class="product-name"> INCIDENCIAS TIC</a>#}
+{#                            <div class="small m-t-xs">#}
+{#                                Genera o gestiona incidencias TIC#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            {% endif %}#}
+{##}
+{#            {% if user.is_superuser %}#}
+{#                <div class="col-md-3">#}
+{#                    <div class="ibox">#}
+{#                        <div class="ibox-content product-box" onclick="location.href='/admin';"#}
+{#                             style="cursor: pointer;">#}
+{#                            <div class="product-imitation">#}
+{#                                <i class="fa fa-cogs fa-5x" aria-hidden="true"></i>#}
+{#                            </div>#}
+{#                            <div class="product-desc">#}
+{#                                <a href="#" class="product-name"> ADMINISTRACIÓN</a>#}
+{#                                <div class="small m-t-xs">#}
+{#                                    Administración de Gestiona IESGN#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            {% endif %}#}
+{#        </div>#}
+{#    </div>#}
+{#{% endblock %}#}
+
+
+{% block js %}
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
+    <!-- Fullcalendar js -->
+    <script src="{% static 'plugins/fullcalendar/index.global.min.js' %}"></script>
+
+    <script>
+
+        class CalendarSchedule {
+
+            constructor() {
+                this.body = document.body;
+                this.modal = new bootstrap.Modal(document.getElementById('event-modal'), {backdrop: true});
+                this.calendar = document.getElementById('calendar');
+
+                this.modalTitle = document.getElementById('modal-title');
+                this.calendarObj = null;
+                this.selectedEvent = null;
+                this.newEventData = null;
+            }
+
+            onEventClick(info) {
+                this.selectedEvent = info.event;
+
+                const start = this.selectedEvent.start;
+                const end = this.selectedEvent.end;
+
+                const formatDate = (date, allDay) => {
+                    if (allDay) {
+                        return date.toLocaleDateString('es-ES', {dateStyle: 'short'});
+                    } else {
+                        return date.toLocaleString('es-ES', {dateStyle: 'short', timeStyle: 'short'});
+                    }
+                };
+
+                document.getElementById('event-start').textContent = formatDate(start, this.selectedEvent.allDay);
+                document.getElementById('event-end').textContent = formatDate(end, this.selectedEvent.allDay);
+
+                // Campos adicionales
+                document.getElementById('event-responsable').textContent = this.selectedEvent.extendedProps?.responsable || '—';
+                document.getElementById('event-descripcion').textContent = this.selectedEvent.extendedProps?.descripcion || '—';
+
+                // Mostrar las unidades afectadas (array → lista)
+                const unidades = this.selectedEvent.extendedProps?.unidades || [];
+                document.getElementById('event-unidades').innerHTML = unidades.length > 0
+                    ? '<ul>' + unidades.map(u => `<li>${u}</li>`).join('') + '</ul>'
+                    : '—';
+
+                this.modal.show();
+            }
+
+            init() {
+                /*  Initialize the calendar  */
+                const today = new Date();
+                const self = this;
+
+                // cal - init
+                self.calendarObj = new FullCalendar.Calendar(self.calendar, {
+
+                    plugins: [],
+                    slotDuration: '00:30:00', /* If we want to split day time each 15minutes */
+                    slotMinTime: '08:00:00',
+                    slotMaxTime: '15:00:00',
+                    themeSystem: 'bootstrap',
+                    bootstrapFontAwesome: false,
+                    buttonText: {
+                        today: 'Hoy',
+                        month: 'Mes',
+                        week: 'Semana',
+                        day: 'Día',
+                        list: 'Lista',
+
+                    },
+                    locale: 'es',
+                    initialView: 'dayGridMonth',
+                    handleWindowResize: true,
+                    //height: window.innerHeight - 240,
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+                    },
+                    editable: false,
+                    // dayMaxEventRows: false, // allow "more" link when too many events
+                    selectable: true,
+                    dateClick: function (info) {
+                        self.onSelect(info);
+                    },
+                    eventClick: function (info) {
+                        self.onEventClick(info);
+                    },
+                    initialEvents: '{% url "actividadesdace_json" %}',
+
+                });
+
+                self.calendarObj.render();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function (e) {
+            new CalendarSchedule().init();
+        });
+    </script>
+{% endblock %}

@@ -1,6 +1,6 @@
 {
-    "inicio_curso": "2024-09-16",
-    "final_curso": "2025-06-25",
+    "inicio_curso": "2025-09-15",
+    "final_curso": "2026-06-25",
     "festivos": [
         {
             "title": "Día no lectivo local.",
@@ -9,11 +9,11 @@
         },
         {
             "title": "Día de todos los Santos",
-            "start": "2024-11-01",
+            "start": "2025-11-01",
             "className": "bg-info"
         },
         {
-            "start": "2024-12-06",
+            "start": "2025-12-06",
             "className": "bg-info"
         },
         {
@@ -29,11 +29,11 @@
             "className": "bg-info"
         },
         {
-            "start": "2025-02-28",
+            "start": "2026-02-28",
             "className": "bg-info"
         },
         {
-            "start": "2025-05-01",
+            "start": "2026-05-01",
             "className": "bg-info"
         },
         {

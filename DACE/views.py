@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import datetime, time, timedelta
 from sqlite3 import IntegrityError
 
 from django.forms import modelformset_factory
@@ -11,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from centro.utils import get_current_academic_year
 from centro.views import group_check_prof, group_check_je
-from .models import Actividades, ActividadAlumno, GastosActividad, Aprobaciones
+from .models import Actividades, ActividadAlumno, GastosActividad, Aprobaciones, EstadoActividad
 from centro.models import Profesores, Cursos, Alumnos
 from .forms import ActividadesForm, ActividadesCompletoForm, GestionEconomicaActividadForm, GastosActividadForm
 
@@ -22,7 +23,7 @@ def crear_actividad(request):
         form = ActividadesForm(request.POST)
         if form.is_valid():
             actividad = form.save(commit=False)
-            actividad.estado = 'Pendiente'
+            actividad.Estado = get_object_or_404(EstadoActividad, nombre='Pendiente')
 
             try:
                 actividad.save()
@@ -35,22 +36,23 @@ def crear_actividad(request):
         form = ActividadesForm(initial={'Responsable': profe})
     return render(request, 'crear_actividad.html', {'form': form, 'menu_DACE': True})
 
+
 # @login_required
 # def aprobar_actividad(request, actividad_id):
-    # actividad = get_object_or_404(Actividad, id=actividad_id)
-    # if request.method == 'POST':
-    #     form = AprobacionForm(request.POST)
-    #     if form.is_valid():
-    #         aprobacion = form.save(commit=False)
-    #         aprobacion.actividad = actividad
-    #         aprobacion.aprobado_por = request.user
-    #         aprobacion.save()
-    #         actividad.estado = 'Aprobada'
-    #         actividad.save()
-    #         return redirect('lista_actividades')
-    # else:
-    #     form = AprobacionForm()
-    # return render(request, 'gestion/aprobar_actividad.html', {'form': form, 'actividad': actividad})
+# actividad = get_object_or_404(Actividad, id=actividad_id)
+# if request.method == 'POST':
+#     form = AprobacionForm(request.POST)
+#     if form.is_valid():
+#         aprobacion = form.save(commit=False)
+#         aprobacion.actividad = actividad
+#         aprobacion.aprobado_por = request.user
+#         aprobacion.save()
+#         actividad.estado = 'Aprobada'
+#         actividad.save()
+#         return redirect('lista_actividades')
+# else:
+#     form = AprobacionForm()
+# return render(request, 'gestion/aprobar_actividad.html', {'form': form, 'actividad': actividad})
 
 
 # @login_required
@@ -76,8 +78,11 @@ def aprobar_actividad(request, actividad_id):
             Fecha=fecha_aprobacion
         )
 
+        # Buscar estado "Aprobada" en la tabla EstadoActividad
+        estado_aprobada = get_object_or_404(EstadoActividad, nombre="Aprobada")
+
         # Actualizar estado de la actividad
-        actividad.Estado = 'Aprobada'
+        actividad.Estado = estado_aprobada
         actividad.save()
 
         return JsonResponse({'message': 'Actividad aprobada exitosamente.'})
@@ -94,14 +99,10 @@ def misactividades(request):
 
     curso_academico_actual = get_current_academic_year()
 
-
-
     lista_actividades = Actividades.objects.filter(Responsable__id=profesor.id, curso_academico=curso_academico_actual)
     lista_actividades = sorted(lista_actividades, key=lambda d: d.FechaInicio, reverse=True)
 
-
     context = {'actividades': lista_actividades, 'profesor': profesor, 'menu_DACE': True}
-
 
     return render(request, 'misactividades.html', context)
 
@@ -114,11 +115,10 @@ def actividadesdace(request):
     lista_actividades = Actividades.objects.filter(curso_academico=curso_academico_actual)
     lista_actividades = sorted(lista_actividades, key=lambda d: d.FechaInicio, reverse=True)
 
-
-    context = {'actividades': lista_actividades,'menu_DACE': True}
-
+    context = {'actividades': lista_actividades, 'menu_DACE': True}
 
     return render(request, 'actividadesdace.html', context)
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
@@ -132,7 +132,6 @@ def editar_actividad(request, actividad_id):
                 form.save()
             except IntegrityError:
                 print("Ya existe una actividad igual")
-
 
             return redirect('actividadesdace')  # Redirige al listado de actividades
 
@@ -148,6 +147,7 @@ def editar_actividad(request, actividad_id):
             '%H:%M') if actividad.HoraLlegada else ''
 
     return render(request, 'editar_actividad.html', {'form': form, 'actividad': actividad})
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
@@ -185,16 +185,15 @@ def editar_actividad_participantes(request, actividad_id):
 
         return redirect('actividadesdace')
 
-
-
     unidades = Cursos.objects.all()
     profesores = Profesores.objects.filter(Baja=False)
-    return render(request, 'editar_actividad_participantes.html', {'actividad': actividad, 'unidades': unidades, 'profesores': profesores})
+    return render(request, 'editar_actividad_participantes.html',
+                  {'actividad': actividad, 'unidades': unidades, 'profesores': profesores})
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def editar_actividad_economica(request, actividad_id):
-
     actividad = get_object_or_404(Actividades, pk=actividad_id)
     alumnos = actividad.actividad_alumno.select_related('alumno', 'alumno__Unidad').order_by('alumno__Nombre')
 
@@ -225,7 +224,6 @@ def editar_actividad_economica(request, actividad_id):
             for gasto in gastos:
                 gasto.actividad = actividad
                 gasto.save()
-
 
             # Actualiza el estado de pago de los alumnos
             for alumno in alumnos:
@@ -263,6 +261,7 @@ def editar_actividad_economica(request, actividad_id):
         'alumnos_total': alumnos_total
     })
 
+
 @login_required(login_url='/')
 def get_alumnos_unidad(request, unidad_id):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -270,6 +269,7 @@ def get_alumnos_unidad(request, unidad_id):
         return JsonResponse({'alumnos': list(alumnos)})
 
     return JsonResponse({'error': 'Esta no es una solicitud AJAX.'})
+
 
 def get_alumnos_participantes_unidad(request, unidad_id, actividad_id):
     try:
@@ -289,7 +289,6 @@ def get_alumnos_participantes_unidad(request, unidad_id, actividad_id):
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def detalles_actividad(request, actividad_id):
-
     actividad = get_object_or_404(Actividades, pk=actividad_id)
     alumnos = actividad.actividad_alumno.select_related('alumno', 'alumno__Unidad').order_by('alumno__Nombre')
 
@@ -310,3 +309,50 @@ def detalles_actividad(request, actividad_id):
         'alumnos_total': alumnos_total,
         'gastos': gastos
     })
+
+
+@csrf_exempt
+def actividadesdace_json(request):
+    start_str = request.GET.get('start')
+    end_str = request.GET.get('end')
+
+    start_date = datetime.fromisoformat(start_str)
+    end_date = datetime.fromisoformat(end_str)
+
+    actividades = Actividades.objects.filter(
+        Estado__nombre="Aprobada",
+        FechaInicio__lte=end_date,
+        FechaFin__gte=start_date
+    )
+
+    eventos = []
+    for actividad in actividades:
+        unidades = [str(u) for u in actividad.UnidadesAfectadas.all()]  # listado legible
+
+        if actividad.HoraSalida and actividad.HoraLlegada:
+            start_dt = datetime.combine(actividad.FechaInicio, actividad.HoraSalida)
+            end_dt = datetime.combine(actividad.FechaFin, actividad.HoraLlegada)
+            all_day = False
+        else:
+            start_dt = actividad.FechaInicio
+            end_dt = actividad.FechaFin + timedelta(days=1)  # FullCalendar requiere +1 para allDay
+            all_day = True
+
+        eventos.append({
+            'title': actividad.Titulo,
+            'start': start_dt.isoformat(),
+            'end': end_dt.isoformat(),
+            'allDay': all_day,
+            'className': 'bg-success-subtle text-success border-start border-3 border-success',
+            'extendedProps': {
+                'descripcion': actividad.Descripcion or '',
+                'responsable': str(actividad.Responsable),
+                'unidades': unidades,
+            }
+        })
+
+    return JsonResponse(eventos, safe=False)
+
+
+def actividades_calendario(request):
+    return render(request, "actividadescal.html")
