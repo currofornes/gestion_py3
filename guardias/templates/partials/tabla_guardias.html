@@ -134,6 +134,21 @@
        const csrftoken = getCookie('csrftoken');
 
 
+       $('.select2-multiple').select2({
+    width: '100%',
+    placeholder: 'Selecciona profesores'
+});
+
+       $('body').on('shown.bs.modal', '.modal-confirmar-guardia', function () {
+    var modal = $(this);
+    modal.find('.select2-multiple').select2({
+        width: '100%',
+        placeholder: 'Selecciona profesores',
+        dropdownParent: modal
+    });
+});
+
+
 
         $('.confirmar-guardia-btn').off('click');
        $('.confirmar-guardia-btn').on('click', function() {

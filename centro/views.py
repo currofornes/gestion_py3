@@ -1485,8 +1485,7 @@ def procesar_horario(horario):
         resultado.append(f"{inicial}-{hora}º")
     return resultado
 
-@login_required(login_url='/')
-@user_passes_test(group_check_je, login_url='/')
+
 def copiar_horario(titular, sustituto):
     curso_academico_actual = get_current_academic_year()
     horarios = ItemHorario.objects.filter(profesor=titular, curso_academico=curso_academico_actual)
@@ -1495,8 +1494,7 @@ def copiar_horario(titular, sustituto):
         h.profesor = sustituto
         h.save()
 
-@login_required(login_url='/')
-@user_passes_test(group_check_je, login_url='/')
+
 def copiar_guardias(titular, sustituto):
     guardias = ItemGuardia.objects.filter(ProfesorAusente=titular)
     for g in guardias:

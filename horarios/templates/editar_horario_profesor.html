@@ -2,168 +2,170 @@
 {% load static %}
 
 {% block css %}
+    <!-- Select2 Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+
     <style>
         .modal .form-control {
             width: 100% !important;
         }
+
+        .btn-xs {
+            padding: .25rem .5rem;
+            font-size: .75rem;
+            line-height: 1.5;
+            border-radius: .2rem;
+            margin-right: 0.3rem;
+        }
+
+        table.table thead th {
+            background-color: #6c757d;
+            color: white;
+            font-weight: 600;
+        }
     </style>
+
 {% endblock %}
 
 {% block title %}Editar Horario de {{ profesor }}{% endblock %}
 
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox">
-                    <div class="ibox-title">
-                        <div class="float-right">
-                            <a href="{% url 'horario_profesor_view' %}?profesor={{ profesor.id }}" class="btn btn-sm btn-secondary">
-                                <i class="fa fa-arrow-left"></i> Volver al Horario
-                            </a>
-                            <a id="boton-nuevo-item" href="#modal" class="btn btn-sm btn-warning" data-toggle="modal"
-                               data-target="#modalitemhorario"><i
-                                    class="fa fa-plus"></i> Añadir ítem</a>
-                        </div>
-                        <h5>Editar Horario de {{ profesor }}</h5>
-                    </div>
-                    <div class="ibox-content">
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
-                                <tr>
-                                    <th>Tramo</th>
-                                    <th>Día</th>
-                                    <th>Materia</th>
-                                    <th>Unidad</th>
-                                    <th>Aula</th>
-                                    <th>Acciones</th>
-                                </tr>
-                                </thead>
-                                <tbody id="item-horario-list">
-                                {% for item in items_horario %}
-                                    <tr>
-                                        <td>{{ item.get_tramo_display }}</td>
-                                        <td>{{ item.get_dia_display }}</td>
-                                        <td>{{ item.materia }}</td>
-                                        <td>{{ item.unidad }}</td>
-                                        <td>{{ item.aula }}</td>
-                                        <td>
-                                            <!-- Botón de Editar -->
-                                            <a href="{% url 'editar_item_horario' item.pk %}"
-                                               class="btn btn-xs btn-warning">
-                                                <i class="fa fa-pencil"></i> Editar
-                                            </a>
+    <div class="container-fluid">
 
-                                            <!-- Botón de Eliminar -->
-                                            <a href="{% url 'eliminar_item_horario' item.pk %}"
-                                               class="btn btn-xs btn-danger">
-                                                <i class="fa fa-trash"></i> Eliminar
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+        <div class="page-title-head d-flex align-items-center mb-3">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Editar Horario de {{ profesor }}</h4>
+            </div>
+            <div>
+                <a href="{% url 'horario_profesor_view' %}?profesor={{ profesor.id }}"
+                   class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="fa fa-arrow-left"></i> Volver al Horario
+                </a>
+                <button id="boton-nuevo-item" type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalitemhorario">
+                    <i class="fa fa-plus"></i> Añadir ítem
+                </button>
+            </div>
+        </div>
 
-                        <!-- Modal para añadir nuevo ItemHorario -->
-                        <div class="modal fade" id="modalitemhorario" tabindex="-1" role="dialog"
-                             aria-labelledby="modalLabel"
-                             aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h3 class="modal-title" id="modalLabel">Añadir nuevo ítem</h3>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form id="formNuevoItemHorario" method="POST">
-                                            {% csrf_token %}
-                                            <div class="form-group row">
-                                                <div class="col-lg-12">
-                                                    {{ form.as_p }}
-                                                </div>
-                                            </div>
-
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar
-                                        </button>
-                                        <button type="button" class="btn btn-primary" id="submitNuevoItemHorario">
-                                            Añadir ítem
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
+        <div class="card">
+            <div class="card-body p-3">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover mb-0">
+                        <thead class="text-center">
+                        <tr>
+                            <th>Tramo</th>
+                            <th>Día</th>
+                            <th>Materia</th>
+                            <th>Unidad</th>
+                            <th>Aula</th>
+                            <th>Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody id="item-horario-list">
+                        {% for item in items_horario %}
+                            <tr>
+                                <td class="text-center align-middle">{{ item.get_tramo_display }}</td>
+                                <td class="text-center align-middle">{{ item.get_dia_display }}</td>
+                                <td class="align-middle">{{ item.materia }}</td>
+                                <td class="align-middle">{{ item.unidad }}</td>
+                                <td class="align-middle">{{ item.aula }}</td>
+                                <td class="text-center align-middle">
+                                    <a href="{% url 'editar_item_horario' item.pk %}" class="btn btn-warning btn-xs"
+                                       title="Editar">
+                                        <i class="fa fa-pencil-alt"></i>
+                                        Editar
+                                    </a>
+                                    <a href="{% url 'eliminar_item_horario' item.pk %}" class="btn btn-danger btn-xs"
+                                       onclick="return confirm('¿Estás seguro de que deseas eliminar este horario?');"
+                                       title="Eliminar">
+                                        <i class="fa fa-trash"></i>
+                                        Eliminar
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No hay ítems en el horario.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+
+        <!-- Modal para añadir nuevo ItemHorario -->
+        <div class="modal fade" id="modalitemhorario" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form id="formNuevoItemHorario" method="POST" novalidate>
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalLabel">Añadir nuevo ítem</h5>
+                        </div>
+                        <div class="modal-body">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="submitNuevoItemHorario">Añadir ítem
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </div>
-
-
-
 {% endblock %}
 
 {% block js %}
-
-    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
-
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
 
     <script>
-        $(document).ready(function () {
+        document.addEventListener('DOMContentLoaded', function () {
 
-            $(".select2_Tramo").select2({
-                theme: 'bootstrap4',
-                width: '100%'
+            $('#modalitemhorario').on('shown.bs.modal', function () {
+                $(".select2_Tramo, .select2_Dia, .select2_Unidad, .select2_Aula").select2({
+                    theme: 'bootstrap4',
+                    width: '100%',
+                    dropdownParent: $('#modalitemhorario')
+                });
             });
-            $(".select2_Dia").select2({
-                theme: 'bootstrap4',
-                width: '100%'
-            });
-            $(".select2_Unidad").select2({
-                theme: 'bootstrap4',
-                width: '100%'
-            });
-            $(".select2_Aula").select2({
+
+
+            $(".select2_Tramo, .select2_Dia, .select2_Unidad, .select2_Aula").select2({
                 theme: 'bootstrap4',
                 width: '100%'
             });
 
-            // Enviar el formulario de nuevo ítem con AJAX
             $('#submitNuevoItemHorario').click(function () {
                 var form = $('#formNuevoItemHorario');
                 $.ajax({
                     type: 'POST',
-                    url: "{% url 'crear_item_horario' profesor.id %}", // Asegúrate de que esta URL corresponde a la vista de creación
+                    url: "{% url 'crear_item_horario' profesor.id %}",
                     data: form.serialize(),
                     success: function (response) {
-                        // Si el ítem se ha creado correctamente, actualizamos la tabla
                         $('#item-horario-list').append(
                             '<tr id="item-horario-' + response.id + '">' +
-                            '<td>' + response.tramo + '</td>' +
-                            '<td>' + response.dia + '</td>' +
-                            '<td>' + response.materia + '</td>' +
-                            '<td>' + response.aula + '</td>' +
-                            '<td>' +
-                            '<a href="/editar_item_horario/' + response.id + '" class="btn btn-xs btn-warning"><i class="fa fa-pencil"></i> Editar</a>' +
-                            '<a href="/eliminar_item_horario/' + response.id + '" class="btn btn-xs btn-danger" onclick="return confirm(\'¿Estás seguro de que deseas eliminar este horario?\');"><i class="fa fa-trash"></i> Eliminar</a>' +
+                            '<td class="text-center align-middle">' + response.tramo + '</td>' +
+                            '<td class="text-center align-middle">' + response.dia + '</td>' +
+                            '<td class="align-middle">' + response.materia + '</td>' +
+                            '<td class="align-middle">' + response.unidad + '</td>' +
+                            '<td class="align-middle">' + response.aula + '</td>' +
+                            '<td class="text-center align-middle">' +
+                            '<a href="/editar_item_horario/' + response.id + '" class="btn btn-warning btn-xs" title="Editar"><i class="fa fa-pencil-alt"></i>Editar</a>' +
+                            '<a href="/eliminar_item_horario/' + response.id + '" class="btn btn-danger btn-xs" title="Eliminar" onclick="return confirm(\'¿Estás seguro de que deseas eliminar este horario?\');"><i class="fa fa-trash"></i>Eliminar</a>' +
                             '</td>' +
                             '</tr>'
                         );
-                        // Cerrar el modal y resetear el formulario
-                        $('#modalitemhorario').modal('hide');
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('modalitemhorario'));
+                        modal.hide();
                         form.trigger('reset');
                     },
-                    error: function (response) {
-                        // Manejo de errores
+                    error: function () {
                         alert('Ocurrió un error al intentar añadir el ítem.');
                     }
                 });
