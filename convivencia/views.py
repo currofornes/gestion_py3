@@ -200,8 +200,22 @@ def historial(request, alum_id, prof):
     horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
     alum = Alumnos.objects.get(pk=alum_id)
 
-    if request.user.username[:5] == "tutor" and alum.Unidad.Abe != request.user.username[5:]:
-        return redirect("/")
+    # Comprueba si el usuario pertenece a 'jefatura de estudios'
+    es_jefatura = request.user.groups.filter(name="jefatura de estudios").exists()
+
+    # Comprueba si es tutor de la unidad del alumno
+    es_tutor = False
+    if alum.Unidad and alum.Unidad.Tutor:
+        # Dependiendo de cómo se vincule Profesor usuario, ajuste aquí:
+        es_tutor = request.user == alum.Unidad.Tutor.user  # si Tutor tiene FK a User
+        # Si no, usar: request.user.username == alum.Unidad.Tutor.UsuarioDjango.username (ajustar según tu modelo)
+
+
+    # Si no es tutor ni jefatura, redirigir a la página previa o a homepage
+    if not (es_tutor or es_jefatura):
+        # Intentar redirigir a la página anterior, o "/" si no hay referrer
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
 
     curso_academico_actual = get_current_academic_year()
 
@@ -1296,11 +1310,28 @@ def sanciones_reincorporacion(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def historial_vigente(request, alum_id, prof):
+
+
     horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
     alum = Alumnos.objects.get(pk=alum_id)
 
-    if request.user.username[:5] == "tutor" and alum.Unidad.Abe != request.user.username[5:]:
-        return redirect("/")
+
+    # Comprueba si el usuario pertenece a 'jefatura de estudios'
+    es_jefatura = request.user.groups.filter(name="jefatura de estudios").exists()
+
+    # Comprueba si es tutor de la unidad del alumno
+    es_tutor = False
+    if alum.Unidad and alum.Unidad.Tutor:
+        # Dependiendo de cómo se vincule Profesor usuario, ajuste aquí:
+        es_tutor = request.user == alum.Unidad.Tutor.user  # si Tutor tiene FK a User
+        # Si no, usar: request.user.username == alum.Unidad.Tutor.UsuarioDjango.username (ajustar según tu modelo)
+
+
+    # Si no es tutor ni jefatura, redirigir a la página previa o a homepage
+    if not (es_tutor or es_jefatura):
+        # Intentar redirigir a la página anterior, o "/" si no hay referrer
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
 
     curso_academico_actual = get_current_academic_year()
 
