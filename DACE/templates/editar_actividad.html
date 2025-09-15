@@ -125,6 +125,19 @@
 
                             </div>
 
+                            <div class="form-check mb-3">
+                                {{ form.EnProgramacion }}
+                                <label class="form-check-label" for="{{ form.EnProgramacion.id_for_label }}">
+                                    Incluido en PD
+                                </label>
+                                {% if form.EnProgramacion.help_text %}
+                                    <span class="help-block">{{ form.EnProgramacion.help_text }}</span>
+                                {% endif %}
+                                {% for error in form.EnProgramacion.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+
 
                             <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                             <a href="{% url 'actividadesdace' %}" class="btn btn-secondary">Cancelar</a>

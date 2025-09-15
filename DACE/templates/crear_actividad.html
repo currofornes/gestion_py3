@@ -80,7 +80,7 @@
                                     </div>
 
                                 </div>
-                            <div class="mb-3 col-md-3">
+                                <div class="mb-3 col-md-3">
                                     <label class="form-label">{{ form.FechaFin.label_tag }}</label>
                                     <div class="date-search">
                                         {{ form.FechaFin }}
@@ -94,7 +94,7 @@
 
                                 </div>
 
-                            <div class="mb-3 col-md-3">
+                                <div class="mb-3 col-md-3">
                                     <label class="form-label">{{ form.HoraSalida.label_tag }}</label>
                                     <div class="date-search">
                                         {{ form.HoraSalida }}
@@ -108,7 +108,7 @@
 
                                 </div>
 
-                            <div class="mb-3 col-md-3">
+                                <div class="mb-3 col-md-3">
                                     <label class="form-label">{{ form.HoraLlegada.label_tag }}</label>
                                     <div class="date-search">
                                         {{ form.HoraLlegada }}
@@ -123,11 +123,20 @@
                                 </div>
 
 
-
-
                             </div>
 
-
+                            <div class="form-check mb-3">
+                                {{ form.EnProgramacion }}
+                                <label class="form-check-label" for="{{ form.EnProgramacion.id_for_label }}">
+                                    Incluido en PD
+                                </label>
+                                {% if form.EnProgramacion.help_text %}
+                                    <span class="help-block">{{ form.EnProgramacion.help_text }}</span>
+                                {% endif %}
+                                {% for error in form.EnProgramacion.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
 
 
                             <button type="submit" class="btn btn-primary">Guardar</button>
@@ -176,7 +185,6 @@
             });
 
 
-
             $('#id_FechaInicio').datepicker({
                 todayBtn: "linked",
                 keyboardNavigation: false,
@@ -197,15 +205,13 @@
             }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
 
 
-
-
             $('form').on('keypress', 'input, select', function (e) {
                 if (e.which === 13) {
                     e.preventDefault();
                 }
             });
 
-            $('form').on('submit', function() {
+            $('form').on('submit', function () {
                 $('button[type="submit"]').prop('disabled', true).text('Procesando...');
             });
 

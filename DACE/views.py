@@ -20,20 +20,26 @@ from .forms import ActividadesForm, ActividadesCompletoForm, GestionEconomicaAct
 @login_required
 def crear_actividad(request):
     if request.method == 'POST':
-        form = ActividadesForm(request.POST)
+        # Usamos el formulario completo si queremos que se gestione 'EnProgramacion' y otros campos
+        form = ActividadesCompletoForm(request.POST)
         if form.is_valid():
             actividad = form.save(commit=False)
-            actividad.Estado = get_object_or_404(EstadoActividad, nombre='Pendiente')
+            # Si se desea, se pone estado Pendiente solo si no viene del formulario
+            if not actividad.Estado:
+                actividad.Estado = get_object_or_404(EstadoActividad, nombre='Pendiente')
 
             try:
                 actividad.save()
+                form.save_m2m()  # Guardar relaciones ManyToMany
             except IntegrityError:
+                # Aquí sería recomendable incluir un mensaje para el usuario
                 print("Ya existe una actividad igual")
 
             return redirect('misactividades')
     else:
-        profe = request.user.profesor
-        form = ActividadesForm(initial={'Responsable': profe})
+        profe = getattr(request.user, 'profesor', None)
+        initial = {'Responsable': profe} if profe else {}
+        form = ActividadesCompletoForm(initial=initial)
     return render(request, 'crear_actividad.html', {'form': form, 'menu_DACE': True})
 
 
@@ -126,28 +132,21 @@ def editar_actividad(request, actividad_id):
     actividad = get_object_or_404(Actividades, id=actividad_id)
 
     if request.method == 'POST':
-        form = ActividadesForm(request.POST, instance=actividad)
+        form = ActividadesCompletoForm(request.POST, instance=actividad)
         if form.is_valid():
             try:
-                form.save()
+                actividad = form.save()
             except IntegrityError:
                 print("Ya existe una actividad igual")
 
             return redirect('actividadesdace')  # Redirige al listado de actividades
 
     else:
-        form = ActividadesForm(instance=actividad)
-        form.fields['FechaInicio'].widget.attrs['value'] = format(actividad.FechaInicio,
-                                                                  'd/m/Y') if actividad.FechaInicio else ''
-        form.fields['FechaFin'].widget.attrs['value'] = format(actividad.FechaFin,
-                                                               'd/m/Y') if actividad.FechaFin else ''
-        form.fields['HoraSalida'].widget.attrs['value'] = actividad.HoraSalida.strftime(
-            '%H:%M') if actividad.HoraSalida else ''
-        form.fields['HoraLlegada'].widget.attrs['value'] = actividad.HoraLlegada.strftime(
-            '%H:%M') if actividad.HoraLlegada else ''
+        form = ActividadesCompletoForm(instance=actividad)
+        # No es necesario asignar valores al widget attrs si usas DatePickerInput y ClockPickerInput correctamente configurados
+        # Estos widgets deben manejar el formateo
 
     return render(request, 'editar_actividad.html', {'form': form, 'actividad': actividad})
-
 
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')

@@ -29,6 +29,7 @@ class Actividades(models.Model):
     CosteAlumnado = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     AportacionCentro = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     Estado = models.ForeignKey(EstadoActividad, on_delete=models.PROTECT, related_name='actividades')
+    EnProgramacion = models.BooleanField(default=False)
 
     curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
 

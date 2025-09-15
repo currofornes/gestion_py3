@@ -18,6 +18,7 @@ class ActividadesForm(forms.ModelForm):
             'FechaFin',
             'HoraSalida',
             'HoraLlegada',
+            'EnProgramacion'
         ]
 
         widgets = {
@@ -28,6 +29,7 @@ class ActividadesForm(forms.ModelForm):
             'FechaFin': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'HoraSalida': ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'HoraLlegada': ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
+            'EnProgramacion': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
 
         }
 
@@ -39,6 +41,7 @@ class ActividadesForm(forms.ModelForm):
             'HoraSalida': 'Hora de salida',
             'HoraLlegada': 'Hora de llegada',
             'Descripcion': 'Descripción',
+            'EnProgramacion': 'Incluido en PD',
         }
 
     def __init__(self, *args, **kwargs):
@@ -63,6 +66,7 @@ class ActividadesCompletoForm(forms.ModelForm):
             'FechaFin': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'HoraSalida': ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'HoraLlegada': ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
+            'EnProgramacion': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             # 'Duracion': forms.TextInput(attrs={'class': 'form-control'}),
             # 'MedidaDuracion': forms.Select(attrs={'class': 'form-control select2_MedidaDuracion'}),
         #     Qué widget uso para un select mútiple.
@@ -76,6 +80,7 @@ class ActividadesCompletoForm(forms.ModelForm):
             'HoraSalida': 'Hora de salida',
             'HoraLlegada': 'Hora de llegada',
             'Descripcion': 'Descripción',
+            'EnProgramacion': 'Incluido en PD',
         }
 
     def __init__(self, *args, **kwargs):

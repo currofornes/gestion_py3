@@ -61,6 +61,7 @@
                                 <th class="text-center">Hora salida</th>
                                 <th class="text-center">Fecha fin</th>
                                 <th class="text-center">Hora llegada</th>
+                                <th class="text-center">En PD</th>
                                 <th class="text-center">Estado</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
@@ -69,17 +70,26 @@
                             </thead>
                             <tbody>
                             {% for a in actividades %}
-                                    <tr>
-                                        <td>{{ a.Titulo }}</td>
-                                        <td>{{ a.Responsable }}</td>
-                                        <td>{{ a.FechaInicio|date:"d/m/Y" }}</td>
-                                        <td>{{ a.HoraSalida }}</td>
-                                        <td>{{ a.FechaFin|date:"d/m/Y" }}</td>
-                                        <td>{{ a.HoraLlegada }}</td>
-                                        {% if a.Estado.nombre == 'Pendiente' %}
-                                            <td class="text-center"><span class="badge badge-label text-bg-warning">{{ a.Estado }}</span></td>
-                                        {% elif a.Estado.nombre == 'Aprobada' %}
-                                            <td class="text-center"><span class="badge badge-label text-bg-primary">{{ a.Estado }}</span>
+                                <tr>
+                                    <td>{{ a.Titulo }}</td>
+                                    <td>{{ a.Responsable }}</td>
+                                    <td>{{ a.FechaInicio|date:"d/m/Y" }}</td>
+                                    <td>{{ a.HoraSalida }}</td>
+                                    <td>{{ a.FechaFin|date:"d/m/Y" }}</td>
+                                    <td>{{ a.HoraLlegada }}</td>
+                                    <td class="text-center">
+                                        {% if a.EnProgramacion %}
+                                            <span class="badge bg-success">Sí</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No</span>
+                                        {% endif %}
+                                    </td>
+                                    {% if a.Estado.nombre == 'Pendiente' %}
+                                        <td class="text-center"><span
+                                                class="badge badge-label text-bg-warning">{{ a.Estado }}</span></td>
+                                    {% elif a.Estado.nombre == 'Aprobada' %}
+                                        <td class="text-center"><span
+                                                class="badge badge-label text-bg-primary">{{ a.Estado }}</span>
                                             {% if a.aprobaciones.exists %}
                                                 <br>
                                                 <small class="text-muted">
@@ -87,25 +97,26 @@
                                                 </small>
                                             {% endif %}
 
-                                            </td>
-                                        {% else %}
-                                            <td class="text-center"><span class="badge badge-label text-bg-info">{{ a.Estado }}</span></td>
-                                        {% endif %}
-                                        <td class="text-center">
-                                            <a data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Detalles"
+                                        </td>
+                                    {% else %}
+                                        <td class="text-center"><span
+                                                class="badge badge-label text-bg-info">{{ a.Estado }}</span></td>
+                                    {% endif %}
+                                    <td class="text-center">
+                                        <a data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Detalles"
                                            href="{% url 'detalles_actividad' a.id %}" class="btn btn-info btn-icon"><i
                                                 class="ti ti-zoom-scan fs-lg"></i></a>
                                         <a data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Editar"
                                            href="{% url 'editar_actividad' a.id %}" class="btn btn-icon btn-warning"><i
                                                 class="ti ti-edit fs-lg"></i></a>
-                                            <a data-bs-toggle="tooltip" data-bs-placement="top"
+                                        <a data-bs-toggle="tooltip" data-bs-placement="top"
                                            data-bs-title="Gestión participantes"
                                            href="{% url 'editar_actividad_participantes' a.id %}"
                                            class="btn btn-icon btn-secondary"><i class="ti ti-users fs-lg"></i></a>
-{#                                            <a class="btn btn-sm btn-primary" href="{% url 'editar_actividad_economica' a.id %}"><i class="ti ti-coin-euro me-1"></i>  Gestión económica</a>#}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
+                                        {#                                            <a class="btn btn-sm btn-primary" href="{% url 'editar_actividad_economica' a.id %}"><i class="ti ti-coin-euro me-1"></i>  Gestión económica</a>#}
+                                    </td>
+                                </tr>
+                            {% endfor %}
                             </tbody>
                         </table>
 
@@ -178,74 +189,72 @@
         $(document).ready(function () {
 
             $('.dataTables-actividades').each(function () {
-            $(this).DataTable({
-                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
-                    "rt" +
-                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
-                responsive: true,
-                pageLength: 50,
-                fixedHeader: {
-                    header: true,
-                    headerOffset: 65
-                },
-                buttons: [
-                    {
-                        extend: 'collection',
-                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
-                        className: 'btn btn-sm btn-secondary dropdown-toggle',
-                        autoClose: true,
-                        buttons: [
-                            {
-                                extend: 'copy',
-                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
-                                className: 'dropdown-item'
-                            },
-                            {
-                                extend: 'csv',
-                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
-                                className: 'dropdown-item'
-                            },
-                            {
-                                extend: 'excel',
-                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
-                                className: 'dropdown-item'
-                            },
-                            {
-                                extend: 'print',
-                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
-                                className: 'dropdown-item'
-                            },
-                            {
-                                extend: 'pdf',
-                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
-                                className: 'dropdown-item'
-                            }
-                        ]
-                    }
-                ],
+                $(this).DataTable({
+                    dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                        "rt" +
+                        "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                    responsive: true,
+                    pageLength: 50,
+                    fixedHeader: {
+                        header: true,
+                        headerOffset: 65
+                    },
+                    buttons: [
+                        {
+                            extend: 'collection',
+                            text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                            className: 'btn btn-sm btn-secondary dropdown-toggle',
+                            autoClose: true,
+                            buttons: [
+                                {
+                                    extend: 'copy',
+                                    text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                    className: 'dropdown-item'
+                                },
+                                {
+                                    extend: 'csv',
+                                    text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                    className: 'dropdown-item'
+                                },
+                                {
+                                    extend: 'excel',
+                                    text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                    className: 'dropdown-item'
+                                },
+                                {
+                                    extend: 'print',
+                                    text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                    className: 'dropdown-item'
+                                },
+                                {
+                                    extend: 'pdf',
+                                    text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                    className: 'dropdown-item'
+                                }
+                            ]
+                        }
+                    ],
 
-                columnDefs: [
-                    {
-                        targets: [2,4],
-                        type: 'date-eu'
-                    }
-                ],
+                    columnDefs: [
+                        {
+                            targets: [2, 4],
+                            type: 'date-eu'
+                        }
+                    ],
 
 
-                order: [[2, 'desc']],
-                language: {
-                    url: "{% static 'plugins/datatables/es-ES.json' %}",
-                    paginate: {
-                        first: '<i class="ti ti-chevrons-left"></i>',
-                        previous: '<i class="ti ti-chevron-left"></i>',
-                        next: '<i class="ti ti-chevron-right"></i>',
-                        last: '<i class="ti ti-chevrons-right"></i>'
+                    order: [[2, 'desc']],
+                    language: {
+                        url: "{% static 'plugins/datatables/es-ES.json' %}",
+                        paginate: {
+                            first: '<i class="ti ti-chevrons-left"></i>',
+                            previous: '<i class="ti ti-chevron-left"></i>',
+                            next: '<i class="ti ti-chevron-right"></i>',
+                            last: '<i class="ti ti-chevrons-right"></i>'
+                        }
                     }
-                }
+                });
             });
-            });
-
-
 
 
         });

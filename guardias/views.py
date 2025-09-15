@@ -68,12 +68,12 @@ TRAMOS_NOMBRES = {
     7: "6ª hora",
 }
 
+
 # Formatear la fecha
 def formatear_fecha(fecha):
     dia_semana = dias_semana_es[fecha.strftime('%A')]
     mes = meses_es[fecha.strftime('%B')]
     return f"{dia_semana}, {fecha.strftime('%d')} de {mes} de {fecha.strftime('%Y')}".capitalize()
-
 
 
 def itemguardia_to_dict(item):
@@ -88,8 +88,8 @@ def itemguardia_to_dict(item):
         'aula': item.Aula.Aula if item.Aula else 'Sin aula',  # Aseguramos que no sea None
         'tarea': item.Tarea if item.Tarea else 'Sin tarea',  # Aseguramos que no sea None
         'profesores_guardia': profesores_guardia,
-        'profesor_notifica' : str(item.ProfesorNotifica),
-        'profesor_confirma' : str(item.ProfesorConfirma)
+        'profesor_notifica': str(item.ProfesorNotifica),
+        'profesor_confirma': str(item.ProfesorConfirma)
     }
 
 
@@ -112,7 +112,8 @@ def misausencias(request):
     curso_academico_actual = get_current_academic_year()
 
     # Buscar los ItemGuardia cuyo ProfesorAusente es el profesor actual
-    ausencias = ItemGuardia.objects.filter(ProfesorAusente=profesor, curso_academico=curso_academico_actual).order_by('-Fecha')
+    ausencias = ItemGuardia.objects.filter(ProfesorAusente=profesor, curso_academico=curso_academico_actual).order_by(
+        '-Fecha')
 
     # Diccionario ordenado para agrupar por fecha
     ausencias_agrupadas = OrderedDict()
@@ -127,13 +128,11 @@ def misausencias(request):
             ausencias_agrupadas[fecha] = []
         ausencias_agrupadas[fecha].append(ausencia)
 
-
-
     # Formatear los datos para la tabla
     datos_agrupados = []
     for fecha, items in ausencias_agrupadas.items():
         dia_semana = dias_semana_es[fecha.strftime('%A')]  # Traducir día al español
-        #dia_semana = fecha.strftime('%A').upper()
+        # dia_semana = fecha.strftime('%A').upper()
         es_futuro = fecha > hoy  # Comprobar si la fecha es futura
         datos_agrupados.append({
             'fecha': fecha.strftime('%d/%m/%Y'),  # Fecha en formato ISO para facilitar la consulta AJAX
@@ -168,9 +167,9 @@ def horario_profesor_ajax(request):
 
         profesor = Profesores.objects.get(id=profesor_id)
 
-
         # Filtrar los items del horario según el profesor y el día de la semana
-        items_horario = ItemHorario.objects.filter(profesor_id=profesor_id, dia=dia_semana, curso_academico=curso_academico_actual).order_by('tramo')
+        items_horario = ItemHorario.objects.filter(profesor_id=profesor_id, dia=dia_semana,
+                                                   curso_academico=curso_academico_actual).order_by('tramo')
 
         # Agrupar por tramo, materia y aula, y concatenar las unidades
         horario_agrupado = defaultdict(lambda: {'unidades': []})
@@ -208,9 +207,9 @@ def horario_profesor_ajax(request):
                 'guardia_exists': datos['guardia_exists']
             })
 
-        #locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+        # locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
         fecha_formateada = formatear_fecha(fecha)
-        #fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
+        # fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
 
         # Renderizar una plantilla parcial con los items del horario
         return render(request, 'partials/horario_items.html', {'items_horario': items_data, 'fecha': fecha_formateada})
@@ -293,7 +292,8 @@ def obtener_itemguardia_por_fecha(request):
         return JsonResponse({'error': 'Formato de fecha incorrecto.'}, status=400)
 
     # Filtramos los ItemGuardia por fecha y profesor
-    itemguardias = ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha, curso_academico=curso_academico_actual)
+    itemguardias = ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha,
+                                              curso_academico=curso_academico_actual)
 
     # Convertir los itemguardias a un diccionario
     itemguardia_list = [itemguardia_to_dict(item) for item in itemguardias]
@@ -313,7 +313,8 @@ def obtener_itemguardia_por_fecha_y_profe(request):
         return JsonResponse({'error': 'Formato de fecha incorrecto.'}, status=400)
 
     # Filtramos los ItemGuardia por fecha y profesor
-    itemguardias = ItemGuardia.objects.filter(ProfesorAusente_id=profe, Fecha=fecha, curso_academico=curso_academico_actual)
+    itemguardias = ItemGuardia.objects.filter(ProfesorAusente_id=profe, Fecha=fecha,
+                                              curso_academico=curso_academico_actual)
 
     # Convertir los itemguardias a un diccionario
     itemguardia_list = [itemguardia_to_dict(item) for item in itemguardias]
@@ -342,7 +343,8 @@ def parteguardias_ajax(request):
         for tramo in range(1, 8):  # Tramos de 1 a 7 (1ª Hora a 6ª Hora más Recreo)
             # Obtener todos los IDs de los profesores asignados en el tramo y materia 'GUARDIAS'
             profesor_ids = item_horarios.filter(
-                Q(tramo=tramo) & Q(materia__in=["GUARDIAS", "GUARDIA CONVIVENCIA", "GUARDIA ACE"]) & Q(profesor__Baja=False)
+                Q(tramo=tramo) & Q(materia__in=["GUARDIAS", "GUARDIA CONVIVENCIA", "GUARDIA HORIZONTE", "GUARDIA ACE"]) & Q(
+                    profesor__Baja=False)
             ).values_list('profesor', flat=True).distinct()
 
             # Para cada profesor, obtener el tiempo de guardia
@@ -353,8 +355,9 @@ def parteguardias_ajax(request):
                 tiempo_total = sum(tg.tiempo_asignado for tg in tiempos_guardia)  # Acumular el tiempo total
 
                 # Determinar si el profesor tiene "GUARDIA CONVIVENCIA"
-                #materia_guardia = item_horarios.filter(tramo=tramo, profesor=profesor).first().materia
-                materias_guardia = item_horarios.filter(tramo=tramo, profesor=profesor).values_list('materia',flat=True).distinct()
+                # materia_guardia = item_horarios.filter(tramo=tramo, profesor=profesor).first().materia
+                materias_guardia = item_horarios.filter(tramo=tramo, profesor=profesor).values_list('materia',
+                                                                                                    flat=True).distinct()
 
                 # Convertir tiempo a horas y minutos
                 if tiempo_total >= 60:
@@ -386,12 +389,16 @@ def parteguardias_ajax(request):
                     'tiempo': tiempo_str,
                     'tiempo_minutos': tiempo_total,
                     'puntuacion': puntuacion,  # Guardar la puntuación calculada
-                    'es_guardia_convivencia': ("GUARDIA CONVIVENCIA" in materias_guardia),
+                    'es_guardia_convivencia': (
+                            "GUARDIA CONVIVENCIA" in materias_guardia or
+                            "GUARDIA HORIZONTE" in materias_guardia
+                    ),
                     'es_guardia_DACE': ("GUARDIA ACE" in materias_guardia),
                 })
 
             # Ordenar la lista primero por tiempo y luego por porcentaje
-            profesores_info.sort(key=lambda x: (x['es_guardia_DACE'], x['es_guardia_convivencia'], x['tiempo_minutos'], x['puntuacion']))
+            profesores_info.sort(
+                key=lambda x: (x['es_guardia_DACE'], x['es_guardia_convivencia'], x['tiempo_minutos'], x['puntuacion']))
 
             profesores_guardia_info[tramo] = profesores_info
 
@@ -542,6 +549,8 @@ def serializar_item_guardias(item_guardias):
         item_guardias_data.append(guardia_data)
 
     return item_guardias_data
+
+
 '''
 def confirmar_guardia_ajax(request):
     if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -584,6 +593,8 @@ def confirmar_guardia_ajax(request):
     return JsonResponse({'success': False, 'error': 'Solicitud inválida'})
 
 '''
+
+
 def obtener_profesores(request):
     if request.method == 'GET':
         # Recuperar todos los profesores de la base de datos
@@ -606,7 +617,8 @@ def obtener_profesores(request):
 def listar_item_guardia(request):
     curso_academico_actual = get_current_academic_year()
     # Obtener todos los items ordenados
-    items = ItemGuardia.objects.filter(curso_academico=curso_academico_actual).order_by('-Fecha', 'ProfesorAusente', 'Tramo')
+    items = ItemGuardia.objects.filter(curso_academico=curso_academico_actual).order_by('-Fecha', 'ProfesorAusente',
+                                                                                        'Tramo')
 
     # Inicializamos una lista para los items agrupados
     items_agrupados = []
@@ -677,13 +689,11 @@ def verausencias(request):
         key = (ausencia.Fecha, ausencia.ProfesorAusente)  # Agrupamos por fecha y profesor
         ausencias_agrupadas[key].append(ausencia)
 
-
-
     # Formatear los datos para la tabla
     datos_agrupados = []
     for (fecha, profesor), items in ausencias_agrupadas.items():
         dia_semana = dias_semana_es[fecha.strftime('%A')]  # Traducir día al español
-        #dia_semana = fecha.strftime('%A').upper()
+        # dia_semana = fecha.strftime('%A').upper()
         datos_agrupados.append({
             'fecha': fecha.strftime('%d/%m/%Y'),  # Fecha en formato ISO para facilitar la consulta AJAX
             'diasemana': dia_semana,
@@ -714,7 +724,8 @@ def eliminar_itemguardia_por_fecha(request):
 
         # Obtener los ItemGuardia asociados a la fecha y al profesor
         profesor = get_object_or_404(Profesores, id=profesor_id)
-        ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha, curso_academico=curso_academico_actual).delete()
+        ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha,
+                                   curso_academico=curso_academico_actual).delete()
 
         return JsonResponse({'success': True})
 
@@ -734,7 +745,8 @@ def obtener_tramos_guardia_por_fecha(request):
     profesor = request.user.profesor
 
     # Filtrar ItemGuardia para esa fecha y profesor
-    itemguardias = ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha, curso_academico=curso_academico_actual)
+    itemguardias = ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha,
+                                              curso_academico=curso_academico_actual)
 
     # Renderizar los tramos (similar a ItemHorario pero con la edición)
     html = render_to_string('partials/ausencia_items.html', {'items_guardia': itemguardias, 'fecha': fecha_str})
@@ -757,7 +769,8 @@ def horario_guardia_ajax(request):
         dia_semana = fecha.isoweekday()
 
         # Filtrar los items de guardia según el profesor y el día de la semana
-        items_guardia = ItemGuardia.objects.filter(ProfesorAusente_id=profesor_id, Fecha=fecha, curso_academico=curso_academico_actual).order_by('Tramo')
+        items_guardia = ItemGuardia.objects.filter(ProfesorAusente_id=profesor_id, Fecha=fecha,
+                                                   curso_academico=curso_academico_actual).order_by('Tramo')
 
         items_data = []
         for item in items_guardia:
@@ -773,8 +786,8 @@ def horario_guardia_ajax(request):
             })
 
         # Formatear la fecha
-        #locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-        #fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
+        # locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+        # fecha_formateada = fecha.strftime("%A, %d de %B, %Y").capitalize()
         fecha_formateada = formatear_fecha(fecha)
 
         html = render_to_string('partials/ausencia_items.html',
@@ -827,7 +840,8 @@ def eliminar_itemguardia_por_fecha_y_profe(request):
         profesor = get_object_or_404(Profesores, id=profesor_id)
 
         # Obtener los ItemGuardia asociados a la fecha y al profesor
-        item_guardias = ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha, curso_academico=curso_academico_actual)
+        item_guardias = ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha,
+                                                   curso_academico=curso_academico_actual)
 
         # Eliminar los tiempos de guardia asociados a esos ItemGuardia
         for item_guardia in item_guardias:
@@ -858,7 +872,8 @@ def eliminar_itemguardia_por_fecha_profe_y_tramo(request):
         profesor = get_object_or_404(Profesores, id=profesor_id)
 
         # Obtener los ItemGuardia asociados a la fecha y al profesor
-        item_guardia = ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha, Tramo=tramo, curso_academico=curso_academico_actual)
+        item_guardia = ItemGuardia.objects.filter(ProfesorAusente=profesor, Fecha=fecha, Tramo=tramo,
+                                                  curso_academico=curso_academico_actual)
 
         # Eliminar los tiempos de guardia asociados a esos ItemGuardia
         if item_guardia.exists():
@@ -988,6 +1003,7 @@ def estadisticas(request):
 
     return render(request, 'estadisticasguardias.html', context)
 
+
 def actualizar_guardia_ajax(request):
     if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         # Obtener los datos enviados mediante POST
@@ -1038,6 +1054,7 @@ def actualizar_guardia_ajax(request):
             return JsonResponse({'success': False, 'error': 'ItemGuardia no encontrado'})
 
     return JsonResponse({'success': False, 'error': 'Solicitud inválida'})
+
 
 def modal_registrar_ausencia(request):
     return render(request, "partials/modal_registrar_ausencia.html")

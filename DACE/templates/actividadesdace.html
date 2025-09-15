@@ -63,6 +63,7 @@
                                 <th class="text-center">Fecha fin</th>
                                 <th class="text-center">Hora llegada</th>
                                 <th class="text-center">Estado</th>
+                                <th class="text-center">En PD</th>
                                 <th class="text-center">Acciones</th>
                                 <th class="text-center">Aprobación</th>
                             </tr>
@@ -95,6 +96,13 @@
                                         <td class="text-center"><span
                                                 class="badge badge-label text-bg-info">{{ a.Estado }}</span></td>
                                     {% endif %}
+                                    <td class="text-center">
+                                        {% if a.EnProgramacion %}
+                                            <span class="badge bg-success">Sí</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No</span>
+                                        {% endif %}
+                                    </td>
                                     <td class="text-center">
                                         <a data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Detalles"
                                            href="{% url 'detalles_actividad' a.id %}" class="btn btn-info btn-icon"><i
