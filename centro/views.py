@@ -30,6 +30,7 @@ from datetime import datetime, timedelta
 from gestion import settings
 from guardias.models import ItemGuardia
 from horarios.models import ItemHorario
+from prevision_plazas_enero import curso_academico_actual
 
 
 def group_check_je(user):
@@ -553,6 +554,8 @@ def importar_matriculas_materias(request):
         errores = []
         multi_profesores = 0
 
+        curso_academico_actual = get_current_academic_year()
+
         cursos_del_nivel = Cursos.objects.filter(Curso__icontains=nivel)
         if not cursos_del_nivel.exists():
             messages.error(request, f"No se encontraron cursos para el nivel '{nivel}'")
@@ -599,7 +602,8 @@ def importar_matriculas_materias(request):
                 for materia_imp in materias_imp:
                     matricula, creada = MatriculaMateria.objects.get_or_create(
                         alumno=alumno,
-                        materia_impartida=materia_imp
+                        materia_impartida=materia_imp,
+                        curso_academico = curso_academico_actual
                     )
 
                     if creada:
@@ -629,6 +633,7 @@ def ver_matriculas(request):
     datos = []
     curso_seleccionado = None
     cursoacademico_seleccionado = None
+    curso_academico_actual = get_current_academic_year()
 
     if request.method == "POST":
         curso_id = request.POST.get("curso")
@@ -865,16 +870,19 @@ def revisar_libros_view(request, profesor_id, momento_id, materia_id, libro_id):
     momento = get_object_or_404(MomentoRevisionLibros, pk=momento_id)
     materia = get_object_or_404(Materia, pk=materia_id)
     libro = get_object_or_404(LibroTexto, pk=libro_id)
+    curso_academico_actual = get_current_academic_year()
 
     # Buscar las materias impartidas por ese profesor de esa materia
     materias_impartidas = MateriaImpartida.objects.filter(
         profesor=profesor,
-        materia=materia
+        materia=materia,
+        curso_academico = curso_academico_actual
     )
 
     # Buscar los alumnos matriculados en esas materias impartidas
     matriculas = MatriculaMateria.objects.filter(
-        materia_impartida__in=materias_impartidas
+        materia_impartida__in=materias_impartidas,
+        curso_academico = curso_academico_actual
     ).select_related('alumno')
 
     alumnos = [m.alumno for m in matriculas]
@@ -915,9 +923,9 @@ def obtener_libros_ajax(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def get_cursos_profesor(request):
+    curso_academico_actual = get_current_academic_year()
     profesor_id = request.GET.get('profesor_id')
-    print(profesor_id)
-    cursos = Cursos.objects.filter(materiaimpartida__profesor_id=profesor_id).distinct()
+    cursos = Cursos.objects.filter(materiaimpartida__profesor_id=profesor_id, materiaimpartida__curso_academico=curso_academico_actual).distinct()
     data = [{'id': curso.id, 'nombre': str(curso)} for curso in cursos]
     return JsonResponse(data, safe=False)
 
@@ -925,10 +933,12 @@ def get_cursos_profesor(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def get_materias_profesor_curso(request):
+    curso_academico_actual = get_current_academic_year()
     profesor_id = request.GET.get('profesor_id')
     curso_id = request.GET.get('curso_id')
     materias = Materia.objects.filter(materiaimpartida__profesor_id=profesor_id,
-                                      materiaimpartida__curso_id=curso_id).distinct()
+                                      materiaimpartida__curso_id=curso_id,
+                                      materiaimpartida__curso_academico=curso_academico_actual).distinct()
     data = [{'id': m.id, 'nombre': str(m)} for m in materias]
     return JsonResponse(data, safe=False)
 
@@ -936,6 +946,7 @@ def get_materias_profesor_curso(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_prof, login_url='/')
 def get_libros_materia(request):
+    curso_academico_actual = get_current_academic_year()
     materia_id = request.GET.get('materia_id')
     libros = LibroTexto.objects.filter(materia_id=materia_id)
     data = [{'id': l.id, 'titulo': l.titulo} for l in libros]
@@ -945,17 +956,20 @@ def get_libros_materia(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def revision_libros(request, profesor_id, momento_id, materia_id, libro_id):
+
+    curso_academico_actual = get_current_academic_year()
     # Obtener MateriaImpartida concreta
     materia_impartida = MateriaImpartida.objects.filter(
         profesor_id=profesor_id,
-        materia_id=materia_id
+        materia_id=materia_id,
+        curso_academico = curso_academico_actual
     ).first()
 
     if not materia_impartida:
         return render(request, 'error.html', {'mensaje': 'No se ha encontrado la materia impartida.'})
 
     # Obtener alumnos matriculados
-    matriculas = MatriculaMateria.objects.filter(materia_impartida=materia_impartida).select_related('alumno')
+    matriculas = MatriculaMateria.objects.filter(materia_impartida=materia_impartida, curso_academico=curso_academico_actual).select_related('alumno')
 
     momento = get_object_or_404(MomentoRevisionLibros, pk=momento_id)
     libro = get_object_or_404(LibroTexto, pk=libro_id)
@@ -981,6 +995,8 @@ def get_tabla_revision(request):
     libro_id = request.GET.get('libro_id')
     momento_id = request.GET.get('momento_id')
 
+    curso_academico_actual = get_current_academic_year()
+
     if not all([profesor_id, curso_id, materia_id, libro_id, momento_id]):
         return JsonResponse({'error': 'Faltan datos'}, status=400)
 
@@ -996,7 +1012,8 @@ def get_tabla_revision(request):
         materia_impartida = MateriaImpartida.objects.get(
             profesor=profesor,
             materia=materia,
-            curso=curso
+            curso=curso,
+            curso_academico = curso_academico_actual
         )
     except MateriaImpartida.DoesNotExist:
         return JsonResponse({'error': 'No se encontró la asignación de esa materia con ese profesor en ese curso.'},
@@ -1004,7 +1021,8 @@ def get_tabla_revision(request):
 
     # Buscar alumnos matriculados en esa materia impartida
     alumnos = MatriculaMateria.objects.filter(
-        materia_impartida=materia_impartida
+        materia_impartida=materia_impartida,
+        curso_academico = curso_academico_actual
     ).select_related('alumno').order_by('alumno__Nombre')
 
     estados = momento.estados.all().order_by('orden')
@@ -1105,6 +1123,7 @@ def resumen_revisiones(request):
             materia_impartida__materia=r.materia,
             materia_impartida__profesor=r.profesor,
             materia_impartida__curso=r.curso,
+            materia_impartida__curso_academico = r.curso_academico
         ).values('alumno_id').distinct().count()
 
         resumen.append({
@@ -1185,6 +1204,7 @@ def mis_revisiones(request):
             materia_impartida__materia=r.materia,
             materia_impartida__profesor=r.profesor,
             materia_impartida__curso=r.curso,
+            materia_impartida__curso_academico=r.curso_academico
         ).values('alumno_id').distinct().count()
 
         resumen_item = {
@@ -1235,6 +1255,7 @@ def mis_revisiones(request):
 def editar_revision_libros(request, revision_id):
     revision = get_object_or_404(RevisionLibro, id=revision_id)
     estados = revision.momento.estados.all().order_by('orden')
+
 
     # Obtener la materia impartida desde los datos de la revisión
     try:
