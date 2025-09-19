@@ -10,7 +10,7 @@ from django.views.generic import DetailView
 from centro.utils import get_current_academic_year, get_previous_academic_years
 from convivencia.forms import AmonestacionForm, SancionForm, FechasForm, AmonestacionProfeForm, ResumenForm, \
     IntervencionAulaHorizonteForm
-from centro.models import Alumnos, Profesores, Niveles, CursoAcademico
+from centro.models import Alumnos, Profesores, Niveles, CursoAcademico, MateriaImpartida
 from centro.views import group_check_je, group_check_prof, group_check_prof_and_tutor_or_je
 from convivencia.models import Amonestaciones, Sanciones, TiposAmonestaciones, PropuestasSancion, \
     IntervencionAulaHorizonte
@@ -43,7 +43,7 @@ def procesar_amonestacion(amon):
                          .values_list('profesor', flat=True))
 
     # Añadir al tutor del alumno
-    destinatarios.append(curso.Tutor)
+    destinatarios.append(curso.Tutor.id)
 
     # Obtener las direcciones de correo electrónico de los destinatarios
     correos = []
@@ -149,7 +149,7 @@ def parte(request, tipo, alum_id):
                     # Filtramos los profesores que imparten asignaturas en ese curso académico
                     destinatarios = list(MateriaImpartida.objects.filter(curso=curso, curso_academico=curso_academico)
                                          .values_list('profesor', flat=True))
-                    destinatarios.append(curso.Tutor)
+                    destinatarios.append(curso.Tutor.id)
 
                     # Preparar el correo para los destinatarios de la sanción
                     template = get_template("correo_sancion.html")

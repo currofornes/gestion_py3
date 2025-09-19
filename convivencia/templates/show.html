@@ -103,21 +103,32 @@
                         <table id="child-rows-data" class="table table-striped dt-responsive align-middle mb-0">
                             <thead class="thead-sm text-uppercase fs-xxs">
                             <tr>
-                                <th></th>
+                                {% if tipo == 'amonestacion' %}
+                                    <th></th>
+                                {% endif %}
                                 <th>N.</th>
                                 <th>Alumno/a</th>
                                 <th>Tipo</th>
                                 <th>Fecha</th>
                                 <th>Unidad</th>
-                                <th>A/S</th>
-                                <th>A/S Hist.</th>
-                                <th>Tramo Horario</th>
+                                {% if tipo == 'amonestacion' %}
+                                    <th>A/S</th>
+                                    <th>A/S Hist.</th>
+                                    <th>Tramo Horario</th>
+                                {% else %}
+                                    <th>Sanción</th>
+                                    <th>Carta</th>
+                                {% endif %}
                             </tr>
                             </thead>
                             <tbody>
                             {% for n,h,contar, contarhist in datos %}
                                 <tr class="" data-profesor="{{ h.Profesor|default:'' }}"
+                                        {% if tipo == 'amonestacion' %}
                                     data-hora="{{ horas|slice:h.Hora|last }}"
+                                        {% else %}
+                                    data-hora=""
+                                        {% endif %}
                                     data-comentario="{{ h.Comentario }}"
                                     data-tipo="{{ h.Tipo }}"
                                     data-derivado="{{ h.DerivadoConvivencia|yesno:"SÍ,NO" }}"
@@ -128,9 +139,11 @@
                                     data-telefono="{{ h.TelefonoComunicado }}"
                                     data-observacion="{{ h.ObservacionComunicado }}"
                                     data-id="{{ h.id }}">
-                                    <td class="dt-control dt-child-rows-btn dtr-control"><i
-                                            class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>
-                                    </td>
+                                    {% if tipo == 'amonestacion' %}
+                                        <td class="dt-control dt-child-rows-btn dtr-control"><i
+                                                class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>
+                                        </td>
+                                    {% endif %}
                                     <td class="sorting_1">{{ n }}</td>
 
                                     <td>
@@ -175,6 +188,12 @@
                                             <td>{{ h.Sancion }}</td>
 
                                         {% endif %}
+                                        <td>
+                                            <a href="/pdf/carta_sancion/{{ h.id }}" class="link-primary"
+                                               aria-label="Carta de sanción">
+                                                <i class="ti ti-file fs-3"></i>
+                                            </a>
+                                        </td>
                                     {% endif %}
 
                                 </tr>
@@ -224,6 +243,27 @@
     <script>
         $(document).ready(function () {
 
+
+            const columnsAmonestacion = [
+                {
+                    className: 'dt-control dt-child-rows-btn',
+                    orderable: false,
+                    data: null,
+                    defaultContent: '<i class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>'
+                },
+                null, null, null, null, null, null, null, null
+            ];
+
+            const columnsSancion = [
+                null, null, null, null, null, null, null
+            ];
+
+            const tipo = "{{ tipo }}"; // Obtén el tipo desde Django template context
+
+            const selectedColumns = (tipo === 'amonestacion') ? columnsAmonestacion : columnsSancion;
+            const orderColumn = (tipo === 'amonestacion') ? 1 : 0; // ordena según columna presente
+
+
             const tabla = $('#child-rows-data').DataTable({
                 dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
                     "rt" +
@@ -269,15 +309,8 @@
                         ]
                     }
                 ],
-                columns: [
-                    {
-                        className: 'dt-control dt-child-rows-btn',
-                        orderable: false,
-                        data: null,
-                        defaultContent: '<i class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>'
-                    }, null, null, null, null, null, null, null, null
-                ],
-                order: [[1, 'asc']],
+                columns: selectedColumns,
+                order: [[orderColumn, 'asc']],
                 language: {
                     url: "{% static 'plugins/datatables/es-ES.json' %}",
                     paginate: {
