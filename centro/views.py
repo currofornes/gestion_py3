@@ -476,7 +476,7 @@ def importar_materias_impartidas(request):
             # Buscar Curso (Unidad)
             curso = Cursos.objects.filter(Curso=nombre_unidad, Nivel=nivel).first()
             if not curso:
-                messages.warning(request, f"Curso (Unidad) no encontrado: {nombre_unidad} en {nivel.Nombre}")
+                messages.warning(request, f"Curso (Unidad) no encontrado: {nombre_unidad} en {nombre_nivel}")
                 continue
 
             # Buscar Materia

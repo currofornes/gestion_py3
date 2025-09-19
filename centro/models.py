@@ -99,7 +99,7 @@ class Niveles(models.Model):
     NombresAntiguos = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.Abr
+        return self.Nombre
 
     class Meta:
         verbose_name = "Nivel"

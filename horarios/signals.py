@@ -1,8 +1,21 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+
+from centro.utils import get_current_academic_year
 from .models import ItemHorario
 
+
 @receiver(post_save, sender=ItemHorario)
+def asignar_curso_academico(sender, instance, created, **kwargs):
+    if created and not hasattr(instance, '_curso_asignado'):
+        curso_actual = get_current_academic_year()
+        if instance.curso_academico != curso_actual:
+            instance.curso_academico = curso_actual
+            instance._curso_asignado = True
+            instance.save()
+
+
+'''
 def sincronizar_horario(sender, instance, created, **kwargs):
     prof = instance.profesor
 
@@ -87,3 +100,5 @@ def eliminar_horario_sincronizado(sender, instance, **kwargs):
                 materia=instance.materia,
                 curso_academico=instance.curso_academico,
             ).delete()
+
+'''

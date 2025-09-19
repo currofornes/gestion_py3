@@ -23,6 +23,8 @@ from gestion.views import (
 
 urlpatterns = [
 
+    path('', index, name='index'),
+
     path('admin/descargar-db/', descargar_base_datos, name='descargar_base_datos'),
     path('admin/cargar_qry/', cargar_qry, name='cargar_qry'),
 

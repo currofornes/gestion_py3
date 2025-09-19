@@ -351,7 +351,7 @@ def parteguardias_ajax(request):
             profesores_info = []
             for profesor in Profesores.objects.filter(id__in=profesor_ids):
                 # Sumar el tiempo asignado en ese tramo y día para este profesor
-                tiempos_guardia = TiempoGuardia.objects.filter(profesor=profesor, tramo=tramo, dia_semana=dia_semana)
+                tiempos_guardia = TiempoGuardia.objects.filter(profesor=profesor, tramo=tramo, dia_semana=dia_semana, curso_academico=curso_academico_actual)
                 tiempo_total = sum(tg.tiempo_asignado for tg in tiempos_guardia)  # Acumular el tiempo total
 
                 # Determinar si el profesor tiene "GUARDIA CONVIVENCIA"

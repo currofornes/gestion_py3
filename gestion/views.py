@@ -447,7 +447,6 @@ def cargar_qry(request):
     if request.method == "POST":
         form = QueryForm(request.POST)
         if form.is_valid():
-            print("hola")
             print(form.cleaned_data)
             query = form.cleaned_data["query"]
 
@@ -463,7 +462,6 @@ def cargar_qry(request):
             except Exception as e:
                 error = str(e)
         else:
-            print("Algo falla!")
             print(form.errors)
             print(form.cleaned_data)
     else:

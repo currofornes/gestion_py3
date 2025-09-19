@@ -145,7 +145,7 @@
                 var form = $('#formNuevoItemHorario');
                 $.ajax({
                     type: 'POST',
-                    url: "{% url 'crear_item_horario' profesor.id %}",
+                    url: "{% url 'crear_item_horario' profesor_id=profesor.id %}",
                     data: form.serialize(),
                     success: function (response) {
                         $('#item-horario-list').append(
