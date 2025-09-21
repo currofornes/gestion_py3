@@ -1048,6 +1048,28 @@ def actualizar_guardia_ajax(request):
                     item_guardia=item_guardia
                 )
 
+                # Crear también el tiempo para el profesor sustituto o titular, si existe
+                if profesor.SustitutoDe:
+                    TiempoGuardia.objects.create(
+                        profesor=profesor.SustitutoDe,
+                        dia_semana=item_guardia.Fecha.weekday() + 1,
+                        tramo=item_guardia.Tramo,
+                        tiempo_asignado=tiempo_asignado,
+                        item_guardia=item_guardia
+                    )
+                else:
+                    try:
+                        sustituto = Profesores.objects.get(SustitutoDe=profesor)
+                        TiempoGuardia.objects.create(
+                            profesor=sustituto,
+                            dia_semana=item_guardia.Fecha.weekday() + 1,
+                            tramo=item_guardia.Tramo,
+                            tiempo_asignado=tiempo_asignado,
+                            item_guardia=item_guardia
+                        )
+                    except Profesores.DoesNotExist:
+                        pass
+
             return JsonResponse({'success': True})
 
         except ItemGuardia.DoesNotExist:

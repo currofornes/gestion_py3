@@ -17,6 +17,7 @@ from django.http import HttpResponseForbidden, FileResponse, HttpRequest, HttpRe
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.timezone import now
+from django.views.decorators.http import require_POST
 
 from centro.models import Alumnos, Cursos, Departamentos, Profesores, Niveles, Materia, MateriaImpartida, \
     MatriculaMateria, LibroTexto, MomentoRevisionLibros, RevisionLibroAlumno, EstadoLibro, RevisionLibro, \
@@ -28,7 +29,7 @@ from centro.forms import UnidadForm, DepartamentosForm, UnidadProfeForm, Unidade
 from datetime import datetime, timedelta
 
 from gestion import settings
-from guardias.models import ItemGuardia
+from guardias.models import ItemGuardia, TiempoGuardia
 from horarios.models import ItemHorario
 from prevision_plazas_enero import curso_academico_actual
 
@@ -453,6 +454,8 @@ def importar_materias_impartidas(request):
     if request.method == 'POST' and 'csv_materias_impartidas' in request.FILES:
         csv_file = request.FILES['csv_materias_impartidas']
 
+        curso_academico_actual = get_current_academic_year()
+
         try:
             csv_reader = decode_file_dict(csv_file)
         except UnicodeDecodeError:
@@ -481,7 +484,7 @@ def importar_materias_impartidas(request):
                 continue
 
             # Buscar Materia
-            materia = Materia.objects.filter(nombre=nombre_materia, nivel=nivel).first()
+            materia = Materia.objects.filter(nombre=nombre_materia, nivel=nivel, curso_academico=curso_academico_actual).first()
             if not materia:
                 messages.warning(request, f"Materia no encontrada: {nombre_materia} en {nivel.Nombre}")
                 continue
@@ -493,7 +496,7 @@ def importar_materias_impartidas(request):
                 normalizado_csv = quitar_tildes(nombre_completo_csv).lower()
 
                 profesor = None
-                for prof in Profesores.objects.all():
+                for prof in Profesores.objects.filter(Baja=False):
                     nombre_prof = quitar_tildes(str(prof)).lower()
                     if nombre_prof == normalizado_csv:
                         profesor = prof
@@ -510,7 +513,8 @@ def importar_materias_impartidas(request):
             obj, created = MateriaImpartida.objects.get_or_create(
                 materia=materia,
                 curso=curso,
-                profesor=profesor
+                profesor=profesor,
+                curso_academico=curso_academico_actual
             )
             if created:
                 messages.success(request, f"Importada: {materia.nombre} en {curso.Curso} por {profesor}")
@@ -589,7 +593,8 @@ def importar_matriculas_materias(request):
 
                 materias_imp = MateriaImpartida.objects.filter(
                     curso=curso,
-                    materia__nombre__iexact=materias_csv[i].strip()
+                    materia__nombre__iexact=materias_csv[i].strip(),
+                    curso_academico=curso_academico_actual
                 )
 
                 if not materias_imp.exists():
@@ -1517,23 +1522,19 @@ def copiar_horario(titular, sustituto):
 
 
 def copiar_guardias(titular, sustituto):
-    guardias = ItemGuardia.objects.filter(ProfesorAusente=titular)
-    for g in guardias:
-        horarios_guardia_orig = list(g.ProfesoresGuardia.all())
-        tiempos_guardia_orig = list(g.tiempos_guardia.all())
+    # Obtener todos los TiempoGuardia del titular (con sus respectivos ItemGuardia)
+    tiempos_guardia_orig = TiempoGuardia.objects.filter(profesor=titular)
 
-        g.pk = None
-        g.ProfesorAusente = sustituto
-        g.save()
-        # Copiar relaciones M2M ProfesoresGuardia
-        g.ProfesoresGuardia.set(horarios_guardia_orig)
-
-        # Copiar tiempos asociados
-        for t in tiempos_guardia_orig:
-            t.pk = None
-            t.profesor = sustituto
-            t.item_guardia = g
-            t.save()
+    for t in tiempos_guardia_orig:
+        # Crear un TiempoGuardia nuevo para el sustituto, vinculado al mismo ItemGuardia
+        TiempoGuardia.objects.create(
+            profesor=sustituto,
+            dia_semana=t.dia_semana,
+            tramo=t.tramo,
+            tiempo_asignado=t.tiempo_asignado,
+            item_guardia=t.item_guardia,
+            curso_academico=t.curso_academico,
+        )
 
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
@@ -1543,43 +1544,54 @@ def crear_sustituto(request):
         if form.is_valid():
             data = form.cleaned_data
 
-            # Crear usuario
-            user = User.objects.create(
-                username=data['username'],
-                email=data['email'],
-                password=make_password(data['dni']),  # DNI como contraseña
-            )
+            with transaction.atomic():  # Garantiza atomicidad y rollback si falla algo
+                # Crear usuario
+                user = User.objects.create(
+                    username=data['username'],
+                    email=data['email'],
+                    password=make_password(data['dni']),  # DNI como contraseña
+                )
 
-            # Copiar grupos del usuario titular
-            titular_user = data['profesor_sustituido'].user  # Usuario del profesor titular
+                # Copiar grupos del usuario titular
+                titular_user = data['profesor_sustituido'].user  # Usuario del profesor titular
+                if titular_user:
+                    grupos = titular_user.groups.all()
+                    user.groups.set(grupos)  # Asignar todos los grupos al nuevo usuario
 
-            if titular_user:
-                grupos = titular_user.groups.all()
-                user.groups.set(grupos)  # Asignar todos los grupos a nuevo usuario
+                # Crear Profesor sustituto
+                profesor_sustituto = Profesores.objects.create(
+                    user=user,
+                    Nombre=data['nombre'],
+                    Apellidos=data['apellidos'],
+                    DNI=data['dni'],
+                    Email=data['email'],
+                    SustitutoDe=data['profesor_sustituido'],
+                    Departamento=data['profesor_sustituido'].Departamento,
+                    Baja=False,
+                )
 
-            # Crear Profesor sustituto
-            profesor_sustituto = Profesores.objects.create(
-                user=user,
-                Nombre=data['nombre'],
-                Apellidos=data['apellidos'],
-                DNI=data['dni'],
-                Email=data['email'],
-                SustitutoDe=data['profesor_sustituido'],
-                Baja=False,
-            )
+                titular = data['profesor_sustituido']
 
+                # Actualizar cursos donde titular es tutor
+                cursos_tutor = Cursos.all_objects.filter(Tutor=titular)
+                for curso in cursos_tutor:
+                    curso.Tutor = profesor_sustituto
+                    curso.save()
 
+                materias_impartidas = MateriaImpartida.objects.filter(profesor=titular)
+                for mi in materias_impartidas:
+                    mi.profesor = profesor_sustituto
+                    mi.save()
 
-            # Copiar horario y guardias
-            copiar_horario(profesor_sustituto.SustitutoDe, profesor_sustituto)
-            copiar_guardias(profesor_sustituto.SustitutoDe, profesor_sustituto)
+                # Copiar horario y guardias
+                copiar_horario(titular, profesor_sustituto)
+                copiar_guardias(titular, profesor_sustituto)
 
-            # Marcar titular como dado de baja
-            profesor_titular = data['profesor_sustituido']
-            profesor_titular.Baja = True
-            profesor_titular.save()
+                # Marcar titular como dado de baja
+                titular.Baja = True
+                titular.save()
 
-            messages.success(request, "Profesor sustituto creado y datos sincronizados.")
+            messages.success(request, "Profesor sustituto creado y datos sincronizados con tutorías actualizadas.")
             return redirect('lista_sustitutos')  # Cambiar al nombre real de la URL
     else:
         form = ProfesorSustitutoForm()
@@ -1596,3 +1608,27 @@ def lista_sustitutos(request):
         'sustitutos': sustitutos,
     }
     return render(request, 'lista_sustitutos.html', context)
+
+
+@require_POST
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def reincorporar_titular(request):
+    sustituto_id = request.POST.get('sustituto_id')
+    titular_id = request.POST.get('titular_id')
+
+    try:
+        sustituto = Profesores.objects.get(id=sustituto_id)
+        titular = Profesores.objects.get(id=titular_id)
+
+        titular.Baja = False
+        titular.save()
+
+        sustituto.Baja = True
+        sustituto.SustitutoDe = None
+        sustituto.save()
+
+        return JsonResponse({'success': True})
+
+    except Profesores.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Profesor no encontrado'})

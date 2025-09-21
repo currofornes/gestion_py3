@@ -62,11 +62,12 @@ urlpatterns = [
     path('morosos/', views.morosos_view, name='informe_morosos'),
     path('destrozones/', views.destrozones_view, name='informe_destrozones'),
 
-path('mipreferenciahoraria/', views.mi_preferencia_horaria, name='mi_preferencia_horaria'),
+    path('mipreferenciahoraria/', views.mi_preferencia_horaria, name='mi_preferencia_horaria'),
 
-path('preferenciashorarias/', views.preferencias_profesores, name='preferencias_profesores'),
+    path('preferenciashorarias/', views.preferencias_profesores, name='preferencias_profesores'),
 
-path('gestion-sustitutos/', views.crear_sustituto, name='crear_sustituto'),
+    path('gestion-sustitutos/', views.crear_sustituto, name='crear_sustituto'),
 
-path('gestion-sustitutos/lista/', views.lista_sustitutos, name='lista_sustitutos'),
+    path('gestion-sustitutos/lista/', views.lista_sustitutos, name='lista_sustitutos'),
+    path('reincorporar-titular/', views.reincorporar_titular, name='reincorporar_titular')
 ]

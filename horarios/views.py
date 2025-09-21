@@ -250,7 +250,7 @@ class EditarHorarioProfesorView(ListView):
 
 class UpdateHorarioView(UpdateView):
     model = ItemHorario
-    form_class = ItemHorarioForm  # El formulario que usas para editar
+    form_class = ItemHorarioForm
     template_name = 'editar_item_horario.html'
 
     def get_success_url(self):
@@ -260,17 +260,88 @@ class UpdateHorarioView(UpdateView):
         return reverse_lazy('editar_horario_profesor', kwargs={'profesor_id': profesor_id})
 
     def form_valid(self, form):
-        # Aquí puedes realizar alguna acción antes de guardar, si es necesario
-        return super().form_valid(form)
+        # Captura los valores antiguos antes de guardar (antes de super().form_valid)
+        item_antiguo = ItemHorario.objects.get(pk=self.object.pk)
+        datos_clave = {
+            'tramo': item_antiguo.tramo,
+            'dia': item_antiguo.dia,
+            'unidad': item_antiguo.unidad,
+            'aula': item_antiguo.aula,
+            'materia': item_antiguo.materia,
+            'curso_academico': item_antiguo.curso_academico,
+        }
+
+        response = super().form_valid(form)
+        item = self.object
+        profesor = item.profesor
+
+        if profesor.SustitutoDe:
+            otro_profesor = profesor.SustitutoDe
+        else:
+            try:
+                otro_profesor = Profesores.objects.get(SustitutoDe=profesor)
+            except Profesores.DoesNotExist:
+                otro_profesor = None
+
+        if otro_profesor:
+            # Buscar el item horario equivalente con los datos clave previos
+            try:
+                item_otro = ItemHorario.objects.get(profesor=otro_profesor, **datos_clave)
+                # Ahora actualiza todos los campos que quieres sincronizar
+                item_otro.tramo = item.tramo
+                item_otro.dia = item.dia
+                item_otro.unidad = item.unidad
+                item_otro.aula = item.aula
+                item_otro.materia = item.materia
+                item_otro.curso_academico = item.curso_academico
+                item_otro.save()
+            except ItemHorario.DoesNotExist:
+                # Si no existía, créalo (caso poco frecuente)
+                ItemHorario.objects.create(
+                    tramo=item.tramo,
+                    dia=item.dia,
+                    profesor=otro_profesor,
+                    unidad=item.unidad,
+                    aula=item.aula,
+                    materia=item.materia,
+                    curso_academico=item.curso_academico
+                )
+
+        return response
+
 
 class DeleteHorarioView(DeleteView):
     model = ItemHorario
-    template_name = 'confirmar_eliminar_horario.html'  # Plantilla de confirmación
-    success_url = reverse_lazy('editar_horario_profesor')  # Redirige a la vista de editar el horario después de eliminar
+    template_name = 'confirmar_eliminar_horario.html'
 
     def get_success_url(self):
-        # Redirige a la página de edición del profesor específico
         return reverse_lazy('editar_horario_profesor', kwargs={'profesor_id': self.object.profesor.id})
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        profesor = obj.profesor
+
+        datos_clave = {
+            'tramo': obj.tramo,
+            'dia': obj.dia,
+            'unidad': obj.unidad,
+            'aula': obj.aula,
+            'materia': obj.materia,
+            'curso_academico': obj.curso_academico,
+        }
+
+        if profesor.SustitutoDe:
+            otro_profesor = profesor.SustitutoDe
+        else:
+            try:
+                otro_profesor = Profesores.objects.get(SustitutoDe=profesor)
+            except Profesores.DoesNotExist:
+                otro_profesor = None
+
+        if otro_profesor:
+            ItemHorario.objects.filter(profesor=otro_profesor, **datos_clave).delete()
+
+        return super().delete(request, *args, **kwargs)
 
 
 class CrearItemHorarioView(CreateView):
@@ -279,16 +350,39 @@ class CrearItemHorarioView(CreateView):
     template_name = 'editar_horario_profesor.html'
 
     def form_valid(self, form):
-        # Guarda el nuevo ítem de horario
+        item = form.save(commit=False)
+        item.profesor = get_object_or_404(Profesores, id=self.kwargs['profesor_id'])
         try:
-            item = form.save(commit=False)
-            item.profesor = get_object_or_404(Profesores,
-                                              id=self.kwargs['profesor_id'])  # Asegurarse de asignar el profesor
             item.save()
         except IntegrityError:
             print("Ya existe un ItemHorario igual")
+            return super().form_invalid(form)
 
-        # Si la solicitud es AJAX, devolvemos un JSON con los datos del nuevo ítem
+        # Sincronizar con sustituto o titular
+        profesor = item.profesor
+        if profesor.SustitutoDe:
+            otro_profesor = profesor.SustitutoDe
+        else:
+            try:
+                otro_profesor = Profesores.objects.get(SustitutoDe=profesor)
+            except Profesores.DoesNotExist:
+                otro_profesor = None
+
+        if otro_profesor:
+            ItemHorario.objects.update_or_create(
+                tramo=item.tramo,
+                dia=item.dia,
+                profesor=otro_profesor,
+                unidad=item.unidad,
+                aula=item.aula,
+                materia=item.materia,
+                curso_academico=item.curso_academico,
+                defaults={
+                    'materia': item.materia
+                }
+            )
+
+        # Respuesta AJAX
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             data = {
                 'id': item.id,

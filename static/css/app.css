@@ -22385,3 +22385,12 @@ div:where(.swal2-icon).swal2-success [class^=swal2-success-line][class$=tip] {
     color: white !important;
     cursor: pointer;
 }
+
+tr.disabled {
+    background-color: #f6ccba !important;  /* Cambia esto según tu diseño */
+    cursor: not-allowed;  /* Cambia el cursor */
+}
+
+tr.disabled input[type="checkbox"] {
+  pointer-events: none; /* no se puede clickar checkbox */
+}
