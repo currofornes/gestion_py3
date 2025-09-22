@@ -89,7 +89,8 @@
                                 <div class="mb-2">
                                     <div class="form-check fs-xl mb-2">
                                         <input type="checkbox" class="form-check-input" id="customCheck11">
-                                        <label class="form-check-label fs-base" for="customCheck11">{{ form.NoExpulsion.label }}</label>
+                                        <label class="form-check-label fs-base"
+                                               for="customCheck11">{{ form.NoExpulsion.label }}</label>
                                     </div>
                                 </div>
 
@@ -156,8 +157,17 @@
 
                                 <div class="mb-2">
                                     <div class="form-check fs-xl mb-2">
-                                        <input type="checkbox" class="form-check-input" id="customCheck11">
-                                        <label class="form-check-label fs-base" for="customCheck11">Derivado al Aula Horizonte</label>
+                                        {{ form.DerivadoConvivencia }}
+                                        <label class="form-check-label fs-base"
+                                               for="{{ form.DerivadoConvivencia.id_for_label }}">
+                                            Derivado al Aula Horizonte
+                                        </label>
+                                        {% if form.DerivadoConvivencia.help_text %}
+                                            <span class="help-block">{{ form.DerivadoConvivencia.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.DerivadoConvivencia.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
                                     </div>
                                 </div>
 
@@ -321,7 +331,6 @@
                 autoclose: true,
                 language: "es"
             }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
-
 
 
             $('form').on('keypress', 'input, select', function (e) {
