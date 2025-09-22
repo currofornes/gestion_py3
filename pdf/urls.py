@@ -20,5 +20,7 @@ urlpatterns = [
     re_path(r'^carta_abs_ED/(?P<proto_id>[0-9]+)$', views.carta_abs_tutor_ED),
     re_path(r'^carta_abs_familia_ED/(?P<proto_id>[0-9]+)$', views.carta_abs_ED_familia),
 
+    path('revision-libros/hoja_firmas_pdf/', views.hoja_firmas_revision_libros, name='hoja_firmas_revision_libros')
+
 
 ]

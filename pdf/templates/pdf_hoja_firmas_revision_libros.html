@@ -1,0 +1,27 @@
+<div style="text-align: center;">
+    <h2>Hoja de firmas de entrega de libros</h2>
+    <p><strong>Curso:</strong> {{ curso }}<br>
+       <strong>Materia:</strong> {{ materia }}<br>
+       <strong>Libro:</strong> {{ libro }}<br>
+       <strong>Profesor/a:</strong> {{ profesor }}<br>
+        <strong>Curso académico:</strong> {{ curso_academico }}<br>
+    </p>
+</div>
+<table width="100%" border="1" cellpadding="3" cellspacing="0">
+    <thead>
+        <tr>
+            <th style="width: 7%;">Nº</th>
+            <th style="width: 51%;">Alumno/a</th>
+            <th style="width: 42%;">Firma</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for idx, alumno in alumnos %}
+        <tr>
+            <td style="text-align: center;">{{ idx }}</td>
+            <td>{{ alumno.Nombre }}</td>
+            <td style="height: 30px;"></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
