@@ -10,8 +10,8 @@ from centro.utils import get_current_academic_year
 @receiver(post_save, sender=TiempoGuardia)
 def asignar_curso_academico(sender, instance, created, **kwargs):
     if created and not hasattr(instance, '_curso_asignado'):
-        curso_actual = get_current_academic_year()
-        if instance.curso_academico != curso_actual:
+        if instance.curso_academico is None:
+            curso_actual = get_current_academic_year()
             instance.curso_academico = curso_actual
             instance._curso_asignado = True
             instance.save()
