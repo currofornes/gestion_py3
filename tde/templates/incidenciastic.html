@@ -383,6 +383,7 @@
 
         $(document).ready(function () {
 
+
             var tablePendientes = $('.dataTables-incidencias-pendientes').DataTable({
                 dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
                     "rt" +
@@ -584,7 +585,7 @@
 
             });
 
-            $('.borrar-antigua').click(function () {
+            $(document).on('click', '.borrar-antigua', function(e) {
                 var incidenciaId = $(this).data('id');
                 var row = $(this).closest('tr'); // Obtener la fila de la tabla
 
@@ -638,7 +639,7 @@
                 });
             });
 
-            $('.borrar-pendiente').click(function () {
+           $(document).on('click', '.borrar-pendiente', function(e) {
                 var incidenciaId = $(this).data('id');
                 var row = $(this).closest('tr'); // Obtener la fila de la tabla
 
@@ -692,7 +693,7 @@
                 });
             });
 
-            $('.resolver-pendiente').click(function () {
+            $(document).on('click', '.resolver-pendiente', function(e) {
                 var incidenciaId = $(this).data('id');
                 var row = $(this).closest('tr'); // Obtener la fila de la tabla
                 Swal.fire({

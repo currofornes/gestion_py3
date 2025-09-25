@@ -12,6 +12,8 @@
     <!-- Select Plugin CSS -->
     <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
     <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+    
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
 
 {% endblock %}
 
@@ -179,6 +181,9 @@
                             <div class="text-center mt-3">
                                 <button type="submit" class="btn btn-primary">Actualizar revisión</button>
                                 <a href="{% url 'mis_revisiones' %}" class="btn btn-secondary ms-2">Cancelar</a>
+                                <button type="button" class="btn btn-outline-secondary" id="generar-hoja-firma">
+    Generar hoja de firmas PDF
+</button>
                             </div>
                         </form>
 
@@ -219,6 +224,9 @@
 
     <!-- Select2 Plugin Js -->
     <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+    
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
 
 
     <script>
@@ -232,6 +240,27 @@
         $('.limpiar-radio').on('click', function () {
             const alumnoId = $(this).data('alumno-id');
             $(`input[name="estado_${alumnoId}"]`).prop('checked', false);
+        });
+        
+        
+        $('#generar-hoja-firma').on('click', function () {
+
+            const profesor_id = {{ revision.profesor.id }};
+            const curso_id = {{ revision.curso.id }};
+            const materia_id = {{ revision.materia.id }};
+            const libro_id = {{ revision.libro.id }};
+            const momento_id = {{ revision.momento.id }};
+            if (!profesor_id || !curso_id || !materia_id || !libro_id || !momento_id) {
+                Swal.fire('Faltan datos', 'Debes seleccionar todos los campos para generar la hoja de firmas.', 'warning');
+                return;
+            }
+            window.open(
+              "{% url 'hoja_firmas_revision_libros' %}?profesor_id=" + profesor_id +
+              "&curso_id=" + curso_id +
+              "&materia_id=" + materia_id +
+              "&libro_id=" + libro_id,
+              '_blank'
+            );
         });
         
         });

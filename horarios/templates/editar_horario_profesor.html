@@ -141,7 +141,7 @@
                 width: '100%'
             });
 
-            $('#submitNuevoItemHorario').click(function () {
+            $(document).on('click', '#submitNuevoItemHorario', function(e) {
                 var form = $('#formNuevoItemHorario');
                 $.ajax({
                     type: 'POST',

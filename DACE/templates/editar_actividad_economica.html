@@ -207,7 +207,7 @@
             });
 
             // Añadir fila de gasto
-            $('#btn_agregar_gasto').click(function () {
+            $(document).on('click', '#btn_agregar_gasto', function(e) {
                 const formIdx = $("#id_form-TOTAL_FORMS").val();
                 const newRow = `
                     <tr>

@@ -377,6 +377,13 @@ def dashboard_jefatura(request):
 
     horas = ["1ª hora", "2ª hora", "3ª hora", "Recreo", "4ª hora", "5ª hora", "6ª hora"]
 
+    # Alumnos sancionados hoy
+    sanciones_alumnado = Sanciones.objects.filter(
+        Fecha__lte=hoy,
+        Fecha_fin__gte=hoy,
+        curso_academico=curso_actual
+    ).select_related('IdAlumno')
+
 
 
     contexto = {
@@ -395,6 +402,7 @@ def dashboard_jefatura(request):
         'tipo': tipo,
         'titulo': titulo,
         'horas': horas,
+        'sanciones_alumnado': sanciones_alumnado
     }
 
     return render(request, 'indexje.html', contexto)

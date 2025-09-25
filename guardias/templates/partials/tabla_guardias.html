@@ -48,7 +48,7 @@
             {% else %}
             <td class="text-center">
             {% if guardia.Tarea %}
-            <button type="button" class="btn btn-sm btn-outline-secondary btn-icon" data-bs-placement="top" data-bs-toggle="popover" data-bs-trigger="focus" data-bs-content="{{ guardia.Tarea }}" title="Tarea">
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-icon" data-bs-placement="top" data-bs-toggle="popover" data-bs-trigger="click" data-bs-content="{{ guardia.Tarea }}" title="Tarea">
                                         <i class="ti ti-eye fs-lg"></i>
                                     </button>
             {% endif %}
@@ -616,6 +616,19 @@
             }
 
        });
+
+       $(document).on('click touchend', function (e) {
+    $('[data-bs-toggle="popover"]').each(function () {
+      // El "this" es el botón
+      if (
+        !$(this).is(e.target) &&             // click no es el botón
+        $(this).has(e.target).length === 0 &&// click no es hijo del botón
+        $('.popover').has(e.target).length === 0 // click no es el popover mismo
+      ) {
+        $(this).popover('hide');
+      }
+    });
+  });
 
    });
 

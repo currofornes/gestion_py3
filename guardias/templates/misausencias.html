@@ -271,7 +271,7 @@
 
 
             // Manejar el evento de guardar los datos
-            $('#editar-ausencias').click(function () {
+            $(document).on('click', '#editar-ausencias', function(e) {
                 // Recopilar las filas seleccionadas
                 var seleccionados = [];
                 var noSeleccionados = [];
@@ -515,7 +515,7 @@
 
 
             // Manejar el evento de guardar los datos
-            $('#guardar-ausencias').click(function () {
+            $(document).on('click', '#guardar-ausencias', function(e) {
                 // Recopilar las filas seleccionadas
                 var seleccionados = [];
                 $('input.seleccion:checked').each(function () {

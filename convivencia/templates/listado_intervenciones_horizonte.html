@@ -264,8 +264,7 @@
             filtrarColumna(5, '#filtro-profesor-interviene');  // Profesor
             filtrarColumna(1, '#filtro-curso');     // Curso
 
-
-            $('.btn-borrar').click(function () {
+            $(document).on('click', '.btn-borrar', function(e) {
                 var intervencionId = $(this).data('id');
                 var row = $(this).closest('tr'); // Obtener la fila de la tabla
 

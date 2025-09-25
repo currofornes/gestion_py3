@@ -292,7 +292,7 @@
                 });
 
                 // Manejar el evento de guardar los datos
-                $('#guardar-ausencias').click(function () {
+                $(document).on('click', '#guardar-ausencias', function(e) {
                     // Recopilar las filas seleccionadas
                     var seleccionados = [];
                     $('input.seleccion:checked').each(function () {
@@ -375,12 +375,12 @@
             }
 
             // Evento para el botón de día anterior
-            $('#btn-prev-day').click(function () {
+            $(document).on('click', '#btn-prev-day', function(e) {
                 ajustarFecha(-1); // Resta un día
             });
 
             // Evento para el botón de día siguiente
-            $('#btn-next-day').click(function () {
+            $(document).on('click', '#btn-next-day', function(e) {
                 ajustarFecha(1); // Suma un día
             });
 

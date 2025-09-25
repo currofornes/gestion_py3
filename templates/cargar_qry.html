@@ -76,7 +76,7 @@
 
     <script>
         $(document).ready(function (e) {
-            $("#btnEnviar").click(function (e) {
+            $(document).on('click', '#btnEnviar', function(e) {
                 e.preventDefault();
                 const query = $("#id_query").val().trim();
                 if(!query.toUpperCase().includes("SELECT")) {

@@ -156,7 +156,8 @@
                 placeholder: "Selecciona una convocatoria",
                 allowClear: false
             });
-            $("#btn-recalcular").click(function(event) {
+
+            $(document).on('click', '#btn-recalcular', function(event) {
                 event.preventDefault();
 
                 const btnRecalcular = $("#btn-recalcular");

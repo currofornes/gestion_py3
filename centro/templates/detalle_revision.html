@@ -12,6 +12,8 @@
     <!-- Select Plugin CSS -->
     <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
     <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+    
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
 
 {% endblock %}
 
@@ -140,6 +142,9 @@
                         </div>
                     
                         <a href="{% url 'resumen_revisiones' %}" class="btn btn-secondary btn-sm">Volver al resumen</a>
+                    <button type="button" class="btn btn-outline-secondary" id="generar-hoja-firma">
+    Generar hoja de firmas PDF
+</button>
                     </div>
                 
                 
@@ -179,6 +184,9 @@
 
     <!-- Select2 Plugin Js -->
     <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+    
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
 
 
     <script>
@@ -242,6 +250,26 @@
                     }
                 }
             });
+            
+            $('#generar-hoja-firma').on('click', function () {
+
+            const profesor_id = {{ profesor.id }};
+            const curso_id = {{ curso.id }};
+            const materia_id = {{ materia.id }};
+            const libro_id = {{ libro.id }};
+            const momento_id = {{ momento.id }};
+            if (!profesor_id || !curso_id || !materia_id || !libro_id || !momento_id) {
+                Swal.fire('Faltan datos', 'Debes seleccionar todos los campos para generar la hoja de firmas.', 'warning');
+                return;
+            }
+            window.open(
+              "{% url 'hoja_firmas_revision_libros' %}?profesor_id=" + profesor_id +
+              "&curso_id=" + curso_id +
+              "&materia_id=" + materia_id +
+              "&libro_id=" + libro_id,
+              '_blank'
+            );
+        });
 
             
 
