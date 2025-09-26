@@ -101,7 +101,7 @@
                                 <tbody>
                                 {% for intervencion in intervenciones %}
                                     <tr>
-                                        <td>{{ intervencion.alumno.Nombre }}</td>
+                                        <td><a href="/convivencia/historial/{{ intervencion.alumno.id }}/">{{ intervencion.alumno.Nombre }}</a></td>
                                         <td>{{ intervencion.alumno.Unidad }}</td>
                                         <td>{{ intervencion.fecha|date:"d/m/Y" }}</td>
                                         <td>{{ intervencion.get_tramo_horario_display }}</td>

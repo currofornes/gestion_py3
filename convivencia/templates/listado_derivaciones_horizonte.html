@@ -82,7 +82,7 @@
                     <tbody>
                     {% for amon in amonestaciones %}
                         <tr>
-                            <td>{{ amon.IdAlumno.Nombre }}</td>
+                            <td><a href="/convivencia/historial/{{ amon.IdAlumno.id }}/">{{ amon.IdAlumno.Nombre }}</a></td>
                             <td>{{ amon.IdAlumno.Unidad }}</td>
                             <td>{{ amon.Fecha|date:"d/m/Y" }}</td>
                             <td>{{ amon.get_Hora_display }}</td>
