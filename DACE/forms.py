@@ -7,6 +7,16 @@ from convivencia.widgets import DatePickerInput, ClockPickerInput
 
 
 class ActividadesForm(forms.ModelForm):
+    HoraSalida = forms.TimeField(
+        required=False,
+        input_formats=['%H:%M'],
+        widget=ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'})
+    )
+    HoraLlegada = forms.TimeField(
+        required=False,
+        input_formats=['%H:%M'],
+        widget=ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'})
+    )
 
     class Meta:
         model = Actividades
@@ -27,8 +37,6 @@ class ActividadesForm(forms.ModelForm):
             'Responsable': forms.Select(attrs={'class': 'form-control select2_Responsable'}),
             'FechaInicio': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'FechaFin': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
-            'HoraSalida': ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
-            'HoraLlegada': ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'EnProgramacion': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
 
         }
@@ -52,6 +60,16 @@ class ActividadesForm(forms.ModelForm):
 
 
 class ActividadesCompletoForm(forms.ModelForm):
+    HoraSalida = forms.TimeField(
+        required=False,
+        input_formats=['%H:%M'],
+        widget=ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'})
+    )
+    HoraLlegada = forms.TimeField(
+        required=False,
+        input_formats=['%H:%M'],
+        widget=ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'})
+    )
 
     class Meta:
         model = Actividades
@@ -64,8 +82,6 @@ class ActividadesCompletoForm(forms.ModelForm):
             'Responsable': forms.Select(attrs={'class': 'form-control select2_Responsable'}),
             'FechaInicio': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'FechaFin': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
-            'HoraSalida': ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
-            'HoraLlegada': ClockPickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
             'EnProgramacion': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             # 'Duracion': forms.TextInput(attrs={'class': 'form-control'}),
             # 'MedidaDuracion': forms.Select(attrs={'class': 'form-control select2_MedidaDuracion'}),

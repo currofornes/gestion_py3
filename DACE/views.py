@@ -21,12 +21,10 @@ from .forms import ActividadesForm, ActividadesCompletoForm, GestionEconomicaAct
 def crear_actividad(request):
     if request.method == 'POST':
         # Usamos el formulario completo si queremos que se gestione 'EnProgramacion' y otros campos
-        form = ActividadesCompletoForm(request.POST)
+        form = ActividadesForm(request.POST)
         if form.is_valid():
             actividad = form.save(commit=False)
-            # Si se desea, se pone estado Pendiente solo si no viene del formulario
-            if not actividad.Estado:
-                actividad.Estado = get_object_or_404(EstadoActividad, nombre='Pendiente')
+            actividad.Estado = get_object_or_404(EstadoActividad, nombre='Pendiente')
 
             try:
                 actividad.save()
@@ -36,10 +34,13 @@ def crear_actividad(request):
                 print("Ya existe una actividad igual")
 
             return redirect('misactividades')
+        else:
+            print(form.errors)
     else:
+
         profe = getattr(request.user, 'profesor', None)
         initial = {'Responsable': profe} if profe else {}
-        form = ActividadesCompletoForm(initial=initial)
+        form = ActividadesForm(initial=initial)
     return render(request, 'crear_actividad.html', {'form': form, 'menu_DACE': True})
 
 
@@ -132,17 +133,17 @@ def editar_actividad(request, actividad_id):
     actividad = get_object_or_404(Actividades, id=actividad_id)
 
     if request.method == 'POST':
-        form = ActividadesCompletoForm(request.POST, instance=actividad)
+        form = ActividadesForm(request.POST, instance=actividad)
         if form.is_valid():
             try:
                 actividad = form.save()
             except IntegrityError:
                 print("Ya existe una actividad igual")
 
-            return redirect('actividadesdace')  # Redirige al listado de actividades
+            return redirect('misactividades')  # Redirige al listado de actividades
 
     else:
-        form = ActividadesCompletoForm(instance=actividad)
+        form = ActividadesForm(instance=actividad)
         # No es necesario asignar valores al widget attrs si usas DatePickerInput y ClockPickerInput correctamente configurados
         # Estos widgets deben manejar el formateo
 
@@ -182,7 +183,7 @@ def editar_actividad_participantes(request, actividad_id):
 
         actividad.save()
 
-        return redirect('actividadesdace')
+        return redirect('misactividades')
 
     unidades = Cursos.objects.all()
     profesores = Profesores.objects.filter(Baja=False)

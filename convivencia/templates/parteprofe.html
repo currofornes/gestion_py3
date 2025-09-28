@@ -212,8 +212,6 @@
                 theme: 'bootstrap4',
                 placeholder: "Selecciona un medio",
                 allowClear: false
-            }).on('change', function () {
-                toggleTelefonoField();
             });
 
             $(".select2_Hora").select2({
@@ -270,6 +268,15 @@
                 if (e.which === 13) {
                     e.preventDefault();
                 }
+            });
+
+            flatpickr(".flatpickr-input", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i", // Solo hora y minutos, sin segundos
+                time_24hr: true,
+                enableSeconds: false,  // Importante: No permitir segundos
+                // otras opciones
             });
 
 

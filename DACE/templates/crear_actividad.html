@@ -215,6 +215,15 @@
                 $('button[type="submit"]').prop('disabled', true).text('Procesando...');
             });
 
+            flatpickr(".flatpickr-input", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i", // Solo hora y minutos, sin segundos
+                time_24hr: true,
+                enableSeconds: false,  // Importante: No permitir segundos
+                // otras opciones
+            });
+
 
         });
 
