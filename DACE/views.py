@@ -11,7 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from centro.utils import get_current_academic_year
-from centro.views import group_check_prof, group_check_je
+from centro.views import group_check_prof, group_check_je, group_check_je_or_dace
 from .models import Actividades, ActividadAlumno, GastosActividad, Aprobaciones, EstadoActividad
 from centro.models import Profesores, Cursos, Alumnos
 from .forms import ActividadesForm, ActividadesCompletoForm, GestionEconomicaActividadForm, GastosActividadForm
@@ -115,7 +115,7 @@ def misactividades(request):
 
 
 @login_required(login_url='/')
-@user_passes_test(group_check_je, login_url='/')
+@user_passes_test(group_check_je_or_dace, login_url='/')
 def actividadesdace(request):
     curso_academico_actual = get_current_academic_year()
 

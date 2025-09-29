@@ -66,6 +66,9 @@ def group_check_prof_and_tutor_or_je(user):
 def group_check_je_or_orientacion(user):
     return user.groups.filter(name__in=['jefatura de estudios', 'orientacion']).exists()
 
+def group_check_je_or_dace(user):
+    return user.groups.filter(name__in=['jefatura de estudios', 'dace']).exists()
+
 
 def group_check_prof_and_tutor_or_je_or_orientacion(user):
     return group_check_prof_and_tutor(user) or group_check_je_or_orientacion(user)

@@ -677,7 +677,7 @@
                     <span class="menu-text" data-lang="landing-page">Mis Actividades</span>
                 </a>
             </li>
-        {% if user|has_group:"jefatura de estudios" %}
+        {% if user|has_group:"jefatura de estudios" or user|has_group:"dace" %}
         <li class="side-nav-item">
                 <a href="/DACE/actividadesdace" class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-calendar-month"></i></span>
