@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
+
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+
+    <style>
+        .strikethrough {
+            /*text-decoration: line-through;*/
+            background-color: #ddbcbc !important;
+        }
+    </style>
+
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Gestión de participantes actividad DACE</h4>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+
+
+                    <div class="card-body" style="height: calc(100% - 350px);" data-simplebar data-simplebar-md>
+
+                        <form action="" method="post">
+                            {% csrf_token %}
+
+                            <input type="hidden" name="unidades_afectadas" id="unidades-afectadas">
+                            <input type="hidden" name="alumnado_participante" id="alumnado-participante">
+                            <input type="hidden" name="profesorado_participante" id="profesorado-participante">
+
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <h3>Unidades y Alumnado participante</h3>
+
+                                    <div class="form-group row">
+                                        <div class="col-lg-10">
+                                            <select id="unidades-select" class="form-control">
+                                                <option value="">Selecciona una unidad</option>
+                                                {% for unidad in unidades %}
+                                                    <option value="{{ unidad.id }}">{{ unidad }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-2">
+                                            <button type="button" class="btn btn-primary" id="btn-add-unidad">Añadir
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <div class="col-lg-12">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped" id="tabla-unidades">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>Unidad</th>
+                                                        <th>Alumnos/as</th>
+                                                        <th>Acciones</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for unidad in actividad.UnidadesAfectadas.all %}
+                                                        <tr data-id="{{ unidad.id }}">
+                                                            <td>{{ unidad }}</td>
+                                                            <td>
+                                                                <button type="button" data-unidad="{{ unidad }}"
+                                                                        class="btn btn-success btn-sm btn-alumnos-unidad">
+                                                                    Alumnado
+                                                                    (0)
+                                                                </button>
+                                                            </td>
+                                                            <td>
+                                                                <button type="button"
+                                                                        class="btn btn-danger btn-sm btn-remove-unidad">
+                                                                    Eliminar
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <h3>Profesorado participante</h3>
+
+                                    <div class="form-group row">
+                                        <div class="col-lg-10">
+                                            <select id="profesores-select" class="form-control">
+                                                <option value="">Selecciona profesor/a</option>
+                                                {% for profe in profesores %}
+                                                    <option value="{{ profe.id }}"
+                                                            data-departamento="{{ profe.Departamento|default:'Sin departamento' }}">{{ profe }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-2">
+                                            <button type="button" class="btn btn-primary" id="btn-add-profe">Añadir
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <div class="col-lg-12">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped" id="tabla-profesorado">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>Profesor/a</th>
+                                                        <th>Departamento</th>
+                                                        <th>Acciones</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for profe in actividad.Profesorado.all %}
+                                                        <tr data-id="{{ profe.id }}">
+                                                            <td>{{ profe }}</td>
+                                                            <td>
+                                                                {{ profe.Departamento }}
+                                                            </td>
+                                                            <td>
+                                                                <button type="button"
+                                                                        class="btn btn-danger btn-sm btn-remove-profe">
+                                                                    Eliminar
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            <a href="{% url 'actividadesdace' %}" class="btn btn-secondary">Cancelar</a>
+                        </form>
+                    </div>
+
+
+                </div> <!-- end card-body -->
+
+
+            </div>
+
+        </div>
+
+    </div><!-- end col -->
+
+
+    </div><!-- end row -->
+
+
+    <div class="modal fade" id="modal-alumnos-unidad" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modalAlumnosUnidadLabel">Alumnado Participante - Unidad: <span
+                            id="unidad-nombre"></span></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <button id="btn-marcar-todos" class="btn btn-primary btn-sm">Marcar Todos</button>
+                        <button id="btn-desmarcar-todos" class="btn btn-danger btn-sm">Desmarcar Todos</button>
+                    </div>
+
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-striped" id="tabla-alumnos-unidad">
+                            <thead class="table-light position-sticky top-0" style="z-index: 1;">
+                            <tr>
+                                <th>Nombre</th>
+                                <th class="text-center">Participa</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button type="button" class="btn btn-primary" id="guardar-alumnos-unidad">Guardar</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- end modal dialog-->
+
+
+{% endblock %}
+
+{% block js %}
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+
+    <script>
+
+        $(document).ready(function () {
+            $("#profesores-select").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona profesor/a",
+                allowClear: true
+            });
+
+            $("#unidades-select").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona una unidad",
+                allowClear: true
+            });
+
+
+            $('form').on('keypress', 'input, select', function (e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                }
+            });
+
+            $('form').on('submit', function () {
+                $('button[type="submit"]').prop('disabled', true).text('Procesando...');
+            });
+
+            function actualizarCheckboxes() {
+                const checkboxes = $('#tabla-alumnos-unidad input.chk-alumno');
+
+                checkboxes.off('change').on('change', function () {
+                    const $checkbox = $(this);
+                    const fila = $checkbox.closest('tr');
+                    const alumnoId = fila.data('alumno-id');
+                    const unidadId = fila.data('unidad-id');
+
+                    // Actualizar la lógica de selección/desselección
+                    if ($checkbox.prop('checked')) {
+                        if (!alumnosParticipantes[unidadId]) {
+                            alumnosParticipantes[unidadId] = [];
+                        }
+                        if (!alumnosParticipantes[unidadId].includes(alumnoId)) {
+                            alumnosParticipantes[unidadId].push(alumnoId);
+                        }
+                    } else {
+                        if (alumnosParticipantes[unidadId]) {
+                            alumnosParticipantes[unidadId] = alumnosParticipantes[unidadId].filter(id => id !== alumnoId);
+                        }
+                    }
+                });
+            }
+
+            const unidadesInput = $('#unidades-afectadas');
+            const alumnosInput = $('#alumnado-participante');
+            const profesoresInput = $('#profesorado-participante');
+
+            const tablaUnidades = $('#tabla-unidades tbody');
+            const tablaProfesorado = $('#tabla-profesorado tbody');
+            const alumnosParticipantes = {}; // Objeto para almacenar los alumnos seleccionados por unidad
+
+            $('#modal-alumnos-unidad').on('shown.bs.modal', function (event) {
+                actualizarCheckboxes();
+            });
+
+            $('#btn-marcar-todos').on('click', function () {
+                $('#tabla-alumnos-unidad input.chk-alumno').prop('checked', true).trigger('change');
+            });
+
+            $('#btn-desmarcar-todos').on('click', function () {
+                $('#tabla-alumnos-unidad input.chk-alumno').prop('checked', false).trigger('change');
+            });
+
+            function reconstruirAlumnado() {
+
+                const actividadId = {{ actividad.id }};
+                // Iterar sobre cada fila de la tabla de unidades
+                tablaUnidades.find('tr').each(function () {
+                    const fila = $(this);
+                    const unidadId = fila.data('id');
+                    const botonAlumnado = fila.find('.btn-alumnos-unidad'); // Botón para actualizar el recuento
+
+                    if (unidadId) {
+                        // Hacer llamada AJAX para obtener los alumnos de la unidad en esta actividad
+                        $.ajax({
+                            url: `/DACE/get-alumnos-participantes-unidad/${unidadId}/${actividadId}/`, // Ajusta el endpoint si es necesario
+                            method: 'GET',
+                            success: function (data) {
+                                // Guardar alumnos en la estructura
+                                alumnosParticipantes[unidadId] = data.alumnos.map(alumno => alumno.id);
+
+                                // Actualizar el botón con el recuento de alumnos
+                                botonAlumnado.text(`Alumnado (${alumnosParticipantes[unidadId].length})`);
+
+                                actualizarAlumnado();
+
+
+                            },
+                            error: function () {
+                                console.error(`Error al obtener los alumnos para la unidad ${unidadId}`);
+                            }
+                        });
+                    }
+                });
+            }
+
+
+            // Añadir unidad a la tabla
+            $('#btn-add-unidad').on('click', function () {
+                const unidadId = $('#unidades-select').val();
+                const unidadTexto = $('#unidades-select option:selected').text();
+
+                if (unidadId && !tablaUnidades.find(`tr[data-id="${unidadId}"]`).length) {
+                    // Añadir fila a la tabla
+                    tablaUnidades.append(`
+                    <tr data-id="${unidadId}">
+                        <td>${unidadTexto}</td>
+                        <td>
+                            <button type="button" class="btn btn-success btn-sm btn-alumnos-unidad">Alumnado (0)</button>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm btn-remove-unidad">Eliminar</button>
+                        </td>
+                    </tr>
+                    `);
+                    actualizarUnidades();
+                }
+            });
+
+            $('#btn-add-profe').on('click', function () {
+                const profeId = $('#profesores-select').val();
+                const profeTexto = $('#profesores-select option:selected').text();
+                const profeDepartamento = $('#profesores-select option:selected').data('departamento') || 'Sin departamento';
+
+                if (profeId && !tablaProfesorado.find(`tr[data-id="${profeId}"]`).length) {
+                    // Añadir fila a la tabla
+                    tablaProfesorado.append(`
+                    <tr data-id="${profeId}">
+                        <td>${profeTexto}</td>
+                        <td>${profeDepartamento}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm btn-remove-profe">Eliminar</button>
+                        </td>
+                    </tr>
+                    `);
+                    actualizarProfesores();
+                }
+            });
+
+            // Eliminar unidad de la tabla
+            tablaUnidades.on('click', '.btn-remove-unidad', function () {
+                const unidadId = $(this).closest('tr').data('id');
+                delete alumnosParticipantes[unidadId]; // Eliminar la relación de alumnado
+                $(this).closest('tr').remove();
+                actualizarUnidades();
+                actualizarAlumnado();
+            });
+
+            // Eliminar profe de la tabla
+            tablaProfesorado.on('click', '.btn-remove-profe', function () {
+                const profeId = $(this).closest('tr').data('id');
+                $(this).closest('tr').remove();
+                actualizarProfesores();
+            });
+
+            // Actualizar el campo oculto con las unidades seleccionadas
+            function actualizarUnidades() {
+                const unidades = tablaUnidades.find('tr').map(function () {
+                    return $(this).data('id');
+                }).get();
+                unidadesInput.val(unidades.join(',')); // No se añade una coma extra
+            }
+
+            // Actualizar el campo oculto con las unidades seleccionadas
+            function actualizarProfesores() {
+                const profes = tablaProfesorado.find('tr').map(function () {
+                    return $(this).data('id');
+                }).get();
+                profesoresInput.val(profes.join(',')); // No se añade una coma extra
+            }
+
+            // Abrir el modal para gestionar alumnado
+            tablaUnidades.on('click', '.btn-alumnos-unidad', function () {
+                const unidadId = $(this).closest('tr').data('id');
+                const boton = $(this); // Botón para actualizar el contador
+                const unidadNombre = boton.attr('data-unidad');
+
+                // Solicitar alumnado de la unidad
+                $.ajax({
+                    url: `/DACE/get-alumnos-unidad/${unidadId}/`, // Endpoint para obtener alumnos de la unidad
+                    method: 'GET',
+                    success: function (data) {
+                        const tablaAlumnos = $('#tabla-alumnos-unidad tbody');
+                        tablaAlumnos.empty();
+
+                        // Rellenar la tabla con los alumnos
+                        data.alumnos.forEach(alumno => {
+                            const marcado = alumnosParticipantes[unidadId]?.includes(alumno.id) ? 'checked' : '';
+                            tablaAlumnos.append(`
+                    <tr data-id="${alumno.id}">
+                        <td>${alumno.Nombre}</td>
+                        <td class="text-center">
+                            <input type="checkbox" class="form-check-input chk-alumno i-checks" ${marcado}>
+                        </td>
+                    </tr>
+                `);
+                        });
+
+                         actualizarCheckboxes();
+
+                        $('#unidad-nombre').text(unidadNombre);
+
+                        // Abrir el modal
+                        $('#modal-alumnos-unidad').modal('show');
+
+                        // Guardar selección de alumnado
+                        $('#guardar-alumnos-unidad').off('click').on('click', function () {
+                            const seleccionados = tablaAlumnos.find('.chk-alumno:checked').closest('tr').map(function () {
+                                return $(this).data('id');
+                            }).get();
+
+                            alumnosParticipantes[unidadId] = seleccionados;
+
+                            // Actualizar el campo oculto de alumnado
+                            actualizarAlumnado();
+
+                            // Actualizar el botón con el recuento
+                            boton.text(`Alumnado (${seleccionados.length})`);
+
+                            $('#modal-alumnos-unidad').modal('hide');
+                        });
+                    }
+                });
+            });
+
+            // Actualizar el campo oculto con el alumnado participante
+            function actualizarAlumnado() {
+                const allAlumnos = Object.values(alumnosParticipantes).flat();
+                alumnosInput.val(allAlumnos.join(',')); // Actualizar el campo oculto
+            }
+
+
+            // Llamar a las funciones de actualización al cargar la página
+            actualizarProfesores();
+            actualizarUnidades();
+            reconstruirAlumnado();
+
+
+        })
+
+
+    </script>
+{% endblock %}

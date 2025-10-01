@@ -3,169 +3,179 @@
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+    <!-- Datepicker CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+{% endblock %}
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h3>{{ titulo }}</h3>
-                    </div>
-                    <div class="ibox-content">
-                        <h2>Estadística por Niveles ({{ curso_seleccionado.nombre }})</h2>
-                        <br>
 
-                        <form id="curso-academico-form" method="GET" action="/convivencia/niveles">
+<div class="container-fluid">
+    <div class="page-title-head d-flex align-items-center">
+        <div class="flex-grow-1">
+            <h4 class="fs-sm text-uppercase fw-bold m-0">{{ titulo }}</h4>
+        </div>
+    </div>
 
-                            <div class="form-group row">
-
-                                <label class="col-lg-2 col-form-label" for="curso_academico">Seleccionar Curso
-                                    Académico:</label>
-                                <div class="col-lg-10">
-                                    <select name="curso_academico" id="curso_academico" onchange="this.form.submit();"
-                                            class="form-control select2_CursoAcademico">
-                                        {% for curso in cursos_academicos %}
-                                            <option value="{{ curso.id }}"
-                                                    {% if curso.id == curso_seleccionado.id %}selected{% endif %}>
-                                                {{ curso }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+    <!-- Selector Curso Académico -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light justify-content-between">
+                    <h4 class="card-title">Estadística por Niveles ({{ curso_seleccionado.nombre }})</h4>
+                </div>
+                <div class="card-body">
+                    <form id="curso-academico-form" method="GET" action="/convivencia/niveles">
+                        <div class="row g-2 align-items-end">
+                            <div class="mb-3 col-md-8">
+                                <label for="curso_academico" class="form-label">Seleccionar Curso Académico</label>
+                                <select name="curso_academico" id="curso_academico"
+                                        class="form-select select2_CursoAcademico"
+                                        onchange="this.form.submit();">
+                                    {% for curso in cursos_academicos %}
+                                        <option value="{{ curso.id }}" {% if curso.id == curso_seleccionado.id %}selected{% endif %}>
+                                            {{ curso }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                        </form>
-                        <br>
-                        <form action="/convivencia/niveles" method="post">
-                            {% csrf_token %}
+                        </div>
+                    </form>
 
-                            <div class="form-group row">
-                                <label class="col-lg-1 col-form-label">{{ form.Fecha1.label_tag }}</label>
-                                <div class="col-lg-4">
+                    <form action="/convivencia/niveles" method="post">
+                        {% csrf_token %}
+                        <div class="row g-2 align-items-end">
+                            <div class="mb-3 col-md-4">
+                                <label class="form-label">{{ form.Fecha1.label_tag }}</label>
+                                <div class="date-search">
                                     {{ form.Fecha1 }}
-                                    {% if form.Fecha.help_text %}
-                                        <span class="help-block">{{ form.Fecha1.help_text }}</span>
+                                    {% if form.Fecha1.help_text %}
+                                        <div class="form-text">{{ form.Fecha1.help_text }}</div>
                                     {% endif %}
                                     {% for error in form.Fecha1.errors %}
-                                        <span class="text-danger">{{ error }}</span>
+                                        <div class="text-danger small">{{ error }}</div>
                                     {% endfor %}
-                                </div>
-                                <label class="col-lg-1 col-form-label">{{ form.Fecha2.label_tag }}</label>
-                                <div class="col-lg-4">
-                                    {{ form.Fecha2 }}
-                                    {% if form.Fecha2.help_text %}
-                                        <span class="help-block">{{ form.Fecha2.help_text }}</span>
-                                    {% endif %}
-                                    {% for error in form.Fecha2.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                                <div class="col-lg-2">
-                                    <button type="submit" class="btn btn-primary">Filtrar</button>
                                 </div>
                             </div>
-                        </form>
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h3>Gráfico</h3>
-                    </div>
-                    <div class="ibox-content">
-                        <div>
-                            <canvas id="barChart" height="60"></canvas>
+                            <div class="mb-3 col-md-4">
+                                <label class="form-label">{{ form.Fecha2.label_tag }}</label>
+                                <div class="date-search">
+                                    {{ form.Fecha2 }}
+                                    {% if form.Fecha2.help_text %}
+                                        <div class="form-text">{{ form.Fecha2.help_text }}</div>
+                                    {% endif %}
+                                    {% for error in form.Fecha2.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <input type="hidden" name="curso_academico" value="{{ curso_seleccionado.id }}">
+                            <div class="mb-3 col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                            </div>
                         </div>
-                    </div>
+                    </form>
+
                 </div>
+                <div class="card-footer border-0"></div>
             </div>
         </div>
+    </div>
 
+    <!-- Gráfico -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light justify-content-between">
+                    <h4 class="card-title">Gráfico</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="barChart" height="60"></canvas>
+                </div>
+                <div class="card-footer border-0"></div>
+            </div>
+        </div>
+    </div>
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h3>Detalles</h3>
-                    </div>
-                    <div class="ibox-content">
-                        <table class="table table-bordered">
-                            <thead>
+    <!-- Detalles -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card" data-table>
+                <div class="card-header border-light justify-content-between">
+                    <h4 class="card-title">Detalles</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
                             <tr>
                                 <th>Nivel</th>
                                 <th class="text-center">Amonestaciones</th>
                                 <th class="text-center">Sanciones</th>
                             </tr>
-                            </thead>
-                            <tbody>
+                        </thead>
+                        <tbody>
                             {% for g in niveles %}
                                 <tr>
                                     <td>{{ g.0 }}</td>
                                     <td class="text-center">{{ g.1.0 }} ({{ g.1.2 }}%)</td>
                                     <td class="text-center">{{ g.1.1 }} ({{ g.1.3 }}%)</td>
-
                                 </tr>
                             {% endfor %}
-
                             <tr>
-                              <td class="text-right"><strong>TOTAL:</strong></td>
-                              <td class="text-center"><strong>{{total.0}}</strong></td>
-                              <td class="text-center"><strong>{{total.1}}</strong></td>
+                                <td class="text-end"><strong>TOTAL:</strong></td>
+                                <td class="text-center"><strong>{{ total.0 }}</strong></td>
+                                <td class="text-center"><strong>{{ total.1 }}</strong></td>
                             </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
+                <div class="card-footer border-0"></div>
             </div>
         </div>
-
-
     </div>
+
+</div>
+
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/plugins/chartJs/Chart.min.js' %}"></script>
-    <script>
+    <!-- Chart.js -->
+    <script src="{% static 'plugins/chartJs/Chart.min.js' %}"></script>
 
+    <!-- Datepicker & deps -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Select2 -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <script>
         $(document).ready(function () {
+            // Select2
             $(".select2_CursoAcademico").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona un curso académico",
                 allowClear: false
             });
 
+            // Datos: nombres, amonestaciones, sanciones
+            var nivelesDatos = {{ niveles_nombres|safe }};
+            var nivelesNombres = nivelesDatos.map(nivel => nivel.nombre);
+            var amonestaciones = nivelesDatos.map(nivel => nivel.amonestaciones);
+            var sanciones = nivelesDatos.map(nivel => nivel.sanciones);
 
-            // Obtener los datos de los cursos desde la variable de contexto
-        var nivelesDatos = {{ niveles_nombres|safe }};
+            var dataamon = [];
+            var datasanc = [];
+            var labelsnombres = [];
 
-        // Construir arrays separados para los nombres, amonestaciones y sanciones
-        var nivelesNombres = nivelesDatos.map(nivel => nivel.nombre);
-        var amonestaciones = nivelesDatos.map(nivel => nivel.amonestaciones);
-        var sanciones = nivelesDatos.map(nivel => nivel.sanciones);
-
-
-        var dataamon = [];
-        var datasanc = [];
-        var labelsnombres = [];
-
-        nivelesNombres.forEach(function(nombre, index) {
-
-                if (amonestaciones.at(index)!==0 || sanciones.at(index) !==0){
+            nivelesNombres.forEach(function (nombre, index) {
+                if (amonestaciones.at(index) !== 0 || sanciones.at(index) !== 0) {
                     labelsnombres.push(nombre);
                     dataamon.push(amonestaciones[index]);
                     datasanc.push(sanciones[index]);
-
                 }
             });
-
-
-
-
 
             var barData = {
                 labels: labelsnombres,
@@ -185,35 +195,20 @@
                         pointBackgroundColor: "rgba(26,179,148,1)",
                         pointBorderColor: "#fff",
                         data: datasanc
-                    },
+                    }
                 ]
             };
 
-            var barOptions = {
-                responsive: true,
-            };
-
+            var barOptions = { responsive: true };
             var ctx2 = document.getElementById("barChart").getContext("2d");
-            new Chart(ctx2, {type: 'bar', data: barData, options: barOptions});
+            new Chart(ctx2, { type: 'bar', data: barData, options: barOptions });
 
-
+            // Utilidades de fecha
             function parseDateString(dateString) {
                 const months = {
-                    'enero': '01',
-                    'febrero': '02',
-                    'marzo': '03',
-                    'abril': '04',
-                    'mayo': '05',
-                    'junio': '06',
-                    'julio': '07',
-                    'agosto': '08',
-                    'septiembre': '09',
-                    'octubre': '10',
-                    'noviembre': '11',
-                    'diciembre': '12'
+                    'enero': '01','febrero': '02','marzo': '03','abril': '04','mayo': '05','junio': '06',
+                    'julio': '07','agosto': '08','septiembre': '09','octubre': '10','noviembre': '11','diciembre': '12'
                 };
-
-                // Check if the date is in "24 de septiembre de 2020" format
                 const longDateFormat = /^(\d{1,2}) de (\w+) de (\d{4})$/;
                 const shortDateFormat = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 
@@ -225,44 +220,35 @@
                     const [_, day, month, year] = dateString.match(shortDateFormat);
                     return new Date(`${year}-${month}-${day}`);
                 } else {
-                    // If the date format is not recognized, return the current date
                     return new Date();
                 }
             }
 
-
             var fecha1_value = '{{ form.Fecha1.value|default_if_none:"" }}';
             var fecha2_value = '{{ form.Fecha2.value|default_if_none:"" }}';
+            if (fecha1_value) fecha1_value = parseDateString(fecha1_value);
+            if (fecha2_value) fecha2_value = parseDateString(fecha2_value);
 
+            $('#id_Fecha1').datepicker({
+                todayBtn: "linked", keyboardNavigation: false, forceParse: false,
+                calendarWeeks: true, autoclose: true, language: "es"
+            }).datepicker('setDate', fecha1_value ? new Date(fecha1_value) : new Date());
 
-            if (fecha1_value) {
-                fecha1_value = parseDateString(fecha1_value);
-            }
+            $('#id_Fecha2').datepicker({
+                todayBtn: "linked", keyboardNavigation: false, forceParse: false,
+                calendarWeeks: true, autoclose: true, language: "es"
+            }).datepicker('setDate', fecha2_value ? new Date(fecha2_value) : new Date());
 
-            if (fecha2_value) {
-                fecha2_value = parseDateString(fecha2_value);
-            }
+            // Evitar submit con Enter
+            $('form').on('keypress', 'input, select', function (e) {
+                if (e.which === 13) e.preventDefault();
+            });
 
-
-            var mem = $('#id_Fecha1').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker('setDate', fecha1_value ? new Date(fecha1_value) : new Date()); // Establecer la fecha de hoy;
-
-            var mem_fin = $('#id_Fecha2').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker('setDate', fecha2_value ? new Date(fecha2_value) : new Date()); // Establecer la fecha de hoy;
-
+            // Evitar doble envío en el POST
+            $('form[action="/convivencia/niveles"]').on('submit', function () {
+                const btn = $(this).find('button[type="submit"]');
+                btn.prop('disabled', true).text('Procesando...');
+            });
         });
-
     </script>
 {% endblock %}

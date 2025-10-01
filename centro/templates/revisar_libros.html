@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
+
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+    
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+    
+    
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Revisión de libros (Programa G.L.T.)</h4>
+            </div>
+        </div>
+
+        <form id="seleccion-form" method="post" action="{% url 'guardar_revision_libros' %}">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+
+                    <div class="card-body">
+                    
+                    <h4 class="card-title mb-2">Profesor/a: {{ form.profesor }}</h4>
+                    
+                    {% csrf_token %}
+
+                    <!-- Mostrar errores no asociados a campos específicos -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    <ul>
+                                        {% for error in form.non_field_errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        <div class="row g-2">
+
+                            <div class="mb-3 col-md-3">
+                                <label class="form-label">Unidad:</label>
+                                <select id="curso-select" name="curso" class="form-control select2_Curso">
+                                      <option value="">---------</option>
+                                    </select>
+                            </div>
+
+                            <div class="mb-3 col-md-3">
+                                <label class="form-label">Materia:</label>
+                                {{ form.materia }}
+                            </div>
+
+                      
+                            <div class="mb-3 col-md-3">
+                                <label class="form-label">Libro:</label>
+                                {{ form.libro }}
+                            </div>
+
+                            <div class="mb-3 col-md-3">
+                                <label class="form-label">Momento:</label>
+                                {{ form.momento }}
+                            </div>
+
+
+
+                        </div>
+                    </div> <!-- end card-body-->
+
+                </div>
+                <div class="card-footer border-0">
+
+                </div>
+            </div>
+
+
+            <div class="col-12">
+
+                <div class="card">
+
+                    <div class="card-body">
+
+                        <div id="tabla-revision"></div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                            <a href="{% url 'mis_revisiones' %}" class="btn btn-secondary">Cancelar</a>
+                            
+                            <button type="button" class="btn btn-outline-secondary" id="generar-hoja-firma">
+    Generar hoja de firmas PDF
+</button>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </form>
+
+
+    </div><!-- end row -->
+
+
+
+{% endblock %}
+
+{% block js %}
+
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+    
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".select2_Curso").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un curso",
+                allowClear: false
+            });
+    
+
+    
+    $(".select2_Materia").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona una materia",
+                allowClear: false
+            });
+    
+    $(".select2_Momento").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un momento",
+                allowClear: false
+            });
+    
+    $(".select2_Libro").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un libro",
+                allowClear: false
+            });
+
+
+            function actualizarCursos(profesor_id) {
+    $.get('/centro/ajax/get_cursos_profesor/', { profesor_id }, function(data) {
+      const $curso = $('#curso-select');
+      $curso.empty().append('<option value="">---------</option>');
+      data.forEach(curso => $curso.append(`<option value="${curso.id}">${curso.nombre}</option>`));
+    });
+  }
+
+  function actualizarMaterias(profesor_id, curso_id) {
+    $.get('/centro/ajax/get_materias_profesor_curso/', { profesor_id, curso_id }, function(data) {
+      const $materia = $('#id_materia');
+      $materia.empty().append('<option value="">---------</option>');
+      data.forEach(m => $materia.append(`<option value="${m.id}">${m.nombre}</option>`));
+    });
+  }
+
+  function actualizarLibros(materia_id) {
+    $.get('/centro/ajax/get-libros-materia/', { materia_id }, function(data) {
+      const $libro = $('#id_libro');
+      $libro.empty().append('<option value="">---------</option>');
+      data.forEach(l => $libro.append(`<option value="${l.id}">${l.titulo}</option>`));
+    });
+  }
+
+  function cargarTabla() {
+    const profesor_id = {{ profesor.id }};
+    const curso_id = $('#curso-select').val();
+    const materia_id = $('#id_materia').val();
+    const libro_id = $('#id_libro').val();
+    const momento_id = $('#id_momento').val();
+
+    if (profesor_id && curso_id && materia_id && libro_id && momento_id) {
+      $.get('get_tabla_revision/', {
+        profesor_id, curso_id, materia_id, libro_id, momento_id
+      }, function(html) {
+        $('#tabla-revision').html(html);
+
+        
+        $('.limpiar-radio').on('click', function () {
+    const alumnoId = $(this).data('alumno-id');
+    $(`input[name="estado_${alumnoId}"]`).prop('checked', false);
+});
+      });
+    } else {
+      $('#tabla-revision').empty();
+    }
+  }
+
+
+
+  $('#curso-select').change(function() {
+
+    const profesor_id = {{ profesor.id }}
+    const curso_id = $(this).val();
+    actualizarMaterias(profesor_id, curso_id);
+    $('#id_libro').empty().append('<option value="">---------</option>');
+    $('#tabla-revision').empty();
+  });
+
+  $('#id_materia').change(function() {
+    actualizarLibros($(this).val());
+    $('#tabla-revision').empty();
+  });
+
+  $('#id_libro, #id_momento').change(cargarTabla);
+  
+  actualizarCursos({{ profesor.id }});
+  
+  
+  
+        $('#generar-hoja-firma').on('click', function () {
+    const profesor_id = {{ profesor.id }};
+    const curso_id = $('#curso-select').val();
+    const materia_id = $('#id_materia').val();
+    const libro_id = $('#id_libro').val();
+    const momento_id = $('#id_momento').val();
+    if (!profesor_id || !curso_id || !materia_id || !libro_id || !momento_id) {
+        Swal.fire('Faltan datos', 'Debes seleccionar todos los campos para generar la hoja de firmas.', 'warning');
+        return;
+    }
+    window.open(
+      "{% url 'hoja_firmas_revision_libros' %}?profesor_id=" + profesor_id +
+      "&curso_id=" + curso_id +
+      "&materia_id=" + materia_id +
+      "&libro_id=" + libro_id,
+      '_blank'
+    );
+});
+
+
+        });
+
+    </script>
+{% endblock %}
+

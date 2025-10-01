@@ -1,90 +1,317 @@
 {% extends "base.html" %}
+{% load static %}
 {% load grupo_tags %}
-{% load custom_tags %}
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+{% endblock %}
+
+
+
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
+
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Reincorporación de alumnado sancionado</h4>
+            </div>
+        </div>
+
+
+        <div class="row mb-3">
             <div class="col-lg-12">
-                <div class="ibox">
-                    <div class="ibox-title">
-                        <h2>Reincorporación de alumnado sancionado</h2>
+
+                <form id="main-form" action="{% url 'sanciones_reincorporacion' %}" method="get"
+                      class="bg-light-subtle rounded border p-3">
+                    {% csrf_token %}
+                    <div class="row gap-3">
+
+                        <div class="col">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <span class="me-2 fw-semibold">Selecciona la fecha de reincorporación::</span>
+
+                                <div class="date-search">
+
+                                    <div class="input-group date">
+                                        <span class="input-group-text" id="basic-addon1"><i class="ti ti-calendar"></i></span>
+                                        <input type="text"
+                                               class="form-control" autocomplete="off" aria-label="Fecha"
+                                               aria-describedby="basic-addon1"
+                                               name="fecha" id="id_fecha"
+                                               value="{{ fecha_reincorporacion|date:'d/m/Y' }}"/>
+                                    </div>
+
+                                </div>
+
+
+                                <button type="submit" class="btn btn-secondary">Filtrar</button>
+                            </div>
+
+
+                        </div>
+
+
                     </div>
-                    <div class="ibox-content">
-                        <form method="get" action="{% url 'sanciones_reincorporacion' %}" class="form-inline mb-3">
-                            <label for="fecha">Selecciona la fecha de reincorporación: </label>
-                            <input type="date" name="fecha" id="fecha" value="{{ fecha_reincorporacion }}" class="form-control ml-2">
-                            <button type="submit" class="btn btn-primary ml-2">Filtrar</button>
-                        </form>
+                </form>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-12">
+                <div data-table data-table-rows-per-page="20" class="card">
+
+
+                    <div class="card-body">
 
                         {% if sanciones_reincorporacion %}
-                            <div class="table-responsive">
-                                <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
-                                    <thead>
-                                    <tr>
-                                        <th data-toggle="true">N.</th>
-                                        <th>Alumno/a</th>
-                                        <th>Tipo</th>
-                                        <th>Fecha Inicio</th>
-                                        <th>Fecha Fin</th>
-                                        <th>Unidad</th>
-                                        <th>Sanción</th>
-                                        <th data-hide="all">Comentario</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for n, sancion in sanciones_reincorporacion %}
-                                        <tr>
-                                            <td>{{ n }}</td>
-                                            <td>
-                                                <a href="/convivencia/historial/{{ sancion.IdAlumno.id }}/">
-                                                    <strong>{{ sancion.IdAlumno.Nombre }}</strong>
-                                                    {% if sancion.IdAlumno.PDC %} (PDC){% endif %}
-                                                    {% if sancion.IdAlumno.NEAE %} (NEAE){% endif %}
-                                                </a>
-                                            </td>
-                                            <td><span class="label label-danger">Sanción</span></td>
-                                            <td data-value="{{ sancion.Fecha }}">{{ sancion.Fecha|date:"d/m/Y" }}</td>
-                                            <td data-value="{{ sancion.Fecha_fin }}">{{ sancion.Fecha_fin|date:"d/m/Y" }}</td>
-                                            <td><a href="/centro/alumnos/{{ sancion.IdAlumno.Unidad.id }}">{{ sancion.IdAlumno.Unidad }}</a></td>
-                                            <td>
-                                                {{ sancion.Sancion }}
-                                                {% if sancion.NoExpulsion %}<br/><strong>No expulsión</strong>{% endif %}
-                                            </td>
-                                            <td>
-                                                {% if sancion.Profesor %}
-                                                    <strong>{{ sancion.Profesor }} ({{ horas|slice:sancion.Hora|last }})</strong><br/>
-                                                {% endif %}
-                                                {{ sancion.Comentario }}
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                    <tfoot>
-                                    <tr>
-                                        <td colspan="6">
-                                            <ul class="pagination float-right"></ul>
+                            <table id="child-rows-data" class="table table-striped dt-responsive align-middle mb-0">
+                                <thead class="thead-sm text-uppercase fs-xxs">
+                                <tr>
+                                    <th></th>
+                                    <th>N.</th>
+                                    <th>Alumno/a</th>
+                                    <th>Tipo</th>
+                                    <th>Fecha Inicio</th>
+                                    <th>Fecha Fin</th>
+                                    <th>Unidad</th>
+                                    <th>Sanción</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                {% for n, sancion in sanciones_reincorporacion %}
+                                    <tr data-comentario="{{ sancion.Comentario|default:'' }}">
+                                        <td class=" dt-control dt-child-rows-btn dtr-control"><i
+                                                class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>
                                         </td>
+                                        <td>
+                                            {{ n }}
+                                        </td>
+                                        <td>
+                                            <a href="/convivencia/historial/{{ sancion.IdAlumno.id }}/"><strong>{{ sancion.IdAlumno.Nombre }}</strong>
+                                                {% if sancion.IdAlumno.PDC %} (PDC){% endif %}
+                                                {% if sancion.IdAlumno.NEAE %} (NEAE){% endif %}</a>
+                                        </td>
+                                        <td>
+                                            <span class="label label-danger">Sanción</span>
+                                        </td>
+                                        <td data-value="{{ sancion.Fecha }}">{{ sancion.Fecha|date:"d/m/Y" }}</td>
+                                        {% if sancion.Fecha_fin %}
+                                            <td data-value="{{ sancion.Fecha_fin }}">{{ sancion.Fecha_fin|date:"d/m/Y" }}</td>
+                                        {% else %}
+                                            <td></td>
+                                        {% endif %}
+
+                                        <td>
+                                            <a href="/centro/alumnos/{{ sancion.IdAlumno.Unidad.id }}">{{ sancion.IdAlumno.Unidad }}</a>
+                                        </td>
+
+
+                                        {% if sancion.NoExpulsion %}
+                                            <td>{{ sancion.Sancion }}<br/><strong>No expulsión</strong></td>
+                                        {% else %}
+                                            <td>{{ sancion.Sancion }}</td>
+
+                                        {% endif %}
                                     </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                                {% endfor %}
+
+                                </tbody>
+                            </table>
                         {% else %}
                             <p>No hay alumnado que se reincorpore en la fecha seleccionada.</p>
                         {% endif %}
+
+
+                    </div> <!-- end card-body-->
+
+                </div>
+                <div class="card-footer border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div data-table-pagination-info="projects"></div>
+                        <div data-table-pagination></div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+
+        </div><!-- end col -->
+    </div><!-- end row -->
+
 {% endblock %}
 
 {% block js %}
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
     <script>
         $(document).ready(function () {
-            $('.footable').footable();
+
+            const tabla = $('#child-rows-data').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
+                columns: [
+                    {
+                        className: 'dt-control dt-child-rows-btn',
+                        orderable: false,
+                        data: null,
+                        defaultContent: '<i class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>'
+                    }, null, null, null, null, null, null, null
+                ],
+                order: [[1, 'asc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+            });
+
+            // Add event listener for opening and closing details
+            tabla.on('click', 'td.dt-control', function (e) {
+
+                let tr = e.target.closest('tr');
+                let row = tabla.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                } else {
+                    let datos = tr.dataset;
+                    // Open this row
+                    row.child(format(datos)).show();
+                }
+            });
+
+
+            var initialDate = new Date("{{ fecha_reincorporacion|date:'Y-m-d' }}");
+
+            var mem = $('#id_fecha').datepicker({
+                format: "dd/mm/yyyy",  // importante
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', initialDate);
+
+
+            function updateUrlAndSubmit() {
+                var selectedDate = mem.datepicker('getDate');  // Devuelve un objeto Date
+                if (!selectedDate) return;  // Prevención por si no hay fecha
+
+                // Formatear fecha como YYYY-MM-DD
+                var year = selectedDate.getFullYear();
+                var month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+                var day = selectedDate.getDate().toString().padStart(2, '0');
+                var formattedDate = `${year}-${month}-${day}`;
+
+                // Tomar el tipo seleccionado (si existe)
+                var selectedTipo = $('input[name="{{ form.tipo.name }}"]:checked').val();
+
+                // Construir la URL con parámetro GET
+                var baseUrl = window.location.pathname;  // Mantiene la misma URL base
+                var newUrl = `${baseUrl}?fecha=${formattedDate}`;
+
+                if (selectedTipo) {
+                    newUrl += `&tipo=${selectedTipo}`;  // Si quieres mantenerlo como parámetro también
+                }
+
+                window.location.href = newUrl;  // Redirige
+            }
+
+            $('#id_fecha').on('changeDate', function () {
+                updateUrlAndSubmit();
+            });
+
+
+            function format(data) {
+                // `d` is the original data object for the row
+                return (
+
+                    '<div class="row align-items-center" style="margin-top: 5px;">' +
+                    '<div class="col-md-12">' +
+                    '<h5 class="fs-base mb-1">Comentario:</h5>' +
+                    `<div>${data.comentario || 'Sin comentario'}</div>` +
+                    '</div>' +
+                    '</div>'
+                );
+            }
         });
     </script>
 {% endblock %}

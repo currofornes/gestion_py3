@@ -4,64 +4,63 @@
 {% block title %}Editar Ítem del Horario{% endblock %}
 
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox">
-                    <div class="ibox-title">
-                        <h5>Editar ítem del horario</h5>
+    <div class="container-fluid py-3">
+        <div class="page-title-head d-flex align-items-center mb-4">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Editar ítem del horario</h4>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="form-group mt-3">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fa fa-check"></i> Guardar cambios
+                        </button>
+                        <a href="{% url 'editar_horario_profesor' form.instance.profesor.id %}" class="btn btn-secondary">
+                            <i class="fa fa-times"></i> Cancelar
+                        </a>
                     </div>
-                    <div class="ibox-content">
-                        <form method="POST">
-                            {% csrf_token %}
-                            {{ form.as_p }}
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa fa-check"></i> Guardar cambios
-                                </button>
-                                <a href="{% url 'editar_horario_profesor' form.instance.profesor.id %}" class="btn btn-secondary">
-                                    <i class="fa fa-times"></i> Cancelar
-                                </a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
 {% endblock %}
 
 {% block js %}
-
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
     <script>
-
-        $(document).ready(function () {
-
+        document.addEventListener('DOMContentLoaded', function () {
             $(".select2_Tramo").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona tramo horario",
-                allowClear: false
+                allowClear: false,
+                width: '100%'
             });
 
             $(".select2_Dia").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona día",
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
 
             $(".select2_Unidad").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona unidad",
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
 
             $(".select2_Aula").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona aula",
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
-
         });
-
     </script>
 {% endblock %}

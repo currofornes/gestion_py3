@@ -1,64 +1,87 @@
 {% extends "base.html" %}
 {% load static %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
 
 {% block css %}
-    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
 
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
 
     <style>
         .strikethrough {
             /*text-decoration: line-through;*/
-            background-color: #ddbcbc;
+            background-color: #ddbcbc !important;
         }
     </style>
+
 {% endblock %}
 
-{% block title %}Centro{% endblock %}
+
+
 
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
+
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Reservas</h4>
+            </div>
+        </div>
+
 
         <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <div class="float-right">
-                            <a href="/reservas/reservaprofe" class="btn btn-warning"><i class="fa fa-plus"></i> Nueva
-                                reserva para un profesor/a
-                            </a>
-                            <a href="/reservas/verreservascal" class="btn btn-info"><i class="fa fa-calendar"></i> Vista Calendario
-                            </a>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header border-light justify-content-between">
+                        <h3 class="card-title mb-1"></h3>
+
+                        <div class="col-auto">
+                            <div role="group" aria-label="Layout toggle button group">
+                                <a href="/reservas/verreservascal" class="btn btn-secondary"><i
+                                        class="ti ti-calendar me-1"></i> Vista calendario </a>
+
+                                <a href="/reservas/reservaprofe" class="btn btn-warning"><i
+                                        class="ti ti-plus me-1"></i> Nueva reserva para profesor/a </a>
+
+                            </div>
                         </div>
-                        <h2>Reservas</h2>
+
                     </div>
-                    <div class="ibox-content">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered dataTables-reservas"
-                                   style="border-collapse: separate !important;">
-                                <thead>
 
-                                <tr>
-                                    <td class="text-center"><strong>Tipo</strong></td>
-                                    <td class="text-center"><strong>Fecha</strong></td>
-                                    <td class="text-center"><strong>Tramo Horario</strong></td>
-                                    <td class="text-center"><strong>Espacio/Recurso</strong></td>
-                                    <td class="text-center"><strong>Localización</strong></td>
-                                    <td class="text-center"><strong>Aula/Curso</strong></td>
-                                    <td class="text-center"><strong>Profesor/a</strong></td>
-                                    <td class="text-center"><strong>Acciones</strong></td>
-                                </tr>
+                    <div class="card-body">
+
+                        <table class="table table-striped table-bordered table-hover dt-responsive align-middle mb-0 dataTables-reservas">
+                            <thead class="thead-sm text-uppercase fs-xxs">
+
+                            <tr>
+                                <th class="text-center">Tipo</th>
+                                <th class="text-center">Fecha</th>
+                                <th class="text-center">Tramo horario</th>
+                                <th class="text-center">Espacio/Recurso</th>
+                                <th class="text-center">Localización</th>
+                                <th class="text-center">Aula/Unidad</th>
+                                <th class="text-center">Profesor/a</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
 
 
-                                </thead>
-                                <tbody>
-                                {% for item in reservas_info %}
+                            </thead>
+                            <tbody>
+                            {% for item in reservas_info %}
                                     <tr>
                                         <td class="text-center">
                                             {% if item.r.Reservable.TiposReserva.TipoReserva == 'Espacio' %}
-                                                <span class="label label-info">{{ item.r.Reservable.TiposReserva.TipoReserva }}</span>
+                                                <span class="badge badge-label text-bg-info">{{ item.r.Reservable.TiposReserva.TipoReserva }}</span>
                                             {% else %}
-                                                <span class="label label-success">{{ item.r.Reservable.TiposReserva.TipoReserva }}</span>
+                                                <span class="badge badge-label text-bg-secondary">{{ item.r.Reservable.TiposReserva.TipoReserva }}</span>
                                             {% endif %}
 
 
@@ -75,10 +98,10 @@
                                         <td><strong>{{ item.r.Profesor }}</strong></td>
                                         <td style="text-align: center; vertical-align: middle;">
 
-                                            <a class="btn btn-sm btn-danger btn-bitbucket borrar-reserva"
-                                               style="color: white" data-toggle="tooltip"
-                                               data-placement="top" title="Borrar" data-id="{{ item.r.id }}">
-                                                <i class="fa fa-trash"></i>
+                                            <a class="btn btn-sm btn-danger btn-icon borrar-reserva"
+                                               style="color: white" data-bs-toggle="tooltip"
+                                               data-bs-placement="top" title="Borrar" data-id="{{ item.r.id }}">
+                                                <i class="ti ti-trash"></i>
                                             </a>
                                         </td>
 
@@ -88,33 +111,153 @@
                                 {% endfor %}
 
 
-                                </tbody>
-                            </table>
-                        </div>
+                            </tbody>
+                        </table>
+
+
+                    </div> <!-- end card-body-->
+
+                </div>
+                <div class="card-footer border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div data-table-pagination-info="projects"></div>
+                        <div data-table-pagination></div>
                     </div>
                 </div>
             </div>
-        </div>
+
+        </div><!-- end col -->
 
 
-    </div>
+
+
+
+    </div><!-- end row -->
+
+    <!-- Modal para mostrar los detalles -->
+
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
-    <script src="{% static 'js/plugins/fullcalendar/moment.min.js' %}"></script>
-    <script src="{% static 'js/plugins/dataTables/datetime-moment.js' %}"></script>
-    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
 
     <script>
 
-        // Upgrade button class name
-        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
+        jQuery.extend(jQuery.fn.dataTable.ext.type.order, {
+            "date-eu-pre": function (date) {
+                // Si la fecha está vacía o mal formada, devolvemos valor alto para dejarla al final
+                if (!date || date.trim() === '') {
+                    return 0;
+                }
+
+                const eu_date = date.split('/');
+                // dd/mm/yyyy → yyyy+mm+dd como número
+                return (eu_date[2] + eu_date[1] + eu_date[0]) * 1;
+            },
+            "date-eu-asc": function (a, b) {
+                return a - b;
+            },
+            "date-eu-desc": function (a, b) {
+                return b - a;
+            }
+        });
+
 
         $(document).ready(function () {
 
+            $('.dataTables-reservas').each(function () {
+            $(this).DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
 
-            $('.borrar-reserva').click(function () {
+                columnDefs: [
+                    {
+                        targets: 1,
+                        type: 'date-eu'
+                    }
+                ],
+
+
+                order: [[1, 'desc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+            });
+            });
+
+
+            $(document).on('click', '.borrar-reserva', function(e) {
                 var reservaId = $(this).data('id');
                 var row = $(this).closest('tr'); // Obtener la fila de la tabla
 
@@ -168,74 +311,6 @@
                 });
             });
 
-            // Registra el formato de fecha con Moment.js
-            $.fn.dataTable.moment('DD/MM/YYYY');
-
-            var tableReservas = $('.dataTables-reservas').DataTable({
-                language: {
-                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                },
-                order: [[1, 'desc']],
-                pageLength: 50,
-                scrollX: false,
-                scrollCollapse: true,
-                responsive: true,
-                dom: '<"html5buttons"B>lTfgitp',
-                buttons: [
-                    {extend: 'copy'},
-                    {extend: 'csv'},
-                    {extend: 'excel', title: 'Reservas'},
-                    {extend: 'pdf', title: 'Reservas'},
-
-                    {
-                        extend: 'print',
-                        customize: function (win) {
-                            $(win.document.body).addClass('white-bg');
-                            $(win.document.body).css('font-size', '10px');
-
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                        }
-                    },
-                    {
-                        text: 'Ocultar antiguas',
-                        className: '',
-                        action: function (e, dt, button, config) {
-                            var now = new Date();
-                            var dateIndex = 1; // Cambia esto al índice correcto de la columna de fecha
-
-                            if (button.text() === 'Ocultar antiguas') {
-                                tableReservas.rows().every(function () {
-                                    var data = this.data();
-                                    var dateStr = data[dateIndex];
-                                    var parts = dateStr.split('/');
-                                    var date = new Date(parts[2], parts[1] - 1, parts[0]);
-
-                                    if (date < now) {
-                                        $(this.node()).hide();
-                                    }
-                                });
-                                button.text('Mostrar antiguas');
-                            } else {
-                                tableReservas.rows().every(function () {
-                                    var data = this.data();
-                                    var dateStr = data[dateIndex];
-                                    var parts = dateStr.split('/');
-                                    var date = new Date(parts[2], parts[1] - 1, parts[0]);
-
-                                    if (date < now) {
-                                        $(this.node()).show();
-                                    }
-                                });
-                                button.text('Ocultar antiguas');
-                            }
-                        }
-                    }
-                ]
-
-            });
-
 
             // Obtener la fecha actual
             var today = moment();
@@ -254,7 +329,9 @@
                     $(this).find('td:last').empty();
                 }
             });
+
         });
+
 
     </script>
 {% endblock %}

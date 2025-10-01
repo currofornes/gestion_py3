@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
+
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Detalle de la intervención en Aula Horizonte</h4>
+            </div>
+        </div>
+
+        <div class="card">
+
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Alumno/a</th>
+                        <td>{{ intervencion.alumno.Nombre }}</td>
+                    </tr>
+                    <tr>
+                        <th>Unidad</th>
+                        <td>{{ intervencion.alumno.Unidad }}</td>
+                    </tr>
+                    <tr>
+                        <th>Fecha</th>
+                        <td>{{ intervencion.fecha }}</td>
+                    </tr>
+                    <tr>
+                        <th>Tramo</th>
+                        <td>{{ intervencion.get_tramo_horario_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Profesor/a que deriva</th>
+                        <td>{{ intervencion.profesor_envia }}</td>
+                    </tr>
+                    <tr>
+                        <th>Profesor/a que atiende</th>
+                        <td>{{ intervencion.profesor_atiende }}</td>
+                    </tr>
+                    <tr>
+                        <th>¿Necesita reubicación?</th>
+                        <td>{{ intervencion.necesita_reubicacion|yesno:"Sí,No" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Grupo destino</th>
+                        <td>{{ intervencion.grupo_destino|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Tareas asignadas</th>
+                        <td>{{ intervencion.tarea_asignada|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Tareas realizadas</th>
+                        <td>{{ intervencion.tarea_realizada|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Reflexión del alumno/a</th>
+                        <td>{{ intervencion.reflexion_alumno|default:"—" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Observaciones</th>
+                        <td>{{ intervencion.observaciones|default:"—" }}</td>
+                    </tr>
+                </table>
+
+                <a href="{% url 'listado_intervenciones_horizonte' %}" class="btn btn-secondary mt-3">
+                    <i class="ti ti-arrow-left"></i> Volver al listado
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

@@ -99,22 +99,30 @@ class Niveles(models.Model):
     NombresAntiguos = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.Abr
+        return self.Nombre
 
     class Meta:
         verbose_name = "Nivel"
         verbose_name_plural = "Niveles"
 
+class CursosActivosManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(Activo=True).order_by('Orden', 'id')
 
 class Cursos(models.Model):
     Curso = models.CharField(max_length=30)
     Tutor = models.ForeignKey(Profesores, related_name='Tutor_de', blank=True, null=True, on_delete=models.SET_NULL)
-    EquipoEducativo = models.ManyToManyField(Profesores, verbose_name="Equipo Educativo", blank=True)
     Abe = models.CharField(max_length=10, blank=True, null=True)
     Nivel = models.ForeignKey(Niveles, related_name='Nivel', blank=True, null=True, on_delete=models.SET_NULL)
     Aula = models.ForeignKey(Aulas, related_name='Curso', blank=True, null=True, on_delete=models.SET_NULL)
     CursoHorarios = models.CharField(max_length=100, blank=True, null=True)
     Dificultad = models.IntegerField(blank=True, null=True)
+    Activo = models.BooleanField(default=True)
+    Orden = models.PositiveIntegerField(default=0)  # Campo para controlar el orden
+
+    # Managers
+    all_objects = models.Manager()          # sin filtro (útil para administración/tareas)
+    objects = CursosActivosManager()        # por defecto: solo Activo=True
 
     def __str__(self):
         return self.Curso
@@ -128,7 +136,10 @@ class Cursos(models.Model):
     class Meta:
         verbose_name = "Curso"
         verbose_name_plural = "Cursos"
-        ordering = ['id']
+        ordering = ['Orden', 'id']
+        # Importante para que Django use el manager sin filtro en tareas internas
+        base_manager_name = 'all_objects'
+        default_manager_name = 'objects'
 
 
 class Alumnos(models.Model):
@@ -191,6 +202,13 @@ class Alumnos(models.Model):
         fecha_final = date(curso_academico.año_fin, 12, 31)
         return (fecha_final - self.Fecha_nacimiento).years
 
+    @property
+    def edad_actual(self):
+        hoy = date.today()
+        nacimiento = self.Fecha_nacimiento
+        edad = hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day))
+        return edad
+
     class Meta:
         verbose_name = "Alumno"
         verbose_name_plural = "Alumnos"
@@ -225,3 +243,136 @@ class InfoAlumnos(models.Model):
         verbose_name = "Información Adicional de un Alumno"
         verbose_name_plural = "Información Adicional del Alumnado"
         unique_together = ('curso_academico', 'Alumno')
+
+
+class Materia(models.Model):
+    nombre = models.CharField(max_length=100)  # Nombre completo de la materia
+    abr = models.CharField(max_length=20, blank=True)                  # Abreviatura (ej. "MAT")
+    nombre_horarios = models.CharField(max_length=100, blank=True)  # Para uso futuro en horarios
+    horas = models.PositiveSmallIntegerField(default=0)    # Número de horas semanales
+    nivel = models.ForeignKey('Niveles', on_delete=models.CASCADE)  # Nivel educativo (1º ESO, etc.)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.abr} - {self.nombre}"
+
+    class Meta:
+        verbose_name = "Materia"
+        verbose_name_plural = "Materias"
+        ordering = ['nivel__Abr', 'abr']
+
+class MateriaImpartida(models.Model):
+    profesor = models.ForeignKey(Profesores, on_delete=models.CASCADE)
+    materia = models.ForeignKey(Materia, on_delete=models.CASCADE)
+    curso = models.ForeignKey(Cursos, on_delete=models.CASCADE)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.profesor} imparte {self.materia} en {self.curso}"
+
+    class Meta:
+        verbose_name = "Materia impartida"
+        verbose_name_plural = "Materias impartidas"
+        unique_together = ('profesor', 'materia', 'curso')
+        ordering = ['curso__Nivel__Abr', 'curso__Curso', 'materia__abr']
+
+class MatriculaMateria(models.Model):
+    alumno = models.ForeignKey(Alumnos, on_delete=models.CASCADE)
+    materia_impartida = models.ForeignKey(MateriaImpartida, on_delete=models.CASCADE)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.alumno.Nombre} matriculado en {self.materia_impartida.materia.nombre} ({self.materia_impartida.curso})"
+
+    class Meta:
+        verbose_name = "Matrícula de materia"
+        verbose_name_plural = "Matrículas de materias"
+        unique_together = ('alumno', 'materia_impartida')
+
+
+class LibroTexto(models.Model):
+    materia = models.ForeignKey('Materia', on_delete=models.CASCADE, related_name='libros')
+    nivel = models.ForeignKey('Niveles', on_delete=models.CASCADE, related_name='libros_texto')
+
+    isbn = models.CharField("ISBN/EAN", max_length=20, blank=True)
+    editorial = models.CharField(max_length=200, blank=True)
+    titulo = models.CharField(max_length=300, blank=True)
+    anyo_implantacion = models.PositiveIntegerField(null=True, blank=True)
+    importe_estimado = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+
+    es_digital = models.BooleanField(default=False)
+    incluir_en_cheque_libro = models.BooleanField(default=False)
+    es_otro_material = models.BooleanField(default=False)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.titulo or 'Sin título'}"
+
+
+class MomentoRevisionLibros(models.Model):
+    nombre = models.CharField(max_length=100)
+    orden = models.PositiveIntegerField(default=0)
+    estados = models.ManyToManyField('EstadoLibro', related_name='momentos')
+
+    class Meta:
+        ordering = ['orden']
+
+    def __str__(self):
+        return self.nombre
+
+class EstadoLibro(models.Model):
+    nombre = models.CharField(max_length=100)
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['orden']
+
+    def __str__(self):
+        return self.nombre
+
+class RevisionLibro(models.Model):
+    profesor = models.ForeignKey('Profesores', on_delete=models.CASCADE)
+    materia = models.ForeignKey('Materia', on_delete=models.CASCADE)
+    curso = models.ForeignKey('Cursos', on_delete=models.CASCADE)
+    libro = models.ForeignKey('LibroTexto', on_delete=models.CASCADE)
+    momento = models.ForeignKey('MomentoRevisionLibros', on_delete=models.CASCADE)
+    fecha = models.DateField(auto_now_add=True)
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('profesor', 'curso', 'materia', 'libro', 'momento', 'fecha', 'curso_academico')
+
+    def __str__(self):
+        return f"{self.profesor} - {self.curso} - {self.materia} - {self.libro} - {self.momento} ({self.fecha})"
+
+class RevisionLibroAlumno(models.Model):
+    revision = models.ForeignKey('RevisionLibro', on_delete=models.CASCADE, related_name='detalles')
+    alumno = models.ForeignKey('Alumnos', on_delete=models.CASCADE)
+    estado = models.ForeignKey('EstadoLibro', on_delete=models.CASCADE)
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('revision', 'alumno')
+
+    def __str__(self):
+        return f"{self.revision} - {self.alumno} - {self.estado} ({self.observaciones})"
+
+
+class PreferenciaHorario(models.Model):
+    profesor = models.OneToOneField(Profesores, on_delete=models.CASCADE, related_name='preferencia_horaria')
+
+    curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
+
+    # Guardamos la información del horario como JSON
+    horario = models.JSONField(default=dict)  # Ejemplo: {'Lunes-1': True, 'Martes-2': False, ...}
+    flexibilidad_inicio = models.BooleanField(default=False)
+    flexibilidad_fin = models.BooleanField(default=False)
+
+    guardias = models.JSONField(default=list)  # ['Pasillo', 'Recreo', 'Horizonte'], en orden
+    observaciones = models.TextField(blank=True)
+
+    actualizado = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Preferencias de {self.profesor}"
+

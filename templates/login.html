@@ -4,37 +4,69 @@
 
 {% block content %}
 
-    <div class="loginColumns animated fadeInDown">
-        <div class="row">
+    <div class="row align-items-center justify-content-center">
+        <div class="col-xl-10">
+            <div class="card rounded-4">
+                <div class="row justify-content-between g-0">
+                    <div class="col-lg-6">
+                        <div class="card-body">
+                            <div class="auth-brand text-center mb-4">
+                                <a href="index.html" class="logo-dark">
+                                    <img src="{% static 'img/Logo IES.png' %}" alt="dark logo" height="64">
+                                </a>
+                                <h4 class="fw-bold mt-4">Bienvenid@ a Gestiona IESGN</h4>
+                                <p class="text-muted w-lg-75 mx-auto">Sistema de gestión del IES Gonzalo Nazareno.</p>
+                            </div>
 
-            <div class="col-md-6">
-                <h2 class="font-bold">Bienvenid@ a Gestiona IESGN</h2>
+                            <form action="{% url 'login' %}" method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Usuario <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i
+                                                class="ti ti-mail text-muted fs-xl"></i></span>
+                                        <input type="text" class="form-control" name="username" id="inputText"
+                                               placeholder="Usuario" autofocus required>
+                                    </div>
+                                </div>
 
-                <div class="ibox-content no-padding border-left-right">
-                    <img alt="image" class="img-fluid" src="{% static 'img/iesgn.jpg' %}">
-                </div>
+                                <div class="mb-3">
+                                    <label for="userPassword" class="form-label">Contraseña <span
+                                            class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i
+                                                class="ti ti-lock-password text-muted fs-xl"></i></span>
+                                        <input type="password" class="form-control" name="password" id="inputPassword"
+                                               placeholder="••••••••" required>
+                                        <input type="hidden" name="next" value="{{ next }}">
+                                    </div>
+                                </div>
 
-            </div>
-            <div class="col-md-6">
-                <div class="ibox-content">
 
-                    <form action="{% url 'login' %}" method="post" class="m-t">
-                        {% csrf_token %}
-                        {% if error %}
-                          <h3 class="bg-danger">Error en login.</h3>
-                        {% endif%}
-                        <div class="form-group">
-                            <input type="text" name="username" id="inputText" class="form-control" placeholder="Usuario" required autofocus>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary fw-semibold py-2">Entrar</button>
+                                </div>
+                            </form>
+
+                            <div class="auth-brand text-center mb-4" style="margin-top: 30px;">
+                                <img src="{% static 'img/iconos.png' %}" alt="dark logo" height="32">
+                            </div>
+
+                            <p class="text-center text-muted mt-4 mb-0">
+                                © 2023 -
+                                <script>document.write(new Date().getFullYear())</script>
+                                IESGN (dit) — <span class="fw-semibold">JDMR & FFR & RRM</span>
+                            </p>
                         </div>
-                        <div class="form-group">
-                            <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password" required>
-                            <input type="hidden" name="next" value="{{next}}">
+                    </div>
+
+                    <div class="col-lg-6 d-none d-lg-block">
+                        <div class="h-100 position-relative card-side-img rounded-end-4 rounded-end rounded-0 overflow-hidden">
+                            <div class="p-4 card-img-overlay rounded-4 rounded-start-0 auth-overlay d-flex align-items-end justify-content-center">
+
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-primary block full-width m-b">Entrar</button>
-                    </form>
-                    <p class="m-t">
-                        <small>Sistema de gestión del IES Gonzalo Nazareno</small>
-                    </p>
+                    </div>
                 </div>
             </div>
         </div>

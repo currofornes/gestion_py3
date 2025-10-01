@@ -978,6 +978,9 @@ def main():
         cursor = conn.cursor()
 
 
+
+
+
         migrate_centro_data(conn)
         migrate_absentismo_data(conn)
         migrate_convivencia_data(conn)
@@ -1011,13 +1014,16 @@ def main():
         call_command('migrate', fake=True)
 
         # Llamar al comando personalizado import_profesores
-        call_command('import_profesores', 'centro/datos_iniciales/RelPerCen.csv')
+        call_command('import_profesores', 'centro/datos_iniciales/RelPerCen_24_25.csv')
 
         # Llamar al comando personalizado import_cursos
-        call_command('import_cursos', 'centro/datos_iniciales/RegUnidades.csv', 'centro/datos_iniciales/RelMatProUni.csv')
+        call_command('import_cursos', 'centro/datos_iniciales/RegUnidades_24_25.csv', 'centro/datos_iniciales/EquipoEducativo_24_25.csv')
+
+
+
 
         # Llamar al comando personalizado import_alumnos
-        call_command('import_alumnos', 'centro/datos_iniciales/RegAlum.csv', False)
+        call_command('import_alumnos', 'centro/datos_iniciales/RegAlum_24_25.csv', False)
         
 
 
@@ -1030,7 +1036,8 @@ def main():
         call_command('asignar_grupo', 'jefe1', 'jefatura de estudios')
 
 
-        #call_command('crear_grupo', 'tde')
+        call_command('crear_grupo', 'tde')
+        call_command('crear_grupo', 'orientacion')
 
 
 

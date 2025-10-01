@@ -18,10 +18,12 @@ from django.contrib import admin
 
 from gestion.views import (
     index, salir, login_view, cambiar_password, cambiar_password_custom, descargar_base_datos,
-    cargar_qry
+    cargar_qry, dashboard_jefatura
 )
 
 urlpatterns = [
+
+    path('', index, name='index'),
 
     path('admin/descargar-db/', descargar_base_datos, name='descargar_base_datos'),
     path('admin/cargar_qry/', cargar_qry, name='cargar_qry'),
@@ -49,8 +51,12 @@ urlpatterns = [
 
     path('analres/', include('analres.urls')),
 
+    path('DACE/', include('DACE.urls')),
+
     path('cambiar-password/', cambiar_password, name='cambiar_password'),
     path('cambiar-password-custom/', cambiar_password_custom, name='cambiar_password_custom'),
+
+    path('indexje/', dashboard_jefatura, name='dashboard_jefatura'),
 
 
 

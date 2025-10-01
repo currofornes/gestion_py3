@@ -2,8 +2,8 @@ from datetime import datetime
 
 from django import forms
 from django.forms import ModelForm, ModelChoiceField
-from convivencia.models import Amonestaciones, Sanciones
-from centro.models import Profesores, CursoAcademico
+from convivencia.models import Amonestaciones, Sanciones, IntervencionAulaHorizonte
+from centro.models import Profesores, CursoAcademico, Cursos, Alumnos
 from django.forms.widgets import CheckboxSelectMultiple, HiddenInput, DateInput, Textarea, TextInput, Select, \
     SelectDateWidget, CheckboxInput
 from django.contrib.admin.widgets import AdminDateWidget
@@ -26,7 +26,7 @@ class AmonestacionForm(forms.ModelForm):
             'Profesor': Select(attrs={'class': 'form-control select2_Profesor'}),
             'Comentario': Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'Enviado': CheckboxInput(attrs={'class': 'form-check-input'}),
-            'DerivadoConvivencia': CheckboxInput(attrs={'class': 'i-checks'}),
+            'DerivadoConvivencia': CheckboxInput(attrs={'class': 'form-check-input'}),
             'ComunicadoFamilia': HiddenInput(),
             'FamiliarComunicado': forms.TextInput(attrs={'class': 'form-control'}),
             'FechaComunicado': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
@@ -50,6 +50,7 @@ class AmonestacionForm(forms.ModelForm):
         # Filtrar el queryset del campo 'Profesor' para que solo muestre profesores que no están dados de baja
         self.fields['Profesor'].queryset = Profesores.objects.filter(Baja=False)
         self.fields['Tipo'].required = True
+        self.fields['Medio'].required = True
 
 
 
@@ -114,8 +115,7 @@ class AmonestacionProfeForm(forms.ModelForm):
             'Tipo': Select(attrs={'class': 'form-control select2_TipoParte'}),
             'Comentario': Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'Enviado': CheckboxInput(attrs={'class': 'form-check-input'}),
-            'DerivadoConvivencia': CheckboxInput(attrs={'class': 'i-checks'}),
-
+            'DerivadoConvivencia': CheckboxInput(attrs={'class': 'form-check-input'}),
             'ComunicadoFamilia': HiddenInput(),
             'FamiliarComunicado': forms.TextInput(attrs={'class': 'form-control'}),
             'FechaComunicado': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
@@ -141,11 +141,14 @@ class AmonestacionProfeForm(forms.ModelForm):
         else:
             self.fields['Fecha'].initial = datetime.today()  # Establecer la fecha de hoy como valor inicial
         self.fields['Tipo'].required = True
+        self.fields['Medio'].required = True
 
 class ResumenForm(forms.Form):
     fecha = forms.DateField(widget=DatePickerInput(attrs={
         'class': 'form-control',
         'autocomplete': 'off',
+        'aria-label': 'Fecha',
+        'aria-describedby': 'basic-addon1',
         # 'onchange': 'this.form.submit();'
     }))
 
@@ -153,4 +156,36 @@ class ResumenForm(forms.Form):
         ('amonestacion', 'Amonestación'),
         ('sancion', 'Sanción'),
     ]
-    tipo = forms.ChoiceField(choices=TIPO_CHOICES, widget=forms.RadioSelect(attrs={'class': 'i-checks'}))
+    tipo = forms.ChoiceField(choices=TIPO_CHOICES, widget=forms.RadioSelect(attrs={'class': 'form-check-input'}))
+
+
+class IntervencionAulaHorizonteForm(forms.ModelForm):
+    alumno = forms.ModelChoiceField(
+        queryset=Alumnos.objects.filter(Unidad__isnull=False).order_by("Nombre"),
+        label="Alumno/a",
+        widget=forms.Select(attrs={'class': 'form-select select2_Alumno'}),
+    )
+
+
+    class Meta:
+        model = IntervencionAulaHorizonte
+        exclude = ['profesor_atiende', 'creada_por', 'creada_en']  # estos los rellenamos desde la vista
+
+        widgets = {
+            'profesor_envia': forms.Select(attrs={'class': 'form-control select2_Profesor'}),
+            'fecha': DatePickerInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
+            'tramo_horario': forms.Select(attrs={'class': 'form-control select2_Hora'}),
+            'tarea_asignada': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'tarea_realizada': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'motivo': forms.TextInput(attrs={'class': 'form-control'}),
+            'reflexion_alumno': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'necesita_reubicacion': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'grupo_destino': forms.Select(attrs={'class': 'form-control select2_Grupo'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['alumno'].label_from_instance = lambda obj: obj.Nombre
+        self.fields['profesor_envia'].queryset = Profesores.objects.filter(Baja=False)
+        self.fields['grupo_destino'].queryset = Cursos.objects.all()

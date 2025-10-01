@@ -1,0 +1,77 @@
+[
+  {
+    "model": "centro.momentorevisionlibros",
+    "pk": 1,
+    "fields": {
+      "nombre": "Entrega",
+      "orden": 1,
+      "estados": [1, 2, 3, 4, 5]
+    }
+  },
+  {
+    "model": "centro.momentorevisionlibros",
+    "pk": 2,
+    "fields": {
+      "nombre": "Intermedia",
+      "orden": 2,
+      "estados": [2, 3, 4]
+    }
+  },
+  {
+    "model": "centro.momentorevisionlibros",
+    "pk": 3,
+    "fields": {
+      "nombre": "Recogida",
+      "orden": 3,
+      "estados": [2, 3, 4, 6]
+    }
+  },
+  {
+    "model": "centro.estadolibro",
+    "pk": 1,
+    "fields": {
+      "nombre": "Nuevo",
+      "orden": 1
+    }
+  },
+  {
+    "model": "centro.estadolibro",
+    "pk": 2,
+    "fields": {
+      "nombre": "Bueno",
+      "orden": 2
+    }
+  },
+  {
+    "model": "centro.estadolibro",
+    "pk": 3,
+    "fields": {
+      "nombre": "Aceptable",
+      "orden": 3
+    }
+  },
+  {
+    "model": "centro.estadolibro",
+    "pk": 4,
+    "fields": {
+      "nombre": "Malo",
+      "orden": 4
+    }
+  },
+  {
+    "model": "centro.estadolibro",
+    "pk": 5,
+    "fields": {
+      "nombre": "No entregado",
+      "orden": 5
+    }
+  },
+  {
+    "model": "centro.estadolibro",
+    "pk": 6,
+    "fields": {
+      "nombre": "Necesita reposición",
+      "orden": 6
+    }
+  }
+]

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/RegAlum_2526.csv" charset="ISO-8859-1" />
+    <file url="file://$PROJECT_DIR$/RegAlum_2526_v2.csv" charset="ISO-8859-1" />
     <file url="file://$PROJECT_DIR$/absentismo/datos_iniciales/inicio_absentismo_tiposactuaciones.csv" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/centro/datos_iniciales/EquipoEducativo_24_25.csv" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/centro/datos_iniciales/RegAlum_24_25.csv" charset="windows-1252" />
@@ -15,6 +17,8 @@
     <file url="file://$PROJECT_DIR$/centro/datos_iniciales/inicio_centro_departamentos.csv" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/centro/datos_iniciales/inicio_centro_niveles.csv" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/convivencia/datos_iniciales/inicio_convivencia_tiposamonestaciones.csv" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/horario2025.csv" charset="ISO-8859-1" />
+    <file url="file://$PROJECT_DIR$/horario2025_original.csv" charset="ISO-8859-1" />
     <file url="file://$PROJECT_DIR$/horarios_csv.csv" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/reservas/datos_iniciales/inicio_reservas_reservables.csv" charset="windows-1252" />
     <file url="file://$PROJECT_DIR$/tde/datos_iniciales/inicio_tde_elemento.csv" charset="windows-1252" />

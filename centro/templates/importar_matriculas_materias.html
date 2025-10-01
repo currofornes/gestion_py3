@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Matrículas</h4>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card" data-table>
+                    <div class="card-header border-light justify-content-between">
+                        <h4 class="card-title">Importar matrículas por materia</h4>
+                    </div>
+
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data" class="form">
+                            {% csrf_token %}
+
+                            <div class="row g-2">
+                                <div class="mb-3 col-md-6 col-lg-4">
+                                    <label for="nivel" class="form-label">Selecciona el nivel del CSV</label>
+                                    <select name="nivel" id="nivel" class="form-select" required>
+                                        <option value="">-- Selecciona un nivel --</option>
+                                        <option value="1º ESO">1º ESO</option>
+                                        <option value="2º ESO">2º ESO</option>
+                                        <option value="3º ESO">3º ESO</option>
+                                        <option value="4º ESO">4º ESO</option>
+                                        <option value="1º BACH">1º BACH</option>
+                                        <option value="2º BACH">2º BACH</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3 col-md-6 col-lg-8">
+                                    <label for="csv_matriculas" class="form-label">Archivo CSV</label>
+                                    <input
+                                        type="file"
+                                        name="csv_matriculas"
+                                        id="csv_matriculas"
+                                        accept=".csv"
+                                        class="form-control"
+                                        required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Importar Matrículas</button>
+                        </form>
+                    </div>
+
+                    <div class="card-footer border-0"></div>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="row mt-3">
+                <div class="col-12">
+                    {% for message in messages %}
+                        <div
+                          class="alert
+                                 {% if 'error' in message.tags %}alert-danger{% elif 'warning' in message.tags %}alert-warning{% elif 'success' in message.tags %}alert-success{% else %}alert-info{% endif %}"
+                          role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if resumen %}
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header border-light">
+                            <h4 class="card-title">Resultado de la importación</h4>
+                        </div>
+                        <div class="card-body">
+
+                            <h5 class="text-success">Nuevas matrículas creadas ({{ resumen.nuevas|length }})</h5>
+                            {% if resumen.nuevas %}
+                                <ul class="list-group mb-3">
+                                    {% for n in resumen.nuevas %}
+                                        <li class="list-group-item">{{ n }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No se han creado matrículas nuevas.</p>
+                            {% endif %}
+
+                            <h5 class="text-primary">Matrículas ya existentes ({{ resumen.existentes|length }})</h5>
+                            {% if resumen.existentes %}
+                                <ul class="list-group mb-3">
+                                    {% for e in resumen.existentes %}
+                                        <li class="list-group-item">{{ e }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No había matrículas previas coincidentes.</p>
+                            {% endif %}
+
+                            <h5 class="text-danger">Errores o materias no encontradas ({{ resumen.errores|length }})</h5>
+                            {% if resumen.errores %}
+                                <ul class="list-group">
+                                    {% for error in resumen.errores %}
+                                        <li class="list-group-item list-group-item-danger">{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">Sin errores.</p>
+                            {% endif %}
+
+                        </div>
+                        <div class="card-footer border-0"></div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Evitar doble envío
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                const btn = form.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Procesando...';
+                }
+            });
+        }
+        // Evitar submit con Enter en inputs/selects
+        document.addEventListener('keypress', function (e) {
+            const tag = (e.target.tagName || '').toLowerCase();
+            if ((tag === 'input' || tag === 'select') && e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'plugins/select2/select2-bootstrap4.min.css' %}" rel="stylesheet"/>
+
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row animated fadeInRight">
+            <div class="col-12">
+                <div class="card" data-table>
+                    <div class="card-header border-light d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Listado de Profesores Sustitutos</h4>
+                        <a href="{% url 'crear_sustituto' %}" class="btn btn-primary btn-sm">Añadir Sustituto</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered align-middle dataTables-sustitutos">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Nombre Completo Sustituto</th>
+                                    <th>Usuario</th>
+                                    <th>DNI</th>
+                                    <th>Email</th>
+                                    <th>Profesor Titular</th>
+                                    <th>Acciones</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for prof in sustitutos %}
+                                    <tr>
+                                        <td>{{ prof.Apellidos }}, {{ prof.Nombre }}</td>
+                                        <td>{{ prof.user.username }}</td>
+                                        <td>{{ prof.DNI }}</td>
+                                        <td>{{ prof.Email }}</td>
+                                        <td>{{ prof.SustitutoDe.Apellidos }}, {{ prof.SustitutoDe.Nombre }}</td>
+                                        <td>
+                                            <button
+                                                    class="btn btn-success btn-sm reincorporar-titular"
+                                                    data-sustituto-id="{{ prof.id }}"
+                                                    data-titular-id="{{ prof.SustitutoDe.id }}"
+                                            >
+                                                Reincorporar Titular
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </div> <!-- table-responsive -->
+                    </div>
+
+                    <div class="card-footer border-0"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
+
+
+    <script>
+        $(document).ready(function () {
+            $('.dataTables-sustitutos').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 25,
+                fixedHeader: {header: true, headerOffset: 65},
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {extend: 'copy', text: 'Copiar', className: 'dropdown-item'},
+                            {extend: 'csv', text: 'CSV', className: 'dropdown-item'},
+                            {extend: 'excel', text: 'Excel', className: 'dropdown-item'},
+                            {extend: 'print', text: 'Imprimir', className: 'dropdown-item'},
+                            {extend: 'pdf', text: 'PDF', className: 'dropdown-item'}
+                        ]
+                    }
+                ],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                },
+                ordering: false
+            });
+
+            $(document).on('click', '.reincorporar-titular', function(e) {
+                const sustitutoId = $(this).data('sustituto-id');
+                const titularId = $(this).data('titular-id');
+
+                Swal.fire({
+                    title: '¿Confirmar reincorporación?',
+                    text: "Se marcará al titular como activo y se dará de baja al sustituto.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, reincorporar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{% url 'reincorporar_titular' %}",
+                            type: 'POST',
+                            data: {
+                                'sustituto_id': sustitutoId,
+                                'titular_id': titularId,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire(
+                                        'Reincorporado',
+                                        'El titular ha sido reincorporado.',
+                                        'success'
+                                    ).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire(
+                                        'Error',
+                                        response.error || 'No se pudo reincorporar.',
+                                        'error'
+                                    );
+                                }
+                            },
+                            error: function () {
+                                Swal.fire(
+                                    'Error',
+                                    'Error en la comunicación con el servidor.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
+            });
+
+
+        });
+    </script>
+{% endblock %}

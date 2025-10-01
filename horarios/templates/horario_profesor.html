@@ -1,179 +1,177 @@
 {% extends "base.html" %}
-{% load grupo_tags %}
 {% load static %}
 {% load horario_tags %}
-
-{% block css %}
-    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
-{% endblock %}
+{% load grupo_tags %}
 
 {% block title %}Centro{% endblock %}
 
-{% block content %}
-    <style>
-        .tramo-actual {
-            background-color: #ffd700; /* Color dorado */
-            font-weight: bold;
-        }
-    </style>
-
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        {% if user|has_group:"jefatura de estudios" %}
-                            {% if request.GET.profesor %}
-                                <div class="float-right">
-                                    <a href="/horarios/profesor/{{ request.GET.profesor }}/editar"
-                                       class="btn btn-warning"><i class="fa fa-pencil-square-o"></i> Editar
-                                        Horario </a>
-                                </div>
-                            {% endif %}
-                        {% endif %}
-
-
-                        <h2>Horario Profesorado </h2>
-                    </div>
-                    <div class="ibox-content">
-                        <div class="row">
-                            <div class="col-12">
-                                <form method="GET">
-                                    <label for="profesor">Seleccionar Profesor:</label>
-                                    <select name="profesor" id="profesor" onchange="this.form.submit()"
-                                            class="form-control">
-                                        <option value="">-- Selecciona un profesor --</option>
-                                        {% for profesor in profesores %}
-                                            <option value="{{ profesor.id }}"
-                                                    {% if profesor.id|stringformat:"s" == request.GET.profesor %}selected{% endif %}>{{ profesor }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </form>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="ibox-content">
-
-                        <div class="row">
-                            <div class="col-12">
-
-                                {% if horario %}
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered">
-                                            <thead>
-                                            <tr class="text-center" style="border: 3px solid #EBEBEB;">
-                                                <th class="bg-success">TRAMO</th>
-                                                <th class="bg-success">LUNES</th>
-                                                <th class="bg-success">MARTES</th>
-                                                <th class="bg-success">MIÉRCOLES</th>
-                                                <th class="bg-success">JUEVES</th>
-                                                <th class="bg-success">VIERNES</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for tramo in tramos %}
-                                                    {% if tramo == "RECREO" %}
-                                                        <tr class="bg-light-warning" data-tramo="{{ tramo }}">
-                                                    {% else %}
-                                                        <tr data-tramo="{{ tramo }}">
-                                                    {% endif %}
-                                                        <td class="bg-info text-center" style="vertical-align: middle;">
-                                                            <strong>{{ tramo }}</strong><br>
-                                                            <small class="text-muted">
-                                                                {% if tramo == "1ª hora" %}08:15 - 09:15
-                                                                {% elif tramo == "2ª hora" %}09:15 - 10:15
-                                                                {% elif tramo == "3ª hora" %}10:15 - 11:15
-                                                                {% elif tramo == "RECREO" %}11:15 - 11:45
-                                                                {% elif tramo == "4ª hora" %}11:45 - 12:45
-                                                                {% elif tramo == "5ª hora" %}12:45 - 13:45
-                                                                {% elif tramo == "6ª hora" %}13:45 - 14:45
-                                                                {% endif %}
-                                                            </small>
-                                                        </td>
-                                                        {% for dia in dias %}
-                                                            <td class="text-center" style="vertical-align: middle; border: 1px solid #000000;">
-                                                                {% if horario %}
-                                                                    {% if horario|get_item:forloop.parentloop.counter %}
-                                                                        {% if horario|get_item:forloop.parentloop.counter|get_item:dia %}
-                                                                            {% for item in horario|get_item:forloop.parentloop.counter|get_item:dia %}
-                                                                                <strong><span class="simple_tag">{{ item.materia }}</span></strong>
-                                                                                {% if item.materia != "GUARDIAS" and item.materia != "GUARDIAS DE RECREO" %}
-                                                                                    <br><br>
-                                                                                    <small>
-                                                                                        <span class="text-success">{{ item.unidades_combinadas }}</span>
-                                                                                        - <span class="text-danger">{{ item.aula }}</span>
-                                                                                    </small><br>
-                                                                                {% endif %}
-                                                                            {% endfor %}
-                                                                        {% else %}
-                                                                            -
-                                                                        {% endif %}
-                                                                    {% else %}
-                                                                        -
-                                                                    {% endif %}
-                                                                {% else %}
-                                                                    -
-                                                                {% endif %}
-                                                            </td>
-                                                        {% endfor %}
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                {% else %}
-                                    <p>Selecciona un profesor para ver su horario.</p>
-                                {% endif %}
-
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="ibox ">
-                                    <div class="ibox-title">
-                                        <h4>Unidades y Materias</h4>
-                                    </div>
-                                    <div class="ibox-content">
-
-                                        <table class="table table-striped">
-                                            <thead>
-                                            <tr>
-                                                <th>Unidad</th>
-                                                <th>Materias</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {% for item in unidades_materias %}
-                                                <tr>
-                                                    <td>{{ item.unidad }}</td>
-                                                    <td>{{ item.materias }}</td>
-                                                </tr>
-                                            {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-    </div>
+{% block css %}
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
 
 {% endblock %}
 
+{% block content %}
+
+    <div class="container-fluid">
+
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Horario Profesorado</h4>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="row mb-3 border-bottom">
+                        <div class="col-lg-12">
+                            <form class="p-3">
+                                <div class="row gap-3">
+                                    <div class="col">
+                                        <div class="row gap-3">
+                                            <div class="col-lg-10">
+                                                <form method="GET">
+                                                    <label for="profesor" style="margin-bottom: 10px;">Seleccionar
+                                                        Profesor/a:</label>
+                                                    <select name="profesor" id="profesor" onchange="this.form.submit()"
+                                                            class="form-control">
+                                                        <option value="">-- Selecciona un/a profesor/a --</option>
+                                                        {% for profesor in profesores %}
+                                                            <option value="{{ profesor.id }}"
+                                                                    {% if profesor.id|stringformat:"s" == request.GET.profesor %}selected{% endif %}>{{ profesor }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </form>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <!-- Layout toggle (grid/list) -->
+                                    <div class="col-auto align-middle" >
+                                        {% if user|has_group:"jefatura de estudios" %}
+                                    {% if request.GET.profesor %}
+                                            <span class="align-middle">
+                                                <a href="/horarios/profesor/{{ request.GET.profesor }}/editar" class="btn btn-warning">
+                                                <i class="ti ti-edit fs-xl me-1"></i> <span>Editar Horario</span>
+                                            </a></span>
+                                    {% endif %}
+                                {% endif %}
+                                    </div>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+
+
+                    <div class="card-body">
+                        {% if horario %}
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                    <tr class="text-center">
+                                        <th class="bg-secondary text-white">TRAMO</th>
+                                        <th class="bg-secondary text-white">LUNES</th>
+                                        <th class="bg-secondary text-white">MARTES</th>
+                                        <th class="bg-secondary text-white">MIÉRCOLES</th>
+                                        <th class="bg-secondary text-white">JUEVES</th>
+                                        <th class="bg-secondary text-white">VIERNES</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for tramo in tramos %}
+                                        {% if tramo == "RECREO" %}
+                                            <tr class="bg-warning-subtle" data-tramo="{{ tramo }}">
+                                                {% else %}
+                                            <tr data-tramo="{{ tramo }}">
+                                        {% endif %}
+
+                                    <td class="bg-info text-center text-white" style="vertical-align: middle;">
+                                        <strong>{{ tramo }}</strong><br>
+                                        <small class="text-light">
+                                            {% if tramo == "1ª hora" %}08:15 - 09:15
+                                            {% elif tramo == "2ª hora" %}09:15 - 10:15
+                                            {% elif tramo == "3ª hora" %}10:15 - 11:15
+                                            {% elif tramo == "RECREO" %}11:15 - 11:45
+                                            {% elif tramo == "4ª hora" %}11:45 - 12:45
+                                            {% elif tramo == "5ª hora" %}12:45 - 13:45
+                                            {% elif tramo == "6ª hora" %}13:45 - 14:45
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    {% for dia in dias %}
+                                        <td class="text-center"
+                                            style="vertical-align: middle; border: 1px solid #000000;">
+                                            {% if horario %}
+                                                {% if horario|get_item:forloop.parentloop.counter %}
+                                                    {% if horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                        {% for item in horario|get_item:forloop.parentloop.counter|get_item:dia %}
+                                                            <strong><span
+                                                                    class="simple_tag">{{ item.materia }}</span></strong>
+                                                            {% if item.materia != "GUARDIAS" and item.materia != "GUARDIAS DE RECREO" %}
+                                                                <br><br>
+                                                                <small>
+                                                                    <span class="text-secondary">{{ item.unidades_combinadas }}</span>
+                                                                    - <span
+                                                                        class="text-danger">{{ item.aula }}</span>
+                                                                </small><br>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p>Selecciona un profesor para ver su horario.</p>
+                        {% endif %}
+
+                    </div> <!-- end card-body-->
+                    <div class="card-footer">
+                        <h4>Unidades y Materias</h4>
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Unidad</th>
+                                <th>Materia</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in unidades_materias %}
+                                <tr>
+                                    <td>{{ item.unidad }}</td>
+                                    <td>{{ item.materias }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div> <!-- end card-->
+            </div> <!-- end col-->
+        </div> <!-- end row-->
+
+    </div>
+    <!-- container -->
+{% endblock %}
+
+
 {% block js %}
-    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
-    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
-    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -184,13 +182,13 @@
 
             // Define los tramos horarios en minutos
             const tramos = [
-                { tramo: "1ª hora", start: 8 * 60 + 15, end: 9 * 60 + 15 },
-                { tramo: "2ª hora", start: 9 * 60 + 15, end: 10 * 60 + 15 },
-                { tramo: "3ª hora", start: 10 * 60 + 15, end: 11 * 60 + 15 },
-                { tramo: "RECREO", start: 11 * 60 + 15, end: 11 * 60 + 45 },
-                { tramo: "4ª hora", start: 11 * 60 + 45, end: 12 * 60 + 45 },
-                { tramo: "5ª hora", start: 12 * 60 + 45, end: 13 * 60 + 45 },
-                { tramo: "6ª hora", start: 13 * 60 + 45, end: 14 * 60 + 45 },
+                {tramo: "1ª hora", start: 8 * 60 + 15, end: 9 * 60 + 15},
+                {tramo: "2ª hora", start: 9 * 60 + 15, end: 10 * 60 + 15},
+                {tramo: "3ª hora", start: 10 * 60 + 15, end: 11 * 60 + 15},
+                {tramo: "RECREO", start: 11 * 60 + 15, end: 11 * 60 + 45},
+                {tramo: "4ª hora", start: 11 * 60 + 45, end: 12 * 60 + 45},
+                {tramo: "5ª hora", start: 12 * 60 + 45, end: 13 * 60 + 45},
+                {tramo: "6ª hora", start: 13 * 60 + 45, end: 14 * 60 + 45},
             ];
 
             // Encuentra el tramo actual y el siguiente
@@ -205,7 +203,10 @@
                 const filas = document.querySelectorAll('tr[data-tramo]');
                 filas.forEach(fila => {
                     if (fila.getAttribute('data-tramo') === tramoActual.tramo) {
-                        fila.classList.add('tramo-actual');
+                        fila.classList.add('bg-warning');
+                        fila.classList.add('bg-gradient');
+                        fila.classList.add('bg-opacity-75');
+
                     }
                 });
             }
@@ -237,3 +238,4 @@
         });
     </script>
 {% endblock %}
+

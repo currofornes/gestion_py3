@@ -5,15 +5,10 @@ class DatePickerInput(forms.DateInput):
 
     class Media:
         css = {
-            'all': ('css/plugins/datapicker/datepicker3.css')
+            'all': ('plugins/datepicker/datepicker3.css')
         }
-        js = ('js/plugins/datapicker/bootstrap-datepicker.js', 'js/plugins/datapicker/locales/bootstrap-datepicker.es.min.js')
+        js = ('plugins/datepicker/bootstrap-datepicker.js', 'plugins/datepicker/locales/bootstrap-datepicker.es.min.js')
 
 class ClockPickerInput(forms.TimeInput):
     template_name = 'widgets/clockpicker.html'
 
-    class Media:
-        css = {
-            'all': ('css/plugins/clockpicker/clockpicker.css')
-        }
-        js = ('js/plugins/clockpicker/clockpicker.js')

@@ -6,18 +6,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestiona IESGN</title>
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'font-awesome/css/font-awesome.css' %}" rel="stylesheet">
-    <link href="{% static 'css/animate.css' %}" rel="stylesheet">
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/select2/select2.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/select2/select2-bootstrap4.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/datapicker/datepicker3.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/daterangepicker/daterangepicker-bs3.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/footable/footable.core.css' %}" rel="stylesheet">
-    <link rel="icon" href="{% static 'img/LogoGestiona.ico' %}" type="image/x-icon">
+
+    <!-- Theme Config Js -->
+    <script src="{% static 'js/config.js' %}"></script>
+
+    <!-- Vendor css -->
+    <link href="{% static 'css/vendors.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+
+    <!-- App css -->
+    <link href="{% static 'css/app.css' %}" rel="stylesheet" type="text/css">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
+
+
+
+    {#    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'font-awesome/css/font-awesome.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'css/animate.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'css/style.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'css/plugins/select2/select2.min.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'css/plugins/select2/select2-bootstrap4.min.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'css/plugins/datapicker/datepicker3.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'css/plugins/daterangepicker/daterangepicker-bs3.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css' %}" rel="stylesheet">#}
+    {#    <link href="{% static 'css/plugins/footable/footable.core.css' %}" rel="stylesheet">#}
 
 
     {% block css %}{% endblock %}
@@ -25,37 +43,42 @@
 <body>
 <div id="wrapper">
     {% include 'sidebar.html' %}
-    <div id="page-wrapper" class="gray-bg">
-        {% include 'header.html' %}
-        <div class="wrapper wrapper-content">
-            {% block content %}{% endblock %}
-        </div>
-        <div class="footer">
-            <div class="pull-right">
-                Versión 2025.03.25
-            </div>
-            <div>
-                <strong>&copy; 2024 IESGN (dit) - JDMR & FFR & RRM</strong>
-            </div>
-        </div>
-    </div>
-</div>
-<script src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
-<script src="{% static 'js/popper.min.js' %}"></script>
-<script src="{% static 'js/plugins/jquery-ui/jquery-ui.min.js' %}"></script>
-<script src="{% static 'js/bootstrap.js' %}"></script>
-<script src="{% static 'js/inspinia.js' %}"></script>
-<script src="{% static 'js/plugins/pace/pace.min.js' %}"></script>
-<script src="{% static 'js/plugins/metisMenu/jquery.metisMenu.js' %}"></script>
-<script src="{% static 'js/plugins/slimscroll/jquery.slimscroll.min.js' %}"></script>
+    {% include 'topbar.html' %}
 
-<script src="{% static 'js/plugins/datapicker/bootstrap-datepicker.js' %}"></script>
-<script src="{% static 'js/plugins/datapicker/locales/bootstrap-datepicker.es.min.js' %}"></script>
-<script src="{% static 'js/plugins/fullcalendar/moment.min.js' %}"></script>
-<script src="{% static 'js/plugins/daterangepicker/daterangepicker.js' %}"></script>
-<script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
-<script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
-<script src="{% static 'js/plugins/footable/footable.all.min.js' %}"></script>
+    <div class="content-page">
+    {% block content %}{% endblock %}
+
+    {% include 'footer.html' %}
+    </div>
+
+</div>
+
+<!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+<!-- Theme Config Js -->
+<script src="{% static 'js/vendors.min.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
+
+
+
+
+{#<script src="{% static 'js/jquery-3.1.1.min.js' %}"></script>#}
+{#<script src="{% static 'js/popper.min.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/jquery-ui/jquery-ui.min.js' %}"></script>#}
+{#<script src="{% static 'js/bootstrap.js' %}"></script>#}
+{#<script src="{% static 'js/inspinia.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/pace/pace.min.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/metisMenu/jquery.metisMenu.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/slimscroll/jquery.slimscroll.min.js' %}"></script>#}
+{##}
+{#<script src="{% static 'js/plugins/datapicker/bootstrap-datepicker.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/datapicker/locales/bootstrap-datepicker.es.min.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/fullcalendar/moment.min.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/daterangepicker/daterangepicker.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>#}
+{#<script src="{% static 'js/plugins/footable/footable.all.min.js' %}"></script>#}
 
 
 {% block js %}{% endblock %}

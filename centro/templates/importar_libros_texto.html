@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Centro{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Libros de texto</h4>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card" data-table>
+                    <div class="card-header border-light justify-content-between">
+                        <h4 class="card-title">Importar libros de texto por nivel</h4>
+                    </div>
+
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+
+                            <div class="row g-2">
+                                <div class="mb-3 col-md-4">
+                                    <label for="nivel" class="form-label">Selecciona nivel</label>
+                                    <select name="nivel" id="nivel" class="form-select" required>
+                                        <option value="">-- Elige un nivel --</option>
+                                        {% for n in niveles %}
+                                            <option value="{{ n.id }}">{{ n }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3 col-md-8">
+                                    <label for="csv_libros" class="form-label">Archivo CSV de libros</label>
+                                    <input type="file"
+                                           name="csv_libros"
+                                           id="csv_libros"
+                                           class="form-control"
+                                           accept=".csv"
+                                           required>
+                                    {# <div class="form-text">Formato: CSV con columnas ...</div> #}
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Importar libros</button>
+                        </form>
+                    </div>
+
+                    <div class="card-footer border-0"></div>
+                </div>
+            </div>
+        </div>
+
+        {% if resumen %}
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header border-light">
+                            <h4 class="card-title">Resumen de la importación</h4>
+                        </div>
+                        <div class="card-body">
+                            {% if resumen.nuevos %}
+                                <h5 class="text-success">Libros importados ({{ resumen.nuevos|length }})</h5>
+                                <ul class="list-group mb-3">
+                                    {% for item in resumen.nuevos %}
+                                        <li class="list-group-item">{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+
+                            {% if resumen.errores %}
+                                <h5 class="text-danger">Errores ({{ resumen.errores|length }})</h5>
+                                <ul class="list-group">
+                                    {% for error in resumen.errores %}
+                                        <li class="list-group-item list-group-item-danger">{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer border-0"></div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Evitar doble envío
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                const btn = form.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Procesando...';
+                }
+            });
+        }
+
+        // Evitar submit con Enter en inputs/selects
+        document.addEventListener('keypress', function (e) {
+            const tag = (e.target.tagName || '').toLowerCase();
+            if ((tag === 'input' || tag === 'select') && e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

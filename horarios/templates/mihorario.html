@@ -2,51 +2,48 @@
 {% load static %}
 {% load horario_tags %}
 
-{% block css %}
-    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
-{% endblock %}
-
 {% block title %}Centro{% endblock %}
 
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
+
+    <div class="container-fluid">
+
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Mi horario</h4>
+            </div>
+        </div>
+
         <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h2>Mi Horario </h2>
-                    </div>
+            <div class="col-12">
+                <div class="card">
 
-                    <div class="ibox-content">
-
-                        <div class="row">
-                            <div class="col-12">
-
-                                {% if horario %}
+                    <div class="card-body">
+                        {% if horario %}
                                     <div class="table-responsive">
                                     <table class="table table-bordered">
                                         <thead>
                                         <tr class="text-center">
-                                            <th class="bg-success">TRAMO</th>
-                                            <th class="bg-success">LUNES</th>
-                                            <th class="bg-success">MARTES</th>
-                                            <th class="bg-success">MIÉRCOLES</th>
-                                            <th class="bg-success">JUEVES</th>
-                                            <th class="bg-success">VIERNES</th>
+                                            <th class="bg-secondary text-white">TRAMO</th>
+                                            <th class="bg-secondary text-white">LUNES</th>
+                                            <th class="bg-secondary text-white">MARTES</th>
+                                            <th class="bg-secondary text-white">MIÉRCOLES</th>
+                                            <th class="bg-secondary text-white">JUEVES</th>
+                                            <th class="bg-secondary text-white">VIERNES</th>
                                         </tr>
                                         </thead>
                                         <tbody>
                                         {% for tramo in tramos %}
                                             {% if tramo == "RECREO" %}
-                                            <tr class="bg-light-warning">
+                                            <tr class="bg-warning-subtle">
                                             {% else %}
                                             <tr>
                                             {% endif %}
 
-                                                <td class="bg-info text-center" style="vertical-align: middle;"><strong>{{ tramo }}</strong></td>
+                                                <td class="bg-info text-center text-white" style="vertical-align: middle;"><strong>{{ tramo }}</strong></td>
                                                 {% for dia in dias %}
-                                                    <td class="text-center" style="vertical-align: middle; border: 1px solid #000000;"">
+                                                    <td class="text-center" style="vertical-align: middle; border: 1px solid #000000;">
                                                         {% if horario %}
                                                             {% if horario|get_item:forloop.parentloop.counter %}
                                                                 {% if horario|get_item:forloop.parentloop.counter|get_item:dia %}
@@ -55,7 +52,7 @@
                                                                         {% if item.materia != "GUARDIAS" and item.materia != "GUARDIAS DE RECREO" %}
                                                                             <br><br>
                                                                             <small>
-                                                                                <span class="text-success">{{ item.unidades_combinadas }}</span>
+                                                                                <span class="text-secondary">{{ item.unidades_combinadas }}</span>
                                                                                 - <span
                                                                                     class="text-danger">{{ item.aula }}</span>
                                                                             </small><br>
@@ -81,33 +78,12 @@
                                     <p>Selecciona un profesor para ver su horario.</p>
                                 {% endif %}
 
-                            </div>
-                        </div>
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
+                    </div> <!-- end card-body-->
+                </div> <!-- end card-->
+            </div> <!-- end col-->
+        </div> <!-- end row-->
 
     </div>
-
+    <!-- container -->
 {% endblock %}
 
-{% block js %}
-    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
-    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
-    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
-
-    <script>
-        $(document).ready(function () {
-
-
-            $("#profesor").select2({
-                theme: 'bootstrap4',
-            });
-
-        });
-    </script>
-{% endblock %}

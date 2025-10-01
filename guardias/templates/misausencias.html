@@ -1,191 +1,212 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block css %}
-    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/iCheck/custom.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
-
-{% endblock %}
+{% load grupo_tags %}
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+
+{% endblock %}
+
+
+
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <div class="float-right">
-                            <a href="#modal" class="btn btn-warning" data-toggle="modal" data-target="#modalausencia"><i
-                                    class="fa fa-plus"></i> Nueva Ausencia </a>
-                        </div>
-                        <h2>Mis Ausencias</h2>
-                    </div>
-                    <div class="ibox-content">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered dataTables-ausencias"
-                                   style="border-collapse: separate !important;">
-                                <thead>
-
-                                <tr>
-                                    <td class="text-center"><strong>Fecha</strong></td>
-                                    <td class="text-center"><strong>Día semana</strong></td>
-                                    <td class="text-center"><strong>Tramos ausente</strong></td>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
 
 
-                                </thead>
-                                <tbody>
-                                {% for a in datos_agrupados %}
-                                    <tr class="text-center">
-                                        <td style="vertical-align: middle;">{{ a.fecha }}</td>
-                                        <td style="vertical-align: middle;">{{ a.diasemana }}</td>
-                                        <td style="vertical-align: middle;">
-                                            <button class="btn btn-info"
-                                                    onclick="mostrarDetalles('{{ a.fecha }}')">{{ a.tramos_ausente }}
-                                                tramos
-                                            </button>
-                                        </td>
-                                        <td>
-                                            {% if a.es_futuro %}
-                                                <button class="btn btn-warning btn-editar" data-fecha="{{ a.fecha }}"
-                                                        data-toggle="modal" data-target="#modaleditarausencia">Editar
-                                                </button>
-                                                <button class="btn btn-danger eliminar-itemguardia"
-                                                        data-fecha="{{ a.fecha }}"
-                                                        data-profesor="{{ profesor.id }}">Borrar
-                                                </button>
-
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-
-
-                                </tbody>
-                            </table>
-                        </div>
-
-
-                        <div class="modal inmodal fade" id="modalausencia" tabindex="-1" role="dialog"
-                             aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal"><span
-                                                aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-                                        </button>
-                                        <h4 class="modal-title">Notificación Nueva ausencia</h4>
-                                        <p class="font-bold">Esta ausencia quedará registrada en el parte de
-                                            guardias.</p>
-                                    </div>
-                                    <div class="modal-body">
-                                        <h3>Profesor/a ausente: <strong>{{ profesor }}</strong></h3>
-                                        <br>
-                                        <div class="form-group" id="data_1">
-                                            <label class="font-normal">Selecciona una fecha:</label>
-                                            <div class="input-group date">
-                                                <span class="input-group-addon">
-                                                    <i class="fa fa-calendar"></i>
-                                                </span>
-                                                <input type="text" class="form-control" id="fecha-ausencia">
-                                            </div>
-                                        </div>
-
-                                        <div id="horario-items">
-                                            <!-- Aquí se mostrarán los items de horario devueltos por AJAX -->
-                                        </div>
-
-                                        <hr>
-                                        <p>Selecciona una fecha y <strong>MARCA</strong> los tramos en los que te vas a
-                                            ausentar. Una vez marcado, se habilita el campo para describir la tarea que
-                                            deben realizar los alumnos.</p>
-                                        <p>Si la fila del tramo aparece sombreada en <strong
-                                                style="background-color: #f6ccba;">ROJO</strong>, es porque la ausencia
-                                            ese día y en ese tramo ya fue registrada anteriormente.</p>
-
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-white" data-dismiss="modal">Cancelar
-                                        </button>
-                                        <button id="guardar-ausencias" type="button" class="btn btn-primary">Guardar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div class="modal inmodal fade" id="modaleditarausencia" tabindex="-1" role="dialog"
-                             aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal"><span
-                                                aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-                                        </button>
-                                        <h4 class="modal-title">Modificar ausencia</h4>
-                                        <p class="font-bold">Esta ausencia quedará modificada en el parte de
-                                            guardias.</p>
-                                    </div>
-                                    <div class="modal-body">
-                                        <h3>Profesor/a ausente: <strong>{{ profesor }}</strong></h3>
-                                        <br>
-
-
-                                        <div id="horario-items-modificar">
-                                            <!-- Aquí se mostrarán los items de horario devueltos por AJAX -->
-                                        </div>
-
-                                        <hr>
-                                        <p>Asegúrate de <strong>MARCAR</strong> solo los tramos en los que te vas a
-                                            ausentar. Una vez marcado, se habilita el campo para describir la tarea que
-                                            deben realizar los alumnos.</p>
-                                        <p><strong>IMPORTANTE: </strong>Los tramos que no estén marcados serán <strong>ELIMINADOS </strong>
-                                            del parte de guardias.</p>
-
-
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-white" data-dismiss="modal">Cancelar
-                                        </button>
-                                        <button id="editar-ausencias" type="button" class="btn btn-primary">Modificar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                </div>
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Mis Ausencias</h4>
             </div>
         </div>
 
-    </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header border-light justify-content-between">
+                        <h3 class="card-title mb-1">Profesor/a: <strong>{{ profesor }}</strong></h3>
+
+                        <div class="col-auto">
+                            <div role="group" aria-label="Layout toggle button group">
+                                <a href="#modal" class="btn btn-warning" data-bs-toggle="modal"
+                                   data-bs-target="#modalausencia"><i
+                                        class="ti ti-plus me-1"></i> Nueva Ausencia </a>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <table class="table table-striped table-bordered table-hover dt-responsive align-middle mb-0 dataTables-ausencias">
+                            <thead class="thead-sm text-uppercase fs-xxs">
+
+                            <tr>
+                                <th class="text-center">Fecha</th>
+                                <th class="text-center">Día semana</th>
+                                <th class="text-center">Tramos ausente</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
 
 
+                            </thead>
+                            <tbody>
+                            {% for a in datos_agrupados %}
+                                <tr class="text-center">
+                                    <td style="vertical-align: middle;">{{ a.fecha }}</td>
+                                    <td style="vertical-align: middle;">{{ a.diasemana }}</td>
+                                    <td style="vertical-align: middle;">
+                                        <button class="btn btn-info"
+                                                onclick="mostrarDetalles('{{ a.fecha }}')">{{ a.tramos_ausente }}
+                                            tramos
+                                        </button>
+                                    </td>
+                                    <td>
+                                        {% if a.es_futuro %}
+                                            <button class="btn btn-warning btn-editar" data-fecha="{{ a.fecha }}"
+                                                    data-bs-toggle="modal" data-bs-target="#modaleditarausencia">Editar
+                                            </button>
+                                            <button class="btn btn-danger eliminar-itemguardia"
+                                                    data-fecha="{{ a.fecha }}"
+                                                    data-profesor="{{ profesor.id }}">Borrar
+                                            </button>
 
-    <!-- Modal para mostrar los detalles -->
-    <div id="detallesModal" class="modal inmodal fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h5 class="modal-title">Detalles de las Ausencias</h5>
-                    <h3>Fecha: <span id="fecha-modal"></span></h3>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+
+
+                            </tbody>
+                        </table>
+
+
+                    </div> <!-- end card-body-->
 
                 </div>
+                <div class="card-footer border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div data-table-pagination-info="projects"></div>
+                        <div data-table-pagination></div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- end col -->
+    </div><!-- end row -->
+
+    <!-- Modal para mostrar los detalles -->
+    <div id="detallesModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <div class="modal-header text-center">
+                    <h2 class="modal-title">Detalles de las Ausencias</h2>
+                    <p class="fw-semibold">Fecha: <span id="fecha-modal"></span></p>
+                </div>
+
                 <div class="modal-body">
                     <div id="detallesContenido"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="modalausencia" tabindex="-1" role="dialog"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h2 class="modal-title">Notificación Nueva ausencia</h2>
+                    <p class="fw-semibold">Esta ausencia quedará registrada en el parte de guardias.</p>
+                </div>
+                <div class="modal-body">
+
+                    <h4>Profesor/a ausente: <strong>{{ profesor }}</strong></h4>
+
+                    <div class="form-group mt-3" id="data_2">
+                        <h5><label class="fw-semibold">Selecciona una fecha:</label></h5>
+
+                        <div class="input-group date">
+                            <span class="input-group-text" id="basic-addon1"><i class="ti ti-calendar"></i></span>
+                            <input type="text"
+                                   class="form-control" autocomplete="off" aria-label="Fecha"
+                                   aria-describedby="basic-addon1"
+                                   id="fecha-ausencia"/>
+                        </div>
+                    </div>
+
+                    <div id="horario-items">
+                        <!-- Aquí se mostrarán los items de horario devueltos por AJAX -->
+                    </div>
+
+                    <hr>
+                    <p>Selecciona una fecha y <strong>MARCA</strong> los tramos en los que te vas a
+                        ausentar. Una vez marcado, se habilita el campo para describir la tarea que
+                        deben realizar los alumnos.</p>
+                    <p>Si la fila del tramo aparece sombreada en <strong
+                            style="background-color: #f6ccba;">ROJO</strong>, es porque la ausencia
+                        ese día y en ese tramo ya fue registrada anteriormente.</p>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-bs-dismiss="modal">Cancelar
+                    </button>
+                    <button id="guardar-ausencias" type="button" class="btn btn-primary">Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="modal fade" id="modaleditarausencia" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h2 class="modal-title">Modificar ausencia</h2>
+                    <p class="fw-semibold">Esta ausencia quedará modificada en el parte de guardias.</p>
+                </div>
+
+                <div class="modal-body">
+                    <h4>Profesor/a ausente: <strong>{{ profesor }}</strong></h4>
+
+                    <div id="horario-items-modificar">
+                        <!-- Aquí se mostrarán los items de horario devueltos por AJAX -->
+                    </div>
+
+                    <hr>
+                    <p>Asegúrate de <strong>MARCAR</strong> solo los tramos en los que te vas a
+                        ausentar. Una vez marcado, se habilita el campo para describir la tarea que
+                        deben realizar los alumnos.</p>
+                    <p><strong>IMPORTANTE: </strong>Los tramos que no estén marcados serán <strong>ELIMINADOS </strong>
+                        del parte de guardias.</p>
+
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-bs-dismiss="modal">Cancelar
+                    </button>
+                    <button id="editar-ausencias" type="button" class="btn btn-primary">Modificar
+                    </button>
                 </div>
             </div>
         </div>
@@ -197,252 +218,60 @@
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/plugins/dataTables/datatables.min.js' %}"></script>
-    <script src="{% static 'js/plugins/iCheck/icheck.min.js' %}"></script>
-    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
 
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    <!-- Sweet Alerts js -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
 
     <script>
 
-        // Upgrade button class name
-        $.fn.dataTable.Buttons.defaults.dom.button.className = 'btn btn-white btn-sm';
+        jQuery.extend(jQuery.fn.dataTable.ext.type.order, {
+            "date-eu-pre": function (date) {
+                // Si la fecha está vacía o mal formada, devolvemos valor alto para dejarla al final
+                if (!date || date.trim() === '') {
+                    return 0;
+                }
+
+                const eu_date = date.split('/');
+                // dd/mm/yyyy → yyyy+mm+dd como número
+                return (eu_date[2] + eu_date[1] + eu_date[0]) * 1;
+            },
+            "date-eu-asc": function (a, b) {
+                return a - b;
+            },
+            "date-eu-desc": function (a, b) {
+                return b - a;
+            }
+        });
+
 
         $(document).ready(function () {
 
-            $('.btn-editar').on('click', function () {
-                var fecha = $(this).data('fecha');
 
-                // Establecer la fecha en el input de fecha del modal
-                $('#fecha-ausencia-modificar').val(fecha);
-
-                // Hacer una solicitud AJAX para obtener los tramos ya registrados en esa fecha
-                $.ajax({
-                    url: '{% url "horario_guardia_ajax" %}',  // La URL que apunta a tu vista
-                    data: {
-                        'fecha': fecha  // Pasar la fecha como parámetro
-                    },
-                    success: function (response) {
-                        $('#horario-items-modificar').html(response.horario_html);  // Actualiza el contenido del div con los tramos
-                    }
-                });
-            });
-
-
-            $('.eliminar-itemguardia').on('click', function () {
-                const fecha = $(this).data('fecha');
-                const profesorId = $(this).data('profesor');
-
-                // Usar SweetAlert para la confirmación
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: `¿Deseas eliminar las ausencias del ${fecha}?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: "{% url 'eliminar_itemguardia_por_fecha' %}",  // La URL de la vista que maneja la eliminación
-                            type: 'POST',
-                            data: {
-                                'fecha': fecha,
-                                'profesor_id': profesorId,
-                                'csrfmiddlewaretoken': '{{ csrf_token }}'  // Token CSRF
-                            },
-                            success: function (response) {
-                                if (response.success) {
-                                    Swal.fire({
-                                        title: '¡Eliminado!',
-                                        text: 'Las ausencias han sido eliminadas con éxito.',
-                                        icon: 'success'
-                                    }).then(() => {
-                                        location.reload();  // Recargar la página para actualizar la tabla
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        title: 'Error',
-                                        text: 'Error al eliminar las ausencias.',
-                                        icon: 'error'
-                                    });
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                Swal.fire({
-                                    title: 'Error',
-                                    text: 'Error al intentar eliminar las ausencias.',
-                                    icon: 'error'
-                                });
-                            }
-                        });
-                    }
-                });
-            });
-
-
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            });
-
-
-            $('#data_1 .input-group.date').datepicker({
-                todayBtn: "linked",
-                keyboardNavigation: false,
-                forceParse: false,
-                calendarWeeks: true,
-                autoclose: true,
-                language: "es"
-            }).datepicker('setDate', new Date()).on('changeDate', function (e) {
-                // Cada vez que cambie la fecha, lanzamos la petición AJAX
-                const fechaSeleccionada = $('#fecha-ausencia').val();
-                obtenerHorario(fechaSeleccionada);
-            }); // Establecer la fecha de hoy;
-
-
-            function obtenerHorario(fecha) {
-                $.ajax({
-                    url: '{% url "horario_profesor_ajax" %}',  // El URL de la vista Django
-                    method: 'GET',
-                    data: {
-                        'fecha': fecha,
-                        'profesor_id': '{{ profesor.id }}'  // El ID del profesor está en el contexto
-                    },
-                    success: function (response) {
-                        // Actualizar el div con los items del horario
-                        $('#horario-items').html(response);
-                    },
-                    error: function (error) {
-                        console.error("Error al obtener el horario", error);
-                    }
-                });
-            }
-
-
-            $('.dataTables-ausencias').DataTable({
-                language: {
-                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                },
-                pageLength: 50,
-                order: [[0, 'desc']], // Ordenar por la primera columna (Fecha)
-                scrollX: false,
-                scrollCollapse: true,
-                responsive: true,
-                dom: '<"html5buttons"B>lTfgitp',
-                columnDefs: [
-                    {
-                        targets: 0, // Índice de la columna de fecha
-                        type: 'date', // Define el tipo de la columna como fecha
-                        render: function (data, type, row) {
-                            if (type === 'sort') {
-                                // Convertir dd/mm/YYYY a YYYY-MM-DD para ordenación
-                                let parts = data.split('/');
-                                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                            }
-                            return data; // Retornar el dato original para visualización
-                        }
-                    }
-                ],
-                buttons: [
-                    {extend: 'copy'},
-                    {extend: 'csv'},
-                    {extend: 'excel', title: 'Mis Ausencias'},
-                    {extend: 'pdf', title: 'Mis Ausencias'},
-
-                    {
-                        extend: 'print',
-                        customize: function (win) {
-                            $(win.document.body).addClass('white-bg');
-                            $(win.document.body).css('font-size', '10px');
-
-                            $(win.document.body).find('table')
-                                .addClass('compact')
-                                .css('font-size', 'inherit');
-                        }
-                    }
-                ]
-            });
-
-
-            $('.dataTables-ausenciasantiguas').DataTable({
-                language: {
-                    url: '{% static 'js/plugins/dataTables/es-ES.json' %}',
-                },
-                pageLength: 50,
-                scrollX: false,
-                order: [[0, 'asc']], // Ordenar por la primera columna (Fecha)
-                scrollCollapse: true,
-                responsive: true
-
-            });
 
 
             // Manejar el evento de guardar los datos
-            $('#guardar-ausencias').click(function () {
-                // Recopilar las filas seleccionadas
-                var seleccionados = [];
-                $('input.seleccion:checked').each(function () {
-                    var row = $(this).closest('tr'); // Obtén la fila completa
-                    var item = {
-                        tramo: row.data('tramo'), // Tramo de la fila
-                        materia: row.data('materia'), // Materia de la fila
-                        unidad: row.data('unidad'), // Unidad de la fila
-                        aula: row.data('aula'), // Aula de la fila
-                        tarea: row.find('.tarea-input').val(), // Tarea de la fila
-                        fecha: $('#fecha-ausencia').val() // Fecha seleccionada
-                    };
-                    seleccionados.push(item); // Agregar el objeto al array
-                });
-
-                if (seleccionados.length > 0) {
-
-                    // Obtener la fecha seleccionada
-                    var fechaSeleccionada = $('#fecha-ausencia').val();
-
-                    // Enviar los datos por AJAX
-                    $.ajax({
-                        url: '{% url "guardar_guardias_ajax" %}',  // La vista de Django que manejará la solicitud
-                        method: 'POST',
-                        data: {
-                            'fecha': fechaSeleccionada,
-                            'profesor_ausente': '{{ profesor.id }}',  // El ID del profesor está en el contexto
-                            'seleccionados': JSON.stringify(seleccionados),  // Los datos de las filas seleccionadas
-                            'csrfmiddlewaretoken': '{{ csrf_token }}'
-                        },
-                        success: function (response) {
-                            Swal.fire({
-                                title: "¡Gracias!",
-                                text: "Tu ausencia ha sido anotada.",
-                                icon: "success"
-                            }).then(() => {
-
-                                // Recarga la página
-                                location.reload();
-                            });
-
-                            // Cierra el modal
-                            $('#modalausencia').modal('hide');
-
-                        },
-                        error: function (error) {
-                            console.error("Error al guardar los datos", error);
-                            Swal.fire({
-                                title: "Error",
-                                text: "No se pudo anotar tu ausencia. Inténtalo más tarde.",
-                                icon: "error"
-                            });
-
-                            $('#modalausencia').modal('hide');
-                        }
-                    });
-                } else {
-                    alert('Selecciona al menos una fila.');
-                }
-            });
-
-            // Manejar el evento de guardar los datos
-            $('#editar-ausencias').click(function () {
+            $(document).on('click', '#editar-ausencias', function(e) {
                 // Recopilar las filas seleccionadas
                 var seleccionados = [];
                 var noSeleccionados = [];
@@ -515,39 +344,242 @@
                 }
             });
 
-            // Capturar el evento de mostrar el modal
-            $('#detalleModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget);  // El botón que disparó el modal
-                var fecha = button.data('fecha');     // Extraer la fecha de los atributos data
-                var tramos = button.data('tramos');   // Extraer los tramos
 
-                if (typeof tramos === 'string') {
-                    tramos = JSON.parse(tramos);  // Convertir la cadena JSON a array
-                }
+            $('.btn-editar').on('click', function () {
+                var fecha = $(this).data('fecha');
 
-                // Actualizar el contenido del modal
-                var modal = $(this);
-                modal.find('#modalFecha').text(fecha); // Poner la fecha en el modal
+                // Establecer la fecha en el input de fecha del modal
+                $('#fecha-ausencia-modificar').val(fecha);
 
-                // Limpiar contenido anterior
-                var detalleTramos = modal.find('#detalleTramos');
-                detalleTramos.empty();
-
-                // Recorrer los tramos y añadirlos al modal
-                tramos.forEach(function (tramo) {
-                    detalleTramos.append(
-                        '<tr>' +
-                        '<td>' + tramo.tramo + '</td>' +
-                        '<td>' + tramo.materia + '</td>' +
-                        '<td>' + tramo.unidad + '</td>' +
-                        '<td>' + tramo.aula + '</td>' +
-                        '</tr>'
-                    );
+                // Hacer una solicitud AJAX para obtener los tramos ya registrados en esa fecha
+                $.ajax({
+                    url: '{% url "horario_guardia_ajax" %}',  // La URL que apunta a tu vista
+                    data: {
+                        'fecha': fecha  // Pasar la fecha como parámetro
+                    },
+                    success: function (response) {
+                        $('#horario-items-modificar').html(response.horario_html);  // Actualiza el contenido del div con los tramos
+                    }
                 });
+            });
+
+            $('.eliminar-itemguardia').on('click', function () {
+                const fecha = $(this).data('fecha');
+                const profesorId = $(this).data('profesor');
+
+                // Usar SweetAlert para la confirmación
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: `¿Deseas eliminar las ausencias del ${fecha}?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{% url 'eliminar_itemguardia_por_fecha' %}",  // La URL de la vista que maneja la eliminación
+                            type: 'POST',
+                            data: {
+                                'fecha': fecha,
+                                'profesor_id': profesorId,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'  // Token CSRF
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: '¡Eliminado!',
+                                        text: 'Las ausencias han sido eliminadas con éxito.',
+                                        icon: 'success'
+                                    }).then(() => {
+                                        location.reload();  // Recargar la página para actualizar la tabla
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: 'Error al eliminar las ausencias.',
+                                        icon: 'error'
+                                    });
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: 'Error al intentar eliminar las ausencias.',
+                                    icon: 'error'
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.dataTables-ausencias').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
+
+                columnDefs: [
+                    {
+                        targets: 0, // primera columna
+                        type: 'date-eu'
+                    }
+                ],
+
+
+                order: [[0, 'desc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+            });
+
+            $('#fecha-ausencia').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', new Date()).on('changeDate', function (e) {
+                // Cada vez que cambie la fecha, lanzamos la petición AJAX
+                const fechaSeleccionada = $('#fecha-ausencia').val();
+                obtenerHorario(fechaSeleccionada);
+            }); // Establecer la fecha de hoy;
+
+
+            function obtenerHorario(fecha) {
+                $.ajax({
+                    url: '{% url "horario_profesor_ajax" %}',  // El URL de la vista Django
+                    method: 'GET',
+                    data: {
+                        'fecha': fecha,
+                        'profesor_id': '{{ profesor.id }}'  // El ID del profesor está en el contexto
+                    },
+                    success: function (response) {
+                        // Actualizar el div con los items del horario
+                        $('#horario-items').html(response);
+                    },
+                    error: function (error) {
+                        console.error("Error al obtener el horario", error);
+                    }
+                });
+            }
+
+
+            // Manejar el evento de guardar los datos
+            $(document).on('click', '#guardar-ausencias', function(e) {
+                // Recopilar las filas seleccionadas
+                var seleccionados = [];
+                $('input.seleccion:checked').each(function () {
+                    var row = $(this).closest('tr'); // Obtén la fila completa
+                    var item = {
+                        tramo: row.data('tramo'), // Tramo de la fila
+                        materia: row.data('materia'), // Materia de la fila
+                        unidad: row.data('unidad'), // Unidad de la fila
+                        aula: row.data('aula'), // Aula de la fila
+                        tarea: row.find('.tarea-input').val(), // Tarea de la fila
+                        fecha: $('#fecha-ausencia').val() // Fecha seleccionada
+                    };
+                    seleccionados.push(item); // Agregar el objeto al array
+                });
+
+                if (seleccionados.length > 0) {
+
+                    // Obtener la fecha seleccionada
+                    var fechaSeleccionada = $('#fecha-ausencia').val();
+
+                    // Enviar los datos por AJAX
+                    $.ajax({
+                        url: '{% url "guardar_guardias_ajax" %}',  // La vista de Django que manejará la solicitud
+                        method: 'POST',
+                        data: {
+                            'fecha': fechaSeleccionada,
+                            'profesor_ausente': '{{ profesor.id }}',  // El ID del profesor está en el contexto
+                            'seleccionados': JSON.stringify(seleccionados),  // Los datos de las filas seleccionadas
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                        success: function (response) {
+                            Swal.fire({
+                                title: "¡Gracias!",
+                                text: "Tu ausencia ha sido anotada.",
+                                icon: "success"
+                            }).then(() => {
+
+                                // Recarga la página
+                                location.reload();
+                            });
+
+                            // Cierra el modal
+                            $('#modalausencia').modal('hide');
+
+                        },
+                        error: function (error) {
+                            console.error("Error al guardar los datos", error);
+                            Swal.fire({
+                                title: "Error",
+                                text: "No se pudo anotar tu ausencia. Inténtalo más tarde.",
+                                icon: "error"
+                            });
+
+                            $('#modalausencia').modal('hide');
+                        }
+                    });
+                } else {
+                    alert('Selecciona al menos una fila.');
+                }
             });
 
 
         });
+
 
         function mostrarDetalles(fecha) {
 
@@ -577,12 +609,12 @@
                     data.forEach(function (item) {
 
                         detallesHtml += `<tr>
-                    <td style="vertical-align: middle;">${item.tramo}</td>
-                    <td style="vertical-align: middle;">${item.materia}</td>
-                    <td style="vertical-align: middle;">${item.unidad}</td>
-                    <td style="vertical-align: middle;">${item.aula}</td>
-                    <td style="vertical-align: middle;">${item.tarea}</td>
-                </tr>`;
+                                <td style="vertical-align: middle;">${item.tramo}</td>
+                                <td style="vertical-align: middle;">${item.materia}</td>
+                                <td style="vertical-align: middle;">${item.unidad}</td>
+                                <td style="vertical-align: middle;">${item.aula}</td>
+                                <td style="vertical-align: middle;">${item.tarea}</td>
+                            </tr>`;
 
 
                     });
@@ -602,6 +634,5 @@
                 }
             });
         }
-
     </script>
 {% endblock %}

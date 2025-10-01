@@ -42,4 +42,6 @@ urlpatterns = [
 
     path('actualizar_guardia_ajax/', views.actualizar_guardia_ajax, name='actualizar_guardia_ajax'),
 
+    path("modal/registrar_ausencia/", views.modal_registrar_ausencia, name="modal-registrar-ausencia"),
+
 ]

@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Libros de texto por nivel</h4>
+            </div>
+        </div>
+
+
+        <div class="row mb-3">
+            <div class="col-lg-12">
+
+                <div class="card">
+                    <h5 class="card-header">Selecciona nivel y curso académico:</h5>
+                    <div class="card-body">
+
+                        <form method="get" class="form-horizontal">
+                            {% csrf_token %}
+
+                            <div class="form-group row">
+                                <div class="col-lg-5">
+                                    <label for="id_Nivel">Nivel:</label>
+                                    <select name="Nivel" class="form-control select2_nivel" id="id_Nivel">
+                                        {% for n in niveles %}
+                                            <option value="{{ n.id }}" {% if nivel_seleccionado and n.id == nivel_seleccionado.id %}selected{% endif %}>
+                                                {{ n }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-lg-5">
+                                    <label for="id_CursoAcademico">Curso Académico:</label>
+                                    <select name="CursoAcademico" class="form-control select2_cursoacademico" id="id_CursoAcademico">
+                                        {% for c in cursosacademicos %}
+                                            <option value="{{ c.id }}" {% if cursoacademico_seleccionado and c.id == cursoacademico_seleccionado.id %}selected{% endif %}>
+                                                {{ c }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-lg-2">
+                                    <button type="submit" class="btn btn-primary mt-3">Ver libros</button>
+                                </div>
+
+                            </div>
+
+
+
+                        </form>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-12">
+
+
+                {% if libros %}
+                    <div class="card">
+                        <div class="card-header d-block border-light justify-content-between">
+                            <h5 class="card-title mb-1">Libros de texto en {{ nivel_seleccionado }}</h5>
+                        </div>
+
+
+                        <div class="card-body">
+
+
+                            <table id="dataTables-libros"
+                                   class="table table-striped table-bordered table-hover dt-responsive align-middle mb-0">
+                                <thead class="thead-sm text-uppercase fs-xxs">
+                                <tr>
+                                    <th>Materia</th>
+                                    <th>Título</th>
+                                    <th>Editorial</th>
+                                    <th>ISBN</th>
+                                    <th>Año Impl.</th>
+                                    <th>Importe</th>
+                                    <th>Digital</th>
+                                    <th>Cheque libro</th>
+                                    <th>Otro material</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for libro in libros %}
+                                    <tr>
+                                        <td>{{ libro.materia.nombre }}</td>
+                                        <td>{{ libro.titulo }}</td>
+                                        <td>{{ libro.editorial }}</td>
+                                        <td>{{ libro.isbn }}</td>
+                                        <td>{{ libro.anyo_implantacion }}</td>
+                                        <td>{{ libro.importe_estimado }} €</td>
+                                        <td>{{ libro.es_digital|yesno:"Sí,No" }}</td>
+                                        <td>{{ libro.incluir_en_cheque_libro|yesno:"Sí,No" }}</td>
+                                        <td>{{ libro.es_otro_material|yesno:"Sí,No" }}</td>
+                                    </tr>
+                                {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </div> <!-- end card-body-->
+
+                    </div>
+                    <div class="card-footer border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div data-table-pagination-info="projects"></div>
+                            <div data-table-pagination></div>
+                        </div>
+                    </div>
+                {% elif nivel_seleccionado %}
+                    <div class="card">
+                        <div class="card-header d-block border-light justify-content-between">
+                            <h5 class="card-title mb-1">Libros de texto en {{ nivel_seleccionado }}</h5>
+                        </div>
+
+
+                        <div class="card-body">
+                            <p class="text-muted">No hay libros registrados para este nivel.</p>
+                        </div> <!-- end card-body-->
+                    </div>
+                {% endif %}
+            </div>
+        </div><!-- end col -->
+    </div><!-- end row -->
+
+{% endblock %}
+
+{% block js %}
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <script>
+
+
+        $(document).ready(function () {
+            /*
+            function handleSelectChange(selectorClass, triggerValue) {
+                const selectElement = $(selectorClass);
+                selectElement.on('select2:close', function () {
+                    if (selectElement.find('option').length === 1) {
+                        setFormTrigger(triggerValue);
+                        $('#unidadForm').submit();
+                    }
+                });
+                selectElement.on('change', function () {
+                    setFormTrigger(triggerValue);
+                    $('#unidadForm').submit();
+                });
+            }
+
+            handleSelectChange(".select2_unidad", "Unidad");
+
+            function setFormTrigger(trigger) {
+                document.getElementById("id_FormTrigger").value = trigger;
+            }
+
+
+            $(".select2_unidad").select2({
+                theme: 'bootstrap4',
+            });
+            */
+
+
+            $(".select2_nivel").select2({
+                theme: 'bootstrap4',
+                placeholder: 'Selecciona un nivel'
+            });
+            
+            $(".select2_cursoacademico").select2({
+                theme: 'bootstrap4',
+                placeholder: 'Selecciona un curso académico'
+            });
+
+            $('#dataTables-libros').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
+
+                order: [[0, 'asc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+            });
+
+
+        });
+
+    </script>
+{% endblock %}
+

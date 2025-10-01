@@ -1,26 +1,38 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Centro{% endblock %}
 
+{% block css %}
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+{% endblock %}
+
 {% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">{{ titulo }}</h4>
+            </div>
+        </div>
+
         <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h2>{{ titulo }}</h2>
+            <div class="col-12">
+                <div class="card" data-table>
+                    <div class="card-header border-light justify-content-between">
+                        <h4 class="card-title">Profesor/a: {{ profesor }}</h4>
                     </div>
-                    <div class="ibox-content">
-                        <h4>Profesor/a: {{ profesor }}</h4>
-                        <br/>
+
+                    <div class="card-body">
                         <form action="/tde/incidenciaticprofe" method="post">
                             {% csrf_token %}
-                            {{ form.profesor }}  <!-- Campo oculto -->
+                            {{ form.profesor }}  {# campo oculto #}
 
-                            <!-- Mostrar errores no asociados a campos específicos -->
+                            {# errores no asociados a campos #}
                             {% if form.non_field_errors %}
-                                <div class="alert alert-danger">
-                                    <ul>
+                                <div class="alert alert-danger" role="alert">
+                                    <ul class="mb-0">
                                         {% for error in form.non_field_errors %}
                                             <li>{{ error }}</li>
                                         {% endfor %}
@@ -28,61 +40,68 @@
                                 </div>
                             {% endif %}
 
-
-                            <div class="form-group row">
-                                <label class="col-lg-1 col-form-label">{{ form.fecha.label_tag }}</label>
-                                <div class="col-lg-5">
-                                    {{ form.fecha }}
-                                    {% if form.fecha.help_text %}
-                                        <span class="help-block">{{ form.fecha.help_text }}</span>
-                                    {% endif %}
-                                    {% for error in form.fecha.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
+                            {# FECHA #}
+                            <div class="row g-2">
+                                <div class="mb-3 col-md-6">
+                                    <label class="form-label">{{ form.fecha.label_tag }}</label>
+                                    <div class="date-search">
+                                        {{ form.fecha }}
+                                        {% if form.fecha.help_text %}
+                                            <div class="form-text">{{ form.fecha.help_text }}</div>
+                                        {% endif %}
+                                        {% for error in form.fecha.errors %}
+                                            <div class="text-danger small">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
-
                             </div>
 
-
+                            {# RESTO DE CAMPOS (excluyendo los ocultos / no mostrados) #}
                             {% for field in form %}
                                 {% if field.name != 'profesor' and field.name != 'fecha' and field.name != 'resuelta' and field.name != 'solucion' %}
-                                    <!-- Ignorar campos ocultos -->
-                                    <div class="form-group row">
-                                        <label class="col-lg-1 col-form-label">{{ field.label_tag }}</label>
-                                        <div class="col-lg-11">
-                                            {{ field }}
-                                            {% if field.help_text %}
-                                                <span class="help-block">{{ field.help_text }}</span>
-                                            {% endif %}
-                                            {% for error in field.errors %}
-                                                <span class="text-danger">{{ error }}</span>
-                                            {% endfor %}
-                                        </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ field.label_tag }}</label>
+                                        {{ field }}
+                                        {% if field.help_text %}
+                                            <div class="form-text">{{ field.help_text }}</div>
+                                        {% endif %}
+                                        {% for error in field.errors %}
+                                            <div class="text-danger small">{{ error }}</div>
+                                        {% endfor %}
                                     </div>
                                 {% endif %}
                             {% endfor %}
 
-
-                            <br/>
                             <button type="submit" class="btn btn-primary">Guardar</button>
                         </form>
-                        <br/><br/>
-                    </div>
+                    </div> <!-- end card-body -->
+
+                    <div class="card-footer border-0"></div>
                 </div>
             </div>
         </div>
     </div>
+
 {% endblock %}
 
 {% block js %}
-    <script>
+    <!-- Datepicker & deps -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
 
+    <!-- Select2 -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <script>
         $(document).ready(function () {
 
-            $('form').on('submit', function() {
+            // Evitar doble submit
+            $('form').on('submit', function () {
                 $('button[type="submit"]').prop('disabled', true).text('Procesando...');
             });
 
+            // Inicialización Select2 (clases iguales a tu plantilla original)
             $(".select2_Prioridad").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona una prioridad",
@@ -101,25 +120,20 @@
                 allowClear: true
             });
 
-
-
-
-            var mem = $('#id_fecha').datepicker({
+            // Datepicker para fecha (igual que el ejemplo actualizado)
+            $('#id_fecha').datepicker({
                 todayBtn: "linked",
                 keyboardNavigation: false,
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
                 language: "es"
-            }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
+            }).datepicker('setDate', new Date()); // Establecer hoy por defecto
 
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
+            // Evitar submit con Enter en inputs/selects
+            $('form').on('keypress', 'input, select', function (e) {
+                if (e.which === 13) e.preventDefault();
             });
-
-
         });
-
     </script>
 {% endblock %}

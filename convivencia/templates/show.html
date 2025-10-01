@@ -1,22 +1,46 @@
 {% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
 
 {% block title %}Centro{% endblock %}
 
-{% block content %}
-    <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="ibox float-e-margins">
-                    <div class="ibox-title">
-                        <h3>Resumen de amonestaciones/sanciones</h3>
-                    </div>
-                    <div class="ibox-content">
-                        <form id="main-form" action="{% url 'show' tipo mes ano dia %}" method="post">
-                            {% csrf_token %}
+{% block css %}
 
-                            <div class="form-group row">
-                                <label class="col-lg-2 col-form-label">{{ form.fecha.label_tag }}</label>
-                                <div class="col-lg-4">
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Resumen diario de amonestaciones/sanciones</h4>
+            </div>
+        </div>
+
+
+        <div class="row mb-3">
+            <div class="col-lg-12">
+
+                <form id="main-form" action="{% url 'show' tipo mes ano dia %}" method="post"
+                      class="bg-light-subtle rounded border p-3">
+                    {% csrf_token %}
+                    <div class="row gap-3">
+
+                        <div class="col">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <span class="me-2 fw-semibold">Fecha:</span>
+
+                                <div class="date-search">
                                     {{ form.fecha }}
                                     {% if form.fecha.help_text %}
                                         <span class="help-block">{{ form.fecha.help_text }}</span>
@@ -25,200 +49,296 @@
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
                                 </div>
-                                <label class="col-lg-2 col-form-label">{{ form.tipo.label_tag }}</label>
-                                <div class="col-lg-4">
-                                    <div class="inline-radio" style="padding: 5px 0;">
-                                        {% for radio in form.tipo %}
-                                            <label class="radio-inline">
-                                                {{ radio.tag }}
-                                                {{ radio.choice_label }}
-                                            </label>
-                                        {% endfor %}
-                                    </div>
-                                    {% if form.tipo.help_text %}
-                                        <span class="help-block">{{ form.tipo.help_text }}</span>
-                                    {% endif %}
-                                    {% for error in form.tipo.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
                             </div>
-                        </form>
+                        </div>
+
+                        <div class="col">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <span class="me-2 fw-semibold">{{ form.tipo.label_tag }}</span>
+
+                                <div class="tipo-search">
+                                    <div class="mb-2">
+                                        {% for radio in form.tipo %}
+                                            <div class="form-check fs-xxl form-check-inline">
+                                                {{ radio.tag }}
+
+                                                <label class="form-check-label fs-base"
+                                                       for="{{ radio.id_for_label }}">
+                                                    {{ radio.choice_label }}
+                                                </label>
+
+                                            </div>
+                                        {% endfor %}
+
+                                        {% if form.tipo.help_text %}
+                                            <span class="help-block">{{ form.tipo.help_text }}</span>
+                                        {% endif %}
+                                        {% for error in form.tipo.errors %}
+                                            <span class="text-danger">{{ error }}</span>
+                                        {% endfor %}
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
                     </div>
-                </div>
+                </form>
             </div>
         </div>
 
-        <div class="row animated fadeInRight">
-            <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <div class="float-right">
-                            {% if tipo == 'amonestacion' %}
-                                <a href="/pdf/show/amonestacion/{{ mes }}/{{ ano }}/{{ dia }}"
-                                   class="btn btn-sm btn-info"><i class="fa fa-print"></i> Imprimir amonestaciones </a>
-                                <a href="/pdf/send/amonestacion/{{ mes }}/{{ ano }}/{{ dia }}"
-                                   class="btn btn-sm btn-info"><i class="fa fa-envelope-o"></i> Enviar correo </a>
-                                <a href="/pdf/carta_amonestacion/{{ mes }}/{{ ano }}/{{ dia }}/s"
-                                   class="btn btn-sm btn-info"><i class="fa fa-file-text"></i> Imprimir cartas </a>
-                                <a href="/pdf/carta_amonestacion/{{ mes }}/{{ ano }}/{{ dia }}/n"
-                                   class="btn btn-sm btn-info"><i class="fa fa-file"></i> Imprimir cartas (sin
-                                    correo)</a>
-                            {% elif tipo == 'sancion' %}
-                                <a href="/pdf/show/sancion/{{ mes }}/{{ ano }}/{{ dia }}" class="btn btn-sm btn-info"><i
-                                        class="fa fa-print"></i> Imprimir sanciones </a>
-                            {% endif %}
-                        </div>
-                        <h3>Fecha: {{ dia }}/{{ mes }}/{{ ano }}</h3>
+
+        <div class="row">
+            <div class="col-12">
+                <div data-table data-table-rows-per-page="20" class="card">
+                    <div class="card-header border-light justify-content-between">
+
 
                     </div>
-                    <div class="ibox-content">
-                        <div class="table-responsive">
 
-                            <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="15">
-                                <thead>
-                                <tr>
-                                    <th data-toggle="true">N.</th>
-                                    <th>Alumno/a</th>
-                                    <th>Tipo</th>
-                                    <th>Fecha</th>
-                                    <th>Unidad</th>
-
-                                    {% if tipo == 'amonestacion' %}
-                                        <th>A/S</th>
-                                        <th>A/S Hist.</th>
-                                        <th>Tramo horario</th>
-                                    {% elif tipo  == 'sancion' %}
-                                        <th>Sanción</th>
-                                    {% endif %}
-
-
-                                    <th data-hide="all">Comentario</th>
-
-                                    {% if tipo == 'amonestacion' %}
-                                        <th data-hide="all">Tipo</th>
-                                        <th data-hide="all">Derivado a Convivencia</th>
-                                        <th data-hide="all">Comunicado a</th>
-                                        <th data-hide="all">Fecha comunicación</th>
-                                        <th data-hide="all">Medio</th>
-                                        <th data-hide="all">Teléfono</th>
-                                        <th data-hide="all">Observaciones</th>
-                                    {% endif %}
-                                    {% if tipo  == 'sancion' %}
-                                        <th>Carta</th>
-                                    {% endif %}
-
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for n,h,contar, contarhist in datos %}
-                                    <tr>
-                                        <td>
-                                            {{ n }}
-                                        </td>
-                                        <td>
-                                            <a href="/convivencia/historial/{{ h.IdAlumno.id }}/"><strong>{{ h.IdAlumno.Nombre }}</strong> {% if h.IdAlumno.PDC %} (PDC){% endif %} {% if h.IdAlumno.NEAE %} (NEAE){% endif %}</a>
-                                            {% if tipo == 'amonestacion' %}
-                                                {% if h.IdAlumno.email %}
-                                                    ({{ h.IdAlumno.email }})
-                                                {% else %}
-                                                    <a href="/admin/centro/alumnos/{{ h.IdAlumno.id }}/change/">(Añadir
-                                                        correo electrónico)</a>
-                                                {% endif %}
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if tipo == 'amonestacion' %}
-                                                {% if h.Tipo.TipoFalta == 'G' %}
-                                                    <span class="label label-warning-warning">Amonestación Grave</span>
-                                                {% else %}
-                                                    <span class="label label-warning">Amonestación Leve</span>
-                                                {% endif %}
-                                            {% elif tipo == 'sancion' %}
-                                                <span class="label label-danger">Sanción</span>
-                                            {% endif %}
-
-                                        </td>
-                                        {% if h.Fecha_fin %}
-                                            <td>{{ h.Fecha|date:"d/m/Y" }} - {{ h.Fecha_fin|date:"d/m/Y" }}</td>
-                                        {% else %}
-                                            <td>{{ h.Fecha|date:"d/m/Y" }}</td>
-                                        {% endif %}
-
-                                        <td><a href="/centro/alumnos/{{ h.IdAlumno.Unidad.id }}">{{ h.IdAlumno.Unidad }}</a></td>
-
+                    <div class="card-body">
+                        <table id="child-rows-data" class="table table-striped dt-responsive align-middle mb-0">
+                            <thead class="thead-sm text-uppercase fs-xxs">
+                            <tr>
+                                {% if tipo == 'amonestacion' %}
+                                    <th></th>
+                                {% endif %}
+                                <th>N.</th>
+                                <th>Alumno/a</th>
+                                <th>Tipo</th>
+                                <th>Fecha</th>
+                                <th>Unidad</th>
+                                {% if tipo == 'amonestacion' %}
+                                    <th>A/S</th>
+                                    <th>A/S Hist.</th>
+                                    <th>Tramo Horario</th>
+                                {% else %}
+                                    <th>Sanción</th>
+                                    <th>Carta</th>
+                                {% endif %}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for n,h,contar, contarhist in datos %}
+                                <tr class="" data-profesor="{{ h.Profesor|default:'' }}"
                                         {% if tipo == 'amonestacion' %}
-                                            <td>{{ contar }}</td>
-                                            <td>{{ contarhist }}</td>
-                                            {% if h.Profesor %}
-                                                <td>{{ horas|slice:h.Hora|last }}</td>
+                                    data-hora="{{ horas|slice:h.Hora|last }}"
+                                        {% else %}
+                                    data-hora=""
+                                        {% endif %}
+                                    data-comentario="{{ h.Comentario }}"
+                                    data-tipo="{{ h.Tipo }}"
+                                    data-derivado="{{ h.DerivadoConvivencia|yesno:"SÍ,NO" }}"
+                                    data-familiar="{{ h.FamiliarComunicado }}"
+                                    data-fecha="{{ h.FechaComunicado|date:"d/m/Y" }}"
+                                    data-hora-comunicado="{{ h.HoraComunicado }}"
+                                    data-medio="{{ h.get_Medio_display }}"
+                                    data-telefono="{{ h.TelefonoComunicado }}"
+                                    data-observacion="{{ h.ObservacionComunicado }}"
+                                    data-id="{{ h.id }}">
+                                    {% if tipo == 'amonestacion' %}
+                                        <td class="dt-control dt-child-rows-btn dtr-control"><i
+                                                class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>
+                                        </td>
+                                    {% endif %}
+                                    <td class="sorting_1">{{ n }}</td>
+
+                                    <td>
+                                        <a href="/convivencia/historial/{{ h.IdAlumno.id }}/"><strong>{{ h.IdAlumno.Nombre }}</strong>
+                                            {% if h.IdAlumno.PDC %} (PDC){% endif %} {% if h.IdAlumno.NEAE %}
+                                                (NEAE){% endif %}</a>
+                                    </td>
+                                    <td>
+                                        {% if tipo == 'amonestacion' %}
+                                            {% if h.Tipo.TipoFalta == 'G' %}
+                                                <span class="badge badge-label text-bg-warning-warning">Amonestación Grave</span>
                                             {% else %}
-                                                <td></td>
+                                                <span class="badge badge-label text-bg-warning">Amonestación Leve</span>
                                             {% endif %}
                                         {% elif tipo == 'sancion' %}
-                                            {% if h.NoExpulsion %}
-                                                <td>{{ h.Sancion }}<br/><strong>No expulsión</strong></td>
-                                            {% else %}
-                                                <td>{{ h.Sancion }}</td>
-
-                                            {% endif %}
+                                            <span class="badge badge-label text-bg-danger">Sanción</span>
                                         {% endif %}
 
-
-
-                                        {% if h.Profesor %}
-                                            <td><strong>{{ h.Profesor }}
-                                                ({{ horas|slice:h.Hora|last }})</strong><br/>{{ h.Comentario }}
-                                            </td>
-
-                                        {% else %}
-                                            <td> {{ h.Comentario }}</td>
-                                        {% endif %}
-
-                                        {% if tipo == 'amonestacion' %}
-                                            <td>{{ h.Tipo }}</td>
-                                            {% if h.DerivadoConvivencia %}
-                                                <td>SÍ</td>
-                                            {% else %}
-                                                <td>NO</td>
-                                            {% endif %}
-                                            <td> {{ h.FamiliarComunicado }}</td>
-                                            <td> {{ h.FechaComunicado|date:"d/m/Y" }} {{ h.HoraComunicado }}</td>
-                                            <td> {{ h.get_Medio_display }}</td>
-                                            <td> {{ h.TelefonoComunicado }}</td>
-                                            <td> {{ h.ObservacionComunicado }}</td>
-                                        {% endif %}
-                                        {% if tipo == 'sancion' %}
-                                            <td><a href="/pdf/carta_sancion/{{ h.id }}"><span
-                                                    class="glyphicon glyphicon-list-alt" aria-hidden="true"></span></a>
-                                            </td>
-                                        {% endif %}
-                                    </tr>
-                                {% endfor %}
-
-                                </tbody>
-                                <tfoot>
-                                <tr>
-                                    <td colspan="6">
-                                        <ul class="pagination float-right"></ul>
                                     </td>
+                                    {% if h.Fecha_fin %}
+                                        <td>{{ h.Fecha|date:"d/m/Y" }} - {{ h.Fecha_fin|date:"d/m/Y" }}</td>
+                                    {% else %}
+                                        <td>{{ h.Fecha|date:"d/m/Y" }}</td>
+                                    {% endif %}
+
+                                    <td>
+                                        <a href="/centro/alumnos/{{ h.IdAlumno.Unidad.id }}">{{ h.IdAlumno.Unidad }}</a>
+                                    </td>
+
+                                    {% if tipo == 'amonestacion' %}
+                                        <td>{{ contar }}</td>
+                                        <td>{{ contarhist }}</td>
+                                        {% if h.Profesor %}
+                                            <td>{{ horas|slice:h.Hora|last }}</td>
+                                        {% else %}
+                                            <td></td>
+                                        {% endif %}
+                                    {% elif tipo == 'sancion' %}
+                                        {% if h.NoExpulsion %}
+                                            <td>{{ h.Sancion }}<br/><strong>No expulsión</strong></td>
+                                        {% else %}
+                                            <td>{{ h.Sancion }}</td>
+
+                                        {% endif %}
+                                        <td>
+                                            <a href="/pdf/carta_sancion/{{ h.id }}" class="link-primary"
+                                               aria-label="Carta de sanción">
+                                                <i class="ti ti-file fs-3"></i>
+                                            </a>
+                                        </td>
+                                    {% endif %}
+
                                 </tr>
-                                </tfoot>
-                            </table>
+                            {% endfor %}
 
+                            </tbody>
+                        </table>
+                    </div> <!-- end card-body-->
 
-                        </div>
+                </div>
+                <div class="card-footer border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div data-table-pagination-info="projects"></div>
+                        <div data-table-pagination></div>
                     </div>
                 </div>
             </div>
-        </div>
 
-    </div>
+        </div><!-- end col -->
+    </div><!-- end row -->
+
 {% endblock %}
 
 {% block js %}
+
+    <!-- Datatables js -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
     <script>
         $(document).ready(function () {
+
+
+            const columnsAmonestacion = [
+                {
+                    className: 'dt-control dt-child-rows-btn',
+                    orderable: false,
+                    data: null,
+                    defaultContent: '<i class="ti ti-square-rounded-plus-filled text-primary align-middle fs-22"></i>'
+                },
+                null, null, null, null, null, null, null, null
+            ];
+
+            const columnsSancion = [
+                null, null, null, null, null, null, null
+            ];
+
+            const tipo = "{{ tipo }}"; // Obtén el tipo desde Django template context
+
+            const selectedColumns = (tipo === 'amonestacion') ? columnsAmonestacion : columnsSancion;
+            const orderColumn = (tipo === 'amonestacion') ? 1 : 0; // ordena según columna presente
+
+
+            const tabla = $('#child-rows-data').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
+                columns: selectedColumns,
+                order: [[orderColumn, 'asc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+            });
+
+            // Add event listener for opening and closing details
+            tabla.on('click', 'td.dt-control', function (e) {
+
+                let tr = e.target.closest('tr');
+                let row = tabla.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                } else {
+                    let datos = tr.dataset;
+                    // Open this row
+                    row.child(format(datos)).show();
+                }
+            });
+
+
             var initialDate = new Date({{ ano }}, {{ mes }} - 1, {{ dia }});
             var mem = $('#id_fecha').datepicker({
                 todayBtn: "linked",
@@ -244,23 +364,63 @@
                 updateUrlAndSubmit();
             });
 
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            }).on('ifChecked', function (event) {
+            $('input[name="{{ form.tipo.name }}"]').on('change', function () {
                 updateUrlAndSubmit();
             });
 
-            // Forzar la selección correcta del radio button
-            $('input[name="{{ form.tipo.name }}"]').each(function () {
-                if ($(this).val() == "{{ tipo }}") {
-                    $(this).iCheck('check');
-                }
-            });
 
-            $(document).ready(function () {
-                $('.footable').footable();
-            });
+            function format(data) {
+                // `d` is the original data object for the row
+                return (
+
+                    '<div class="row align-items-center" style="margin-top: 5px;">' +
+                    '<div class="col-md-12">' +
+                    '<h5 class="fs-base mb-1">Comentario:</h5>' +
+                    `<div>${data.comentario || 'Sin comentario'}</div>` +
+                    '</div>' +
+                    '</div>' +
+
+                    '<div class="row align-items-center" style="margin-top: 5px;">' +
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Profesor/a:</h5>' +
+                    '<div>' + `${data.profesor}` + '</div>' +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Tipo:</h5>' +
+                    `<span class="badge badge-label ${data.status === 'Bullish' ? 'badge-soft-success' : 'badge-soft-danger'}">${data.tipo}</span>` +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Aula Horizonte:</h5>' +
+                    `<div>${data.derivado}</div>` +
+                    '</div>' +
+                    '</div>' +
+
+
+                    '<div class="row align-items-center" style="margin-top: 5px;">' +
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Comunicado a:</h5>' +
+                    '<div>' + `${data.familiar}` + '</div>' +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Fecha comunicación:</h5>' +
+                    '<div>' + `${data.fecha} ${data.horaComunicado || ''}` + '</div>' +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Medio:</h5>' +
+                    `<div>${data.medio}</div>` +
+                    '</div>' +
+
+                    '<div class="col-md-3">' +
+                    '<h5 class="fs-base mb-1">Observaciones:</h5>' +
+                    `<div>${data.observacion}</div>` +
+                    '</div>' +
+                    '</div>'
+                );
+            }
         });
     </script>
 {% endblock %}

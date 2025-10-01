@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+{% block css %}
+    <!-- Select2 css (si no está global ya cargado) -->
+    <link href="{% static 'plugins/select2/select2.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/select2/select2-bootstrap4.min.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+    
+    
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Gestión de sustitutos</h4>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                <div class="card-header border-light">
+                    <h4 class="card-title mb-0">Crear Profesor/a Sustituto/a</h4>
+                </div>
+                <div class="card-body">
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+
+                        <div class="mb-3">
+                            {{ form.username.label_tag }}
+                            {{ form.username|add_class:"form-control" }}
+                            {% for error in form.username.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.nombre.label_tag }}
+                            {{ form.nombre|add_class:"form-control" }}
+                            {% for error in form.nombre.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.apellidos.label_tag }}
+                            {{ form.apellidos|add_class:"form-control" }}
+                            {% for error in form.apellidos.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.dni.label_tag }}
+                            {{ form.dni|add_class:"form-control" }}
+                            {% for error in form.dni.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.email.label_tag }}
+                            {{ form.email|add_class:"form-control" }}
+                            {% for error in form.email.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.profesor_sustituido.label_tag }}
+                            {{ form.profesor_sustituido|add_class:"form-select select2_profesor" }}
+                            {% for error in form.profesor_sustituido.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Crear Sustituto</button>
+                    </form>
+
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2_profesor').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Selecciona un profesor',
+                allowClear: true,
+            });
+        });
+    </script>
+{% endblock %}

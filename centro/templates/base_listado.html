@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ titulo }}</h2>
+
+<form method="get" class="mb-3">
+  <select name="nivel" class="form-select w-auto d-inline-block">
+    <option value="">Todos los niveles</option>
+    {% for nid, nombre in niveles %}
+      <option value="{{ nid }}" {% if nivel_seleccionado|stringformat:"s" == nid|stringformat:"s" %}selected{% endif %}>{{ nombre }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-primary">Filtrar</button>
+</form>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      {% for col in columnas %}
+        <th>{{ col }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% block tabla_body %}{% endblock %}
+  </tbody>
+</table>
+{% endblock %}

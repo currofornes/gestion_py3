@@ -6,7 +6,8 @@ from django.urls import path
 
 from centro.forms import AsignarProfesoresDepartamentoForm
 from centro.models import (
-    Cursos, Alumnos, Departamentos, Profesores, Areas, Aulas, Niveles, CursoAcademico, InfoAlumnos, Centros
+    Cursos, Alumnos, Departamentos, Profesores, Areas, Aulas, Niveles, CursoAcademico, InfoAlumnos, Centros, Materia,
+    MateriaImpartida, MatriculaMateria, LibroTexto
 )
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.shortcuts import render, redirect
@@ -81,7 +82,7 @@ class CursosAdmin(admin.ModelAdmin):
     # date_hierarchy = 'Fecha_nacimiento'
     actions_selection_counter = False
 
-    list_display = ["Curso", 'Nivel', 'Tutor', 'Aula']
+    list_display = ["Curso", 'Nivel', 'Tutor', 'Aula', 'Activo']
 
     search_fields = ['Curso']
 
@@ -90,6 +91,13 @@ class CursosAdmin(admin.ModelAdmin):
     }
 
     icon_name = 'school'
+
+    # Filtro para que puedas filtrar por activo/inactivo en el admin
+    list_filter = ['Activo']
+
+    def get_queryset(self, request):
+        """Override el queryset para el admin, para que se muestren todos los cursos sin filtrar por defecto"""
+        return Cursos.all_objects.all()  # Usamos el manager sin filtro
 
 
 @admin.register(Areas)
@@ -145,6 +153,27 @@ class InfoAlumnosAdmin(admin.ModelAdmin):
     list_filter = ('curso_academico', 'Alumno', 'Nivel__Nombre', 'Nivel__Abr', 'Unidad', 'CentroOrigen')
     search_fields = ['Alumno__Nombre', 'Unidad', 'Nivel__Nombre', 'Nivel__Abr', 'CentroOrigen__Codigo', 'CentroOrigen__Nombre']  # Busca por el nombre del alumno
     ordering = ('-curso_academico__año_inicio', 'Nivel__Abr', 'Unidad', 'Alumno__Nombre')
+
+
+@admin.register(Materia)
+class MateriaAdmin(admin.ModelAdmin):
+    list_display = ['abr', 'nombre', 'nivel', 'horas', 'curso_academico']
+    search_fields = ['nombre', 'abr']
+
+@admin.register(MateriaImpartida)
+class MateriaImpartidaAdmin(admin.ModelAdmin):
+    list_display = ['profesor', 'materia', 'curso', 'curso_academico']
+    search_fields = ['materia__nombre', 'profesor__Nombre']
+
+@admin.register(MatriculaMateria)
+class MatriculaMateriaAdmin(admin.ModelAdmin):
+    list_display = ['alumno', 'materia_impartida', 'curso_academico']
+    search_fields = ['alumno__Nombre', 'materia_impartida__materia__nombre']
+
+@admin.register(LibroTexto)
+class LibroTextoAdmin(admin.ModelAdmin):
+    list_display = ['materia', 'nivel', 'isbn', 'titulo', 'editorial', 'anyo_implantacion', 'importe_estimado', 'es_digital', 'incluir_en_cheque_libro', 'es_otro_material', 'curso_academico']
+    search_fields = ['titulo', 'isbn', 'materia__nombre', 'nivel__Nombre']
 
 admin.site.site_header = "Gonzalo Nazareno"
 admin.site.index_title = "Gestión del Centro"

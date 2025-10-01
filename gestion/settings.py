@@ -25,7 +25,7 @@ SECRET_KEY = 'd$ug$)j1jhr2%z4gnpbc9^v^@4*sbu5we9nt_dtg72x7e+xq^('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1','gestion.gonzalonazareno.org','gestiona.gonzalonazareno.org', '172.22.0.3']
+ALLOWED_HOSTS = ['localhost','127.0.0.1','gestion.gonzalonazareno.org','gestiona.gonzalonazareno.org', '192.168.5.136']
 
 CSRF_TRUSTED_ORIGINS = ['https://gestiona.gonzalonazareno.org']
 
@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     "guardias.apps.GuardiasConfig",
     'calendario.apps.CalendarioConfig',
     'analres.apps.AnalresConfig',
-    'carga_archivos.apps.CargaArchivosConfig'
+    'carga_archivos.apps.CargaArchivosConfig',
+    'DACE.apps.DaceConfig'
 ]
 
 MIDDLEWARE = [
@@ -151,11 +152,11 @@ MEDIA_URL = '/media/'
 import configparser
 configuracion = configparser.ConfigParser()
 configuracion.read(os.path.join(BASE_DIR, 'gestion.cfg'))
-EMAIL_HOST = configuracion.get('bd','EMAIL_HOST')
-EMAIL_HOST_USER = configuracion.get('bd','EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = configuracion.get('bd','EMAIL_HOST_PASSWORD')
-EMAIL_PORT = configuracion.get('bd','EMAIL_PORT')
-EMAIL_USE_TLS = configuracion.get('bd','EMAIL_USE_TLS')
+#EMAIL_HOST = configuracion.get('bd','EMAIL_HOST')
+#EMAIL_HOST_USER = configuracion.get('bd','EMAIL_HOST_USER')
+#EMAIL_HOST_PASSWORD = configuracion.get('bd','EMAIL_HOST_PASSWORD')
+#EMAIL_PORT = configuracion.get('bd','EMAIL_PORT')
+#EMAIL_USE_TLS = configuracion.get('bd','EMAIL_USE_TLS')
 
 
 

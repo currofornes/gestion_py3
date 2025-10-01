@@ -39,4 +39,16 @@ urlpatterns = [
 	path('ignorar/<int:prop_id>/', views.ignorar_propuesta_sancion, name='ignorar'),
 	path('reactivar/<int:prop_id>/', views.reactivar_propuesta_sancion, name='reactivar'),
 	path('historial_sanciones/<int:alum_id>/', views.historial_sanciones, name='historial_sanciones'),
+
+	path('nueva-intervencion-horizonte/', views.crear_intervencion_horizonte, name='crear_intervencion_horizonte'),
+
+	path('intervenciones-horizonte/', views.listado_intervenciones_horizonte, name='listado_intervenciones_horizonte'),
+
+	path('intervenciones-horizonte/eliminar/', views.eliminar_intervencion_horizonte, name='intervencion_horizonte_eliminar'),
+
+	path('intervenciones-horizonte/<int:pk>/detalle/', views.IntervencionDetalleView.as_view(), name='intervencion_horizonte_detalle'),
+
+	path('derivaciones-aula-horizonte/', views.listado_derivaciones_aula_horizonte, name='listado_derivaciones_aula_horizonte'),
+
+	path('busq-amonestaciones/', views.busq_amonestaciones, name='busq_amonestaciones'),
 ]

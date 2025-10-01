@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+{% block title %}Centro{% endblock %}
+
+{% block css %}
+
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Datepicker Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/datepicker/datepicker3.css' %}" type="text/css">
+
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Derivación al Aula Horizonte</h4>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3>Profesor/a: <strong>{{ profesor }}</strong></h3></div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.profesor_atiende }}
+                    {{ form.creada_por }}
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label>{{ form.alumno.label }}</label>
+                            {{ form.alumno }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label>{{ form.fecha.label }}</label>
+                            {{ form.fecha }}
+                        </div>
+                        <div class="col-md-4">
+                            <label>{{ form.tramo_horario.label }}</label>
+                            {{ form.tramo_horario }}
+                        </div>
+
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label>{{ form.profesor_envia.label }}</label>
+                            {{ form.profesor_envia }}
+                        </div>
+                        <div class="col-md-8">
+                            <label>{{ form.motivo.label }}</label>
+                            {{ form.motivo }}
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label>{{ form.tarea_asignada.label }}</label>
+                            {{ form.tarea_asignada }}
+                        </div>
+                        <div class="col-md-6">
+                            <label>{{ form.tarea_realizada.label }}</label>
+                            {{ form.tarea_realizada }}
+                        </div>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label>{{ form.reflexion_alumno.label }}</label>
+                        {{ form.reflexion_alumno }}
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6 form-check mb-3">
+                            {{ form.necesita_reubicacion }}
+                            <label class="form-check-label" for="{{ form.necesita_reubicacion.id_for_label }}">
+                                ¿Necesitó reubicación en otro grupo?
+                            </label>
+                        </div>
+                        <div class="col-md-6">
+                           <label>{{ form.grupo_destino.label }}</label>
+                            {{ form.grupo_destino }}
+                        </div>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label>{{ form.observaciones.label }}</label>
+                        {{ form.observaciones }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar intervención</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block js %}
+
+    <!-- Daterpicker Plugin Js -->
+    <script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'plugins/datepicker/bootstrap-datepicker.es.min.js' %}"></script>
+
+    {#    <script src="{% static 'js/plugins/clockpicker/clockpicker.js' %}"></script>#}
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+
+    <script>
+
+        $(document).ready(function () {
+
+            $('form').on('submit', function () {
+                $('button[type="submit"]').prop('disabled', true).text('Procesando...');
+            });
+
+
+            $(".select2_Alumno").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona un/a alumno/a",
+                allowClear: false
+            });
+
+            $(".select2_Hora").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona tramo horario",
+                allowClear: false
+            });
+
+            $(".select2_Profesor").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona profesor/a",
+                allowClear: true
+            });
+
+            $(".select2_Grupo").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona una unidad",
+                allowClear: true
+            });
+
+
+            $('#id_fecha').datepicker({
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                calendarWeeks: true,
+                autoclose: true,
+                language: "es"
+            }).datepicker('setDate', new Date()); // Establecer la fecha de hoy;
+
+
+            $('form').on('keypress', 'input, select', function (e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+    </script>
+{% endblock %}
+

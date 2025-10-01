@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Revisión de libros</h2>
+  <p><strong>Profesor:</strong> {{ profesor }}</p>
+  <p><strong>Materia:</strong> {{ materia }}</p>
+  <p><strong>Libro:</strong> {{ libro }}</p>
+  <p><strong>Momento:</strong> {{ momento }}</p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Alumno</th>
+          <th>¿Tiene el libro?</th>
+          <th>Estado (si aplica)</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for alumno in alumnos %}
+        <tr>
+          <td>{{ alumno }}</td>
+          <td>
+            <input type="checkbox" name="tiene_libro_{{ alumno.id }}">
+          </td>
+          <td>
+            <select name="estado_{{ alumno.id }}" class="form-control">
+              <option value="">--</option>
+              <option value="Bueno">Bueno</option>
+              <option value="Regular">Regular</option>
+              <option value="Malo">Malo</option>
+              <option value="Perdido">Perdido</option>
+            </select>
+          </td>
+          <td>
+            <input type="text" name="observaciones_{{ alumno.id }}" class="form-control">
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4">No hay alumnos matriculados en esta materia.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Guardar revisión</button>
+  </form>
+</div>
+{% endblock %}

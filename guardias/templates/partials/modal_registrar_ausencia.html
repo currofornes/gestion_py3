@@ -1,0 +1,52 @@
+<div class="modal fade" id="modalausenciaprofe" tabindex="-1" role="dialog"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h2 class="modal-title">Notificación Nueva ausencia profesorado</h2>
+                    <p class="fw-semibold">Esta ausencia quedará registrada en el parte de guardias.</p>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <h5><label class="fw-semibold" for="profesor-ausente">Selecciona el profesor/a ausente:</label>
+                        </h5>
+                        <select id="profesor-ausente" class="form-control" style="width: 100%;">
+                            <!-- Opciones de profesores se cargarán aquí -->
+                        </select>
+                    </div>
+
+                    <div class="form-group mt-3" id="data_2">
+                        <h5><label class="fw-semibold">Selecciona una fecha:</label></h5>
+
+                        <div class="input-group date">
+                                                <span class="input-group-text" id="basic-addon1"><i class="ti ti-calendar"></i></span>
+                                        <input type="text"
+                                               class="form-control" autocomplete="off" aria-label="Fecha"
+                                               aria-describedby="basic-addon1"
+                                               id="fecha-ausencia"/>
+                        </div>
+                    </div>
+
+                    <div id="horario-items">
+                        <!-- Aquí se mostrarán los items de horario devueltos por AJAX -->
+                    </div>
+
+                    <hr>
+                    <p>Selecciona una fecha y <strong>MARCA</strong> los tramos en los que te vas a
+                        ausentar. Una vez marcado, se habilita el campo para describir la tarea que
+                        deben realizar los alumnos.</p>
+                    <p>Si la fila del tramo aparece sombreada en <strong
+                            style="background-color: #f6ccba;">ROJO</strong>, es porque la ausencia
+                        ese día y en ese tramo ya fue registrada anteriormente.</p>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-bs-dismiss="modal">Cancelar
+                    </button>
+                    <button id="guardar-ausencias" type="button" class="btn btn-primary">Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
