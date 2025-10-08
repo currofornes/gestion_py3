@@ -31,7 +31,6 @@ from datetime import datetime, timedelta
 from gestion import settings
 from guardias.models import ItemGuardia, TiempoGuardia
 from horarios.models import ItemHorario
-from prevision_plazas_enero import curso_academico_actual
 
 
 def group_check_je(user):

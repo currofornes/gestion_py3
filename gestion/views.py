@@ -22,7 +22,6 @@ from convivencia.views import calcular_alumnado_sancionable, ContarFaltas, Conta
 from gestion.forms import CustomPasswordChangeForm, QueryForm
 from guardias.models import ItemGuardia
 from horarios.models import ItemHorario
-from prevision_plazas_enero import curso_academico_actual
 from reservas.models import Reservas
 
 
@@ -118,7 +117,7 @@ def index(request):
     if profesor:
 
         if dia_semana in range(1, 6):  # Solo lunes a viernes
-            items_hoy = ItemHorario.objects.filter(profesor=profesor, dia=dia_semana, curso_academico=curso_academico_actual).order_by('tramo')
+            items_hoy = ItemHorario.objects.filter(profesor=profesor, dia=dia_semana, curso_academico=curso_actual).order_by('tramo')
             # Agrupar por tramo como en tu vista de horario
             items_por_tramo = {tramo: [] for tramo in range(1, 8)}
             for item in items_hoy:
@@ -153,7 +152,7 @@ def index(request):
         item_guardias = ItemGuardia.objects.filter(
             Fecha=hoy,
             Tramo=tramo_map[tramo_name],
-            curso_academico=curso_academico_actual,
+            curso_academico=curso_actual,
         ).select_related('Unidad', 'Aula', 'ProfesorAusente')
         guardias_por_tramo[tramo_name] = item_guardias
 
@@ -302,7 +301,7 @@ def dashboard_jefatura(request):
 
         if dia_semana in range(1, 6):  # Solo lunes a viernes
             items_hoy = ItemHorario.objects.filter(profesor=profesor, dia=dia_semana,
-                                                   curso_academico=curso_academico_actual).order_by('tramo')
+                                                   curso_academico=curso_actual).order_by('tramo')
             # Agrupar por tramo como en tu vista de horario
             items_por_tramo = {tramo: [] for tramo in range(1, 8)}
             for item in items_hoy:
@@ -337,13 +336,13 @@ def dashboard_jefatura(request):
         item_guardias = ItemGuardia.objects.filter(
             Fecha=hoy,
             Tramo=tramo_map[tramo_name],
-            curso_academico=curso_academico_actual,
+            curso_academico=curso_actual,
         ).select_related('Unidad', 'Aula', 'ProfesorAusente')
         guardias_por_tramo[tramo_name] = item_guardias
 
         # Filtrar reservas solo para hoy y mañana, y solo tipo "Espacio"
         lista_reservas = Reservas.objects.filter(
-            curso_academico=curso_academico_actual,
+            curso_academico=curso_actual,
             Fecha__in=[hoy, manana],
             Reservable__TiposReserva__TipoReserva='Espacio'
         ).order_by('Fecha')

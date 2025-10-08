@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import datetime, time, timedelta
 from sqlite3 import IntegrityError
 
+from django.db.models import Q
 from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -106,8 +107,10 @@ def misactividades(request):
 
     curso_academico_actual = get_current_academic_year()
 
-    lista_actividades = Actividades.objects.filter(Responsable__id=profesor.id, curso_academico=curso_academico_actual)
-    lista_actividades = sorted(lista_actividades, key=lambda d: d.FechaInicio, reverse=True)
+    lista_actividades = Actividades.objects.filter(
+        (Q(Responsable=profesor) | Q(Profesorado=profesor)),  # Responsable o participante
+        curso_academico=curso_academico_actual
+    ).distinct().order_by('-FechaInicio')
 
     context = {'actividades': lista_actividades, 'profesor': profesor, 'menu_DACE': True}
 
@@ -348,6 +351,7 @@ def actividadesdace_json(request):
                 'descripcion': actividad.Descripcion or '',
                 'responsable': str(actividad.Responsable),
                 'unidades': unidades,
+                'id' : actividad.id,
             }
         })
 

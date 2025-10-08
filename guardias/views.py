@@ -27,7 +27,7 @@ from datetime import datetime
 from itertools import groupby
 from operator import itemgetter
 
-from prevision_plazas_enero import curso_academico_actual
+
 
 # Create your views here.
 

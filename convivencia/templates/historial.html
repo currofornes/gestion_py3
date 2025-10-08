@@ -145,6 +145,10 @@
                                         {% else %}
                                             <td {% if t == 'Amonestación' and not h.vigente or t == 'Sanción' %} class="text-white" {% endif %}>
                                                 {{ h.Sancion }}
+                                                (<a href="/pdf/carta_sancion/{{ h.id }}" class="link-light"
+                                               aria-label="Carta de sanción">
+                                                <i class="ti ti-file fs-3"></i>
+                                            </a>)
                                             </td>
 
                                         {% endif %}

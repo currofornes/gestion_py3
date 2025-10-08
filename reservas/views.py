@@ -11,7 +11,6 @@ from django.views.decorators.csrf import csrf_exempt
 from centro.utils import get_current_academic_year
 from centro.views import group_check_prof, group_check_je, group_check_tde
 from horarios.models import ItemHorario
-from prevision_plazas_enero import curso_academico_actual
 from reservas.forms import ReservaForm, ReservaProfeForm
 from reservas.models import Reservas, Reservables
 
