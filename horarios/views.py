@@ -15,7 +15,6 @@ from django.views.generic import ListView, UpdateView, DeleteView, CreateView
 from centro.models import Cursos, Aulas
 from centro.utils import get_current_academic_year
 from centro.views import group_check_prof, group_check_prof_or_guardia, group_check_je
-from prevision_plazas_enero import curso_academico_actual
 from .forms import ItemHorarioForm, CopiarHorarioForm
 from .models import Profesores, ItemHorario
 

@@ -18,6 +18,7 @@ from centro.views import ContarFaltas, group_check_je, group_check_prof, is_tuto
 from datetime import datetime
 from django.core.mail import EmailMultiAlternatives
 
+
 # Create your views here.
 
 meses_es = {

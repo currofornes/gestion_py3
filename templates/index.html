@@ -374,6 +374,7 @@
 
 
                     <div class="d-flex justify-content-end gap-2">
+                        <a href="#" class="btn btn-secondary" id="event-detalles-btn">Detalles</a>
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
                     </div>
                 </div>
@@ -646,6 +647,15 @@
                 document.getElementById('event-unidades').innerHTML = unidades.length > 0
                     ? '<ul>' + unidades.map(u => `<li>${u}</li>`).join('') + '</ul>'
                     : '—';
+
+                // Encuentra el botón
+                const detallesBtn = document.getElementById('event-detalles-btn');
+// Usa el id desde this.selectedEvent.id o extendedProps.id si lo tienes ahí
+                const actividadId = this.selectedEvent.extendedProps?.id
+
+
+// O si prefieres, usa una base construída con la template tag de Django y sustituye el 0:
+                detallesBtn.href = `{% url 'detalles_actividad' 0 %}`.replace('0', actividadId);
 
                 this.modal.show();
             }

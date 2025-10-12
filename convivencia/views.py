@@ -27,6 +27,7 @@ from django.core.mail import send_mail
 from datetime import date
 import time
 
+
 # Create your views here.
 
 def procesar_amonestacion(amon):
