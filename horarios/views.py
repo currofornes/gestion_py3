@@ -238,6 +238,7 @@ class EditarHorarioProfesorView(ListView):
 
     def get_queryset(self):
         profesor_id = self.kwargs['profesor_id']
+        curso_academico_actual = get_current_academic_year()
         return ItemHorario.objects.filter(profesor__id=profesor_id, curso_academico=curso_academico_actual).order_by('dia', 'tramo')
 
     def get_context_data(self, **kwargs):
@@ -398,6 +399,9 @@ class CrearItemHorarioView(CreateView):
 @user_passes_test(group_check_je, login_url='/')
 def aulas_libres(request):
     # Obtener todas las aulas que no contengan las palabras clave
+
+    curso_academico_actual = get_current_academic_year()
+
     aulas = Aulas.objects.exclude(
         Aula__icontains='Maleta'
     ).exclude(
