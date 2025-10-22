@@ -39,138 +39,105 @@
 
 
             {% if user|has_group:"jefatura de estudios" %}
-            <!-- Search -->
-            <div class="app-search d-none d-xl-flex">
+                <!-- Search -->
+                <div class="app-search d-none d-xl-flex">
 
-                <form method="post" action="{% url 'busqueda' %}">
-                    {% csrf_token %}
-                    <input type="search" name="q" class="form-control topbar-search" placeholder="Búsqueda alumnado...">
-                    <i data-lucide="search" class="app-search-icon text-muted"></i>
-                </form>
+                    <form method="post" action="{% url 'busqueda' %}">
+                        {% csrf_token %}
+                        <input type="search" name="q" class="form-control topbar-search"
+                               placeholder="Búsqueda alumnado...">
+                        <i data-lucide="search" class="app-search-icon text-muted"></i>
+                    </form>
 
-            </div>
+                </div>
             {% endif %}
 
             <!-- Mega Menu Dropdown -->
+            {% if user|has_group:"jefatura de estudios" %}
+                <div class="topbar-item d-none d-md-flex">
+                    <div class="dropdown">
+                        <button class="topbar-link btn fw-medium btn-link dropdown-toggle drop-arrow-none"
+                                data-bs-toggle="dropdown" data-bs-offset="0,16" type="button" aria-haspopup="false"
+                                aria-expanded="false">
+                            Accesos Directos<i class="ti ti-chevron-down ms-1"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-xxl p-0">
+                            <div class="h-100" style="max-height: 380px;" data-simplebar>
+                                <div class="row g-0">
+                                    <div class="col-12">
+                                        <div class="p-3 text-center bg-light bg-opacity-50">
+                                            <h4 class="mb-0 fs-lg fw-semibold">Bienvenido a <span class="text-primary">Gestion@</span>.
+                                            </h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-0">
+                                    <div class="col-md-4">
+                                        <div class="p-3">
+                                            <h5 class="mb-2 fw-semibold fs-sm dropdown-header">CONVIVENCIA</h5>
+                                            <ul class="list-unstyled megamenu-list">
+                                                <li>
+                                                    <a href="/convivencia/show" class="dropdown-item">Resumen Diario</a>
+                                                </li>
+                                                <li>
+                                                    <a href="/convivencia/alumnadosancionable/False"
+                                                       class="dropdown-item">Alumnado Sancionable</a>
+                                                </li>
+                                                <li>
+                                                    <a href="/convivencia/sancionesactivas" class="dropdown-item">Sanciones
+                                                        Activas</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
 
-{#            <div class="topbar-item d-none d-md-flex">#}
-{#                <div class="dropdown">#}
-{#                    <button class="topbar-link btn fw-medium btn-link dropdown-toggle drop-arrow-none"#}
-{#                            data-bs-toggle="dropdown" data-bs-offset="0,16" type="button" aria-haspopup="false"#}
-{#                            aria-expanded="false">#}
-{#                        Accesos Directos<i class="ti ti-chevron-down ms-1"></i>#}
-{#                    </button>#}
-{#                    <div class="dropdown-menu dropdown-menu-xxl p-0">#}
-{#                        <div class="h-100" style="max-height: 380px;" data-simplebar>#}
-{#                            <div class="row g-0">#}
-{#                                <div class="col-12">#}
-{#                                    <div class="p-3 text-center bg-light bg-opacity-50">#}
-{#                                        <h4 class="mb-0 fs-lg fw-semibold">Bienvenido a <span class="text-primary">Gestion@</span>.</h4>#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                            <div class="row g-0">#}
-{#                                <div class="col-md-4">#}
-{#                                    <div class="p-3">#}
-{#                                        <h5 class="mb-2 fw-semibold fs-sm dropdown-header">CONVIVENCIA</h5>#}
-{#                                        <ul class="list-unstyled megamenu-list">#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Sales Dashboard</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Marketing#}
-{#                                                    Dashboard</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Finance Overview</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">User Analytics</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Traffic Insights</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Performance#}
-{#                                                    Metrics</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Conversion#}
-{#                                                    Tracking</a>#}
-{#                                            </li>#}
-{#                                        </ul>#}
-{#                                    </div>#}
-{#                                </div>#}
-{##}
-{#                                <div class="col-md-4">#}
-{#                                    <div class="p-3">#}
-{#                                        <h5 class="mb-2 fw-semibold fs-sm dropdown-header">HORARIOS</h5>#}
-{#                                        <ul class="list-unstyled megamenu-list">#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Task Overview</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Kanban Board</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Gantt Chart</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Team#}
-{#                                                    Collaboration</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Project#}
-{#                                                    Milestones</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Workflow#}
-{#                                                    Automation</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Timesheets &#}
-{#                                                    Reports</a>#}
-{#                                            </li>#}
-{#                                        </ul>#}
-{#                                    </div>#}
-{#                                </div>#}
-{##}
-{#                                <div class="col-md-4">#}
-{#                                    <div class="p-3">#}
-{#                                        <h5 class="mb-2 fw-semibold fs-sm dropdown-header">GUARDIAS</h5>#}
-{#                                        <ul class="list-unstyled megamenu-list">#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">User Profiles</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Access Control</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Role Permissions</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Activity Logs</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Security#}
-{#                                                    Settings</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">User Groups</a>#}
-{#                                            </li>#}
-{#                                            <li>#}
-{#                                                <a href="javascript:void(0);" class="dropdown-item">Authentication &#}
-{#                                                    Login</a>#}
-{#                                            </li>#}
-{#                                        </ul>#}
-{#                                    </div> <!-- end dropdown-->#}
-{#                                </div> <!-- end col-->#}
-{#                            </div> <!-- end row-->#}
-{##}
-{#                        </div> <!-- end .h-100-->#}
-{#                    </div> <!-- .dropdown-menu-->#}
-{#                </div> <!-- .dropdown-->#}
-{#            </div> <!-- end topbar-item -->#}
+                                    <div class="col-md-4">
+                                        <div class="p-3">
+                                            <h5 class="mb-2 fw-semibold fs-sm dropdown-header">HORARIOS</h5>
+                                            <ul class="list-unstyled megamenu-list">
+                                                <li>
+                                                    <a href="/horarios/mihorario" class="dropdown-item">Mi Horario</a>
+                                                </li>
+                                                <li>
+                                                    <a href="/horarios/horarioprofe" class="dropdown-item">Horario
+                                                        Profesorado</a>
+                                                </li>
+                                                <li>
+                                                    <a href="/horarios/horariogrupo" class="dropdown-item">Horario
+                                                        Grupos</a>
+                                                </li>
+
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="p-3">
+                                            <h5 class="mb-2 fw-semibold fs-sm dropdown-header">GUARDIAS</h5>
+                                            <ul class="list-unstyled megamenu-list">
+                                                <li>
+                                                    <a href="/guardias/parteguardias" class="dropdown-item">
+                    <span class="menu-icon"><i class="ti ti-table-share"></i></span>
+                    <span class="menu-text" data-lang="landing-page">Parte de Guardias</span>
+                </a>
+                                                </li>
+                                                <li>
+                                                    <a href="/guardias/ver-guardias" class="dropdown-item">
+                                                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                                                        <span class="menu-text" data-lang="landing-page">Ausencias profesorado</span>
+                                                    </a>
+                                                </li>
+
+                                            </ul>
+                                        </div> <!-- end dropdown-->
+                                    </div> <!-- end col-->
+                                </div> <!-- end row-->
+
+                            </div> <!-- end .h-100-->
+                        </div> <!-- .dropdown-menu-->
+                    </div> <!-- .dropdown-->
+                </div> <!-- end topbar-item -->
+            {% endif %}
         </div> <!-- .d-flex-->
 
         <div class="d-flex align-items-center gap-2">
@@ -201,13 +168,13 @@
                         </div>
 
                         {% if user|not_in_group:"guardia" %}
-                        <a href="/cambiar-password-custom" class="dropdown-item">
-                                    <i class="ti ti-lock me-2 fs-17 align-middle"></i>
-                                    <span class="align-middle">Cambiar contraseña</span>
-                                </a>
+                            <a href="/cambiar-password-custom" class="dropdown-item">
+                                <i class="ti ti-lock me-2 fs-17 align-middle"></i>
+                                <span class="align-middle">Cambiar contraseña</span>
+                            </a>
                         {% endif %}
 
-                    <!-- Divider -->
+                        <!-- Divider -->
                         <div class="dropdown-divider"></div>
 
 

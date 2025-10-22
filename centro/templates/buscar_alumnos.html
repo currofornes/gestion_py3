@@ -44,8 +44,11 @@
 
                     </div>
 
+
                     <div class="card-body p-0">
-                        {% for alumno in resultados %}
+                        <h3 class="px-4 py-3 fw-semibold text-primary">Alumnos/as actuales</h3>
+                        {% for alumno in resultados_actuales %}
+                            <!-- Aquí va el bloque que tienes del alumno -->
                             <div class="border-bottom border-dashed px-4 py-3">
                                 <div class="forum-item active">
                                     <div class="row">
@@ -61,51 +64,51 @@
                                             </div>
                                             <div class="forum-sub-title">Teléfono 1: {{ alumno.Telefono1 }}
                                             </div>
-                                        <div class="forum-sub-title">Teléfono 2: {{ alumno.Telefono2 }}
+                                            <div class="forum-sub-title">Teléfono 2: {{ alumno.Telefono2 }}
                                             </div>
                                         </div>
-                                    
+
                                         <div class="col-md-2 forum-info">
-                                        <h4 class="link-dark fw-semibold lh-sm d-block">
-                                            {{ alumno.edad_actual }} años
-                                        </h4>
+                                            <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                {{ alumno.edad_actual }} años
+                                            </h4>
                                             <div class="text-muted text-uppercase mb-2 fw-semibold">
                                                 <p>Edad actual</p>
                                             </div>
                                         </div>
-                                    
+
                                         <div class="col-md-2 forum-info">
-                                        <h4 class="link-dark fw-semibold lh-sm d-block">
-                                            {% if alumno.Unidad %}
-                                                {{ alumno.Unidad }}
-                                            {% else %}
-                                                Sin asignar
-                                            {% endif %}
-                                        </h4>
+                                            <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                {% if alumno.Unidad %}
+                                                    {{ alumno.Unidad }}
+                                                {% else %}
+                                                    Sin asignar
+                                                {% endif %}
+                                            </h4>
                                             <div class="text-muted text-uppercase mb-2 fw-semibold">
                                                 <p>Unidad</p>
                                             </div>
                                         </div>
                                         <div class="col-md-2 forum-info">
-                                        <h4 class="link-dark fw-semibold lh-sm d-block">
-                                            {% if alumno.DNI %}
-                                                {{ alumno.DNI }}
-                                            {% else %}
-                                                - - -
-                                            {% endif %}
-                                        </h4>
+                                            <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                {% if alumno.DNI %}
+                                                    {{ alumno.DNI }}
+                                                {% else %}
+                                                    - - -
+                                                {% endif %}
+                                            </h4>
                                             <div>
                                                 <p class="text-muted text-uppercase mb-2 fw-semibold">DNI</p>
                                             </div>
                                         </div>
                                         <div class="col-md-2">
-                                        <h4 class="link-dark fw-semibold lh-sm d-block">
-                                            {% if alumno.NIE %}
-                                                {{ alumno.NIE }}
-                                            {% else %}
-                                                - - -
-                                            {% endif %}
-                                        </h4>
+                                            <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                {% if alumno.NIE %}
+                                                    {{ alumno.NIE }}
+                                                {% else %}
+                                                    - - -
+                                                {% endif %}
+                                            </h4>
                                             <div>
                                                 <p class="text-muted text-uppercase mb-2 fw-semibold">NIE</p>
                                             </div>
@@ -113,9 +116,86 @@
                                     </div>
                                 </div>
                             </div>
+                        {% empty %}
+                            <p class="px-4 py-3">No se encontraron alumnos actuales.</p>
                         {% endfor %}
 
-                    </div> <!-- end card-body-->
+                        <h3 class="px-4 py-3 fw-semibold text-secondary">Antiguos alumnos/as</h3>
+                        {% for alumno in resultados_antiguos %}
+                            <div class="border-bottom border-dashed px-4 py-3">
+                                <div class="forum-item active">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <h4 class="fs-md mb-1">
+                                                <a href="/convivencia/historial/{{ alumno.id }}/"
+                                                   class="forum-item-title">{{ alumno.Nombre }} {% if alumno.PDC %}
+                                                    (PDC){% endif %} {% if alumno.NEAE %} (NEAE){% endif %}</a>
+
+                                            </h4>
+                                            <div class="forum-sub-title">Fecha de
+                                                nacimiento: {{ alumno.Fecha_nacimiento|date:"d/m/Y" }}
+                                            </div>
+                                            <div class="forum-sub-title">Teléfono 1: {{ alumno.Telefono1 }}
+                                            </div>
+                                            <div class="forum-sub-title">Teléfono 2: {{ alumno.Telefono2 }}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 forum-info">
+                                            <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                {{ alumno.edad_actual }} años
+                                            </h4>
+                                            <div class="text-muted text-uppercase mb-2 fw-semibold">
+                                                <p>Edad actual</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 forum-info">
+                                            <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                {% if alumno.Unidad %}
+                                                    {{ alumno.Unidad }}
+                                                {% else %}
+                                                    Sin asignar
+                                                {% endif %}
+                                            </h4>
+                                            <div class="text-muted text-uppercase mb-2 fw-semibold">
+                                                <p>Unidad</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 forum-info">
+                                            <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                {% if alumno.DNI %}
+                                                    {{ alumno.DNI }}
+                                                {% else %}
+                                                    - - -
+                                                {% endif %}
+                                            </h4>
+                                            <div>
+                                                <p class="text-muted text-uppercase mb-2 fw-semibold">DNI</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                {% if alumno.NIE %}
+                                                    {{ alumno.NIE }}
+                                                {% else %}
+                                                    - - -
+                                                {% endif %}
+                                            </h4>
+                                            <div>
+                                                <p class="text-muted text-uppercase mb-2 fw-semibold">NIE</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="px-4 py-3">No se encontraron antiguos alumnos.</p>
+                        {% endfor %}
+                    </div>
+                    
+
+
                 </div> <!-- end card-->
             </div> <!-- end col-->
         </div> <!-- end row-->

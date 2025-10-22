@@ -257,7 +257,8 @@ def misalumnos(request):
 @user_passes_test(group_check_je, login_url='/')
 def busqueda(request):
     query = ""
-    resultados = []
+    resultados_actuales = []
+    resultados_antiguos = []
     num_resultados = 0
     tiempo_busqueda = 0
 
@@ -266,10 +267,8 @@ def busqueda(request):
         if query:
             query_normalizada = normalizar_texto(query)
 
-            # Medir el tiempo de inicio
             start_time = time.time()
 
-            # Realizar la búsqueda
             resultados = Alumnos.objects.all()
             resultados = [
                 alumno for alumno in resultados
@@ -279,23 +278,25 @@ def busqueda(request):
                    query_normalizada in normalizar_texto(alumno.email)
             ]
 
-            # Medir el tiempo de fin
             end_time = time.time()
-
-            # Calcular el tiempo de búsqueda y redondear a 2 decimales
             tiempo_busqueda = round(end_time - start_time, 2)
 
-            # Número de resultados obtenidos
+            # Dividir en actuales y antiguos
+            resultados_actuales = [a for a in resultados if a.Unidad]
+            resultados_antiguos = [a for a in resultados if not a.Unidad]
+
             num_resultados = len(resultados)
 
     context = {
-        'resultados': resultados,
+        'resultados_actuales': resultados_actuales,
+        'resultados_antiguos': resultados_antiguos,
         'query': query,
         'num_resultados': num_resultados,
         'tiempo_busqueda': tiempo_busqueda,
         'menu_convivencia': True
     }
     return render(request, 'buscar_alumnos.html', context)
+
 
 
 def normalizar_texto(texto):
