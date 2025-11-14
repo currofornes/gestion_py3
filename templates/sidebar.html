@@ -34,19 +34,22 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <a href="#" class="link-reset">
-                        <img src="{% static 'img/user-generic.png' %}" alt="user-image" class="rounded-circle mb-2 avatar-md">
+                        <img src="{% static 'img/user-generic.png' %}" alt="user-image"
+                             class="rounded-circle mb-2 avatar-md">
                         <span class="sidenav-user-name fw-bold">
                             {% if user.profesor %}
-                                    {{ user.profesor }}
-                                {% else %}
-                                    {{ user }}
-                                {% endif %}
+                                {{ user.profesor }}
+                            {% else %}
+                                {{ user }}
+                            {% endif %}
                         </span>
                         <span class="fs-12 fw-semibold" data-lang="user-role">
                             {% if user|has_group:"jefatura de estudios" %}
-                            Jefatura de estudios
-                        {% elif user|has_group:"profesor" %}
-                            Profesor/a
+                                Jefatura de estudios
+                            {% elif user|has_group:"profesor" %}
+                                Profesor/a
+                            {% elif user|has_group:"conserjes" %}
+                                Conserjería
                             {% endif %}
                         </span>
                     </a>
@@ -65,10 +68,10 @@
                         </div>
 
                         {% if user|not_in_group:"guardia" %}
-                        <a href="/cambiar-password-custom" class="dropdown-item">
-                                    <i class="ti ti-lock me-2 fs-17 align-middle"></i>
-                                    <span class="align-middle">Cambiar contraseña</span>
-                                </a>
+                            <a href="/cambiar-password-custom" class="dropdown-item">
+                                <i class="ti ti-lock me-2 fs-17 align-middle"></i>
+                                <span class="align-middle">Cambiar contraseña</span>
+                            </a>
                         {% endif %}
 
                         <!-- Divider -->
@@ -91,208 +94,212 @@
 
             {% if user.is_superuser %}
 
-            <li class="side-nav-title" data-lang="menu-title">ADMINISTRACIÓN</li>
+                <li class="side-nav-title" data-lang="menu-title">ADMINISTRACIÓN</li>
 
-            <li class="side-nav-item">
-                <a href="/admin" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-radioactive"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Zona Restringida</span>
-                </a>
-            </li>
+                <li class="side-nav-item">
+                    <a href="/admin" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-radioactive"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Zona Restringida</span>
+                    </a>
+                </li>
 
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarAdminImportar" aria-expanded="false"
-                   aria-controls="sidebarAdminImportar" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-database-import"></i></span>
-                    <span class="menu-text" data-lang="dashboards">Importación Datos</span>
-                    <span class="menu-arrow"></span>
-                    {#                    <span class="badge bg-success">5</span>#}
-                </a>
-                <div class="collapse" id="sidebarAdminImportar">
-                    <ul class="sub-menu">
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarAdminImportar" aria-expanded="false"
+                       aria-controls="sidebarAdminImportar" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-database-import"></i></span>
+                        <span class="menu-text" data-lang="dashboards">Importación Datos</span>
+                        <span class="menu-arrow"></span>
+                        {#                    <span class="badge bg-success">5</span>#}
+                    </a>
+                    <div class="collapse" id="sidebarAdminImportar">
+                        <ul class="sub-menu">
 
-                        <li class="side-nav-item">
-                            <a href="/carga_archivos/RegAlum/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Carga de datos adicionales de alumnado desde Séneca</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/carga_archivos/calificaciones/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Carga de calificaciones desde Séneca</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/carga_archivos/admision/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Carga de datos de admisión</span>
-                            </a>
-                        </li>
-
-
-                        <li class="side-nav-item">
-                            <a href="/centro/importar_materias/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Importar Materias por Nivel</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/centro/importar_materias_impartidas/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Importar Materias Impartidas</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/centro/importar_matriculas_materias/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Importar Matrículas-Materias</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/centro/importar_libros/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Importar Libros de Texto</span>
-                            </a>
-                        </li>
+                            <li class="side-nav-item">
+                                <a href="/carga_archivos/RegAlum/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Carga de datos adicionales de alumnado desde Séneca</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/carga_archivos/calificaciones/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Carga de calificaciones desde Séneca</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/carga_archivos/admision/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Carga de datos de admisión</span>
+                                </a>
+                            </li>
 
 
-                    </ul>
-                </div>
-            </li>
-
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarAdminUtils" aria-expanded="false"
-                   aria-controls="sidebarAdminUtils" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-tools"></i></span>
-                    <span class="menu-text" data-lang="dashboards">Utilidades</span>
-                    <span class="menu-arrow"></span>
-                    {#                    <span class="badge bg-success">5</span>#}
-                </a>
-                <div class="collapse" id="sidebarAdminUtils">
-                    <ul class="sub-menu">
-                        <li class="side-nav-item">
-                            <a href="/centro/gestion-sustitutos/lista" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Gestión de sustitutos/as</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/horarios/copiar_horario/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Copiar horario</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/centro/profesores" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Ver Profesores/as</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/centro/cursos" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Ver Unidades</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/centro/ver_matriculas/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Ver Matrículas importadas</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/centro/materias_impartidas/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Ver Materias impartidas</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/centro/ver_libros/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Ver Libros de Texto</span>
-                            </a>
-                        </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/importar_materias/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Importar Materias por Nivel</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/importar_materias_impartidas/" class="side-nav-link">
+                                    <span class="menu-text"
+                                          data-lang="dashboard-one">Importar Materias Impartidas</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/importar_matriculas_materias/" class="side-nav-link">
+                                    <span class="menu-text"
+                                          data-lang="dashboard-one">Importar Matrículas-Materias</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/importar_libros/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Importar Libros de Texto</span>
+                                </a>
+                            </li>
 
 
-                    </ul>
-                </div>
-            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarAdminUtils" aria-expanded="false"
+                       aria-controls="sidebarAdminUtils" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-tools"></i></span>
+                        <span class="menu-text" data-lang="dashboards">Utilidades</span>
+                        <span class="menu-arrow"></span>
+                        {#                    <span class="badge bg-success">5</span>#}
+                    </a>
+                    <div class="collapse" id="sidebarAdminUtils">
+                        <ul class="sub-menu">
+                            <li class="side-nav-item">
+                                <a href="/centro/gestion-sustitutos/lista" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Gestión de sustitutos/as</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/horarios/copiar_horario/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Copiar horario</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/profesores" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Ver Profesores/as</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/cursos" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Ver Unidades</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/ver_matriculas/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Ver Matrículas importadas</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/materias_impartidas/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Ver Materias impartidas</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/ver_libros/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Ver Libros de Texto</span>
+                                </a>
+                            </li>
+
+
+                        </ul>
+                    </div>
+                </li>
+
+            {% endif %}
+
+            {% if user|not_in_group:"conserjes" %}
+            <li class="side-nav-title" data-lang="menu-title">CONVIVENCIA</li>
+            {% if user|has_group:"jefatura de estudios" %}
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarConvBusqueda" aria-expanded="false"
+                       aria-controls="sidebarConvBusqueda" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-search"></i></span>
+                        <span class="menu-text" data-lang="dashboards">Búsqueda</span>
+                        <span class="menu-arrow"></span>
+                        {#                    <span class="badge bg-success">5</span>#}
+                    </a>
+                    <div class="collapse" id="sidebarConvBusqueda">
+                        <ul class="sub-menu">
+                            <li class="side-nav-item">
+                                <a href="/centro/busqueda" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Búsqueda general</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/centro/alumnos" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-two">Todos los grupos</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </li>
+
+
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarConvAmonestaciones" aria-expanded="false"
+                       aria-controls="sidebarConvAmonestaciones" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-thumb-down"></i></span>
+                        <span class="menu-text" data-lang="dashboards">Amonestaciones</span>
+                        <span class="menu-arrow"></span>
+                        {#                    <span class="badge bg-success">5</span>#}
+                    </a>
+                    <div class="collapse" id="sidebarConvAmonestaciones">
+                        <ul class="sub-menu">
+                            <li class="side-nav-item">
+                                <a href="/convivencia/busq-amonestaciones/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Consulta</span>
+                                </a>
+                            </li>
+
+
+                        </ul>
+                    </div>
+                </li>
+
+
+
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarConvSanciones" aria-expanded="false"
+                       aria-controls="sidebarConvSanciones" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-home-up"></i></span>
+                        <span class="menu-text" data-lang="dashboards">Sanciones</span>
+                        <span class="menu-arrow"></span>
+                        {#                    <span class="badge bg-success">5</span>#}
+                    </a>
+                    <div class="collapse" id="sidebarConvSanciones">
+                        <ul class="sub-menu">
+
+                            <li class="side-nav-item">
+                                <a href="/convivencia/alumnadosancionable/False" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Alumnado sancionable</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/convivencia/sancionesactivas" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-two">Sanciones activas</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="/convivencia/reincorporacionsanciones" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-two">Reincorporación</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </li>
+
 
             {% endif %}
 
 
-            <li class="side-nav-title" data-lang="menu-title">CONVIVENCIA</li>
-            {% if user|has_group:"jefatura de estudios" %}
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarConvBusqueda" aria-expanded="false"
-                   aria-controls="sidebarConvBusqueda" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-search"></i></span>
-                    <span class="menu-text" data-lang="dashboards">Búsqueda</span>
-                    <span class="menu-arrow"></span>
-                    {#                    <span class="badge bg-success">5</span>#}
-                </a>
-                <div class="collapse" id="sidebarConvBusqueda">
-                    <ul class="sub-menu">
-                        <li class="side-nav-item">
-                            <a href="/centro/busqueda" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Búsqueda general</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/centro/alumnos" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-two">Todos los grupos</span>
-                            </a>
-                        </li>
-
-                    </ul>
-                </div>
-            </li>
-
-
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarConvAmonestaciones" aria-expanded="false"
-                   aria-controls="sidebarConvAmonestaciones" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-thumb-down"></i></span>
-                    <span class="menu-text" data-lang="dashboards">Amonestaciones</span>
-                    <span class="menu-arrow"></span>
-                    {#                    <span class="badge bg-success">5</span>#}
-                </a>
-                <div class="collapse" id="sidebarConvAmonestaciones">
-                    <ul class="sub-menu">
-                        <li class="side-nav-item">
-                            <a href="/convivencia/busq-amonestaciones/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Consulta</span>
-                            </a>
-                        </li>
-
-
-                    </ul>
-                </div>
-            </li>
-
-
-
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarConvSanciones" aria-expanded="false"
-                   aria-controls="sidebarConvSanciones" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-home-up"></i></span>
-                    <span class="menu-text" data-lang="dashboards">Sanciones</span>
-                    <span class="menu-arrow"></span>
-                    {#                    <span class="badge bg-success">5</span>#}
-                </a>
-                <div class="collapse" id="sidebarConvSanciones">
-                    <ul class="sub-menu">
-
-                        <li class="side-nav-item">
-                            <a href="/convivencia/alumnadosancionable/False" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Alumnado sancionable</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/convivencia/sancionesactivas" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-two">Sanciones activas</span>
-                            </a>
-                        </li>
-
-                        <li class="side-nav-item">
-                            <a href="/convivencia/reincorporacionsanciones" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-two">Reincorporación</span>
-                            </a>
-                        </li>
-
-                    </ul>
-                </div>
-            </li>
-
-
-        {% endif %}
             <!--
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarConvAulaConv" aria-expanded="false"
@@ -336,29 +343,29 @@
                             </a>
                         </li>
                         {% if user|has_group:"jefatura de estudios" %}
-                        <li class="side-nav-item">
-                            <a href="/convivencia/derivaciones-aula-horizonte" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-one">Registro derivación</span>
-                            </a>
-                        </li>
-                        <li class="side-nav-item">
-                            <a href="/convivencia/intervenciones-horizonte/" class="side-nav-link">
-                                <span class="menu-text" data-lang="dashboard-two">Registro actividad</span>
-                            </a>
-                        </li>
+                            <li class="side-nav-item">
+                                <a href="/convivencia/derivaciones-aula-horizonte" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-one">Registro derivación</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/convivencia/intervenciones-horizonte/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="dashboard-two">Registro actividad</span>
+                                </a>
+                            </li>
                         {% endif %}
 
                     </ul>
                 </div>
             </li>
             {% if user|has_group:"jefatura de estudios" %}
-            <li class="side-nav-item">
-                <a href="/convivencia/show" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-vocabulary"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Resumen diario</span>
-                </a>
-            </li>
-        {% endif %}
+                <li class="side-nav-item">
+                    <a href="/convivencia/show" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-vocabulary"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Resumen diario</span>
+                    </a>
+                </li>
+            {% endif %}
             {% if user|has_group:"profesor" %}
                 <li class="side-nav-item">
                     <a href="/centro/misalumnos" class="side-nav-link">
@@ -375,113 +382,137 @@
                 </li>
             {% endif %}
 
-        <!--
-            <li class="side-nav-title mt-2" data-lang="layouts-title">ABSENTISMO</li>
+            <!--
+                <li class="side-nav-title mt-2" data-lang="layouts-title">ABSENTISMO</li>
 
-            <li class="side-nav-item">
-                <a href="landing.html" target="_blank" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-building-community"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Protocolos abiertos</span>
-                </a>
-            </li>
+                <li class="side-nav-item">
+                    <a href="landing.html" target="_blank" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-building-community"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Protocolos abiertos</span>
+                    </a>
+                </li>
 
-            <li class="side-nav-item">
-                <a href="landing.html" target="_blank" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-school-off"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Alumnado completo</span>
-                </a>
-            </li>
-            -->
+                <li class="side-nav-item">
+                    <a href="landing.html" target="_blank" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-school-off"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Alumnado completo</span>
+                    </a>
+                </li>
+                -->
             {% if user|has_group:"jefatura de estudios" %}
-            <li class="side-nav-title" data-lang="apps-title">ESTADÍSTICAS Y ANÁLISIS</li>
+                <li class="side-nav-title" data-lang="apps-title">ESTADÍSTICAS Y ANÁLISIS</li>
 
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarEstAnalRes" aria-expanded="false"
-                   aria-controls="sidebarEstAnalRes" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
-                    <span class="menu-text" data-lang="ecommerce">Análisis Resultados</span>
-                    <span class="menu-arrow"></span>
-                </a>
-                <div class="collapse" id="sidebarEstAnalRes">
-                    <ul class="sub-menu">
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarEstAnalRes" aria-expanded="false"
+                       aria-controls="sidebarEstAnalRes" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
+                        <span class="menu-text" data-lang="ecommerce">Análisis Resultados</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse" id="sidebarEstAnalRes">
+                        <ul class="sub-menu">
 
-                        <li class="side-nav-item">
-                            <a href="ecommerce-categories.html" class="side-nav-link">
-                                <span class="menu-text" data-lang="eco-categories">Tras Evaluación</span>
-                            </a>
-                        </li>
+                            <li class="side-nav-item">
+                                <a href="ecommerce-categories.html" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">Tras Evaluación</span>
+                                </a>
+                            </li>
 
-                        <li class="side-nav-item">
-                            <a href="ecommerce-categories.html" class="side-nav-link">
-                                <span class="menu-text" data-lang="eco-categories">Por Centro origen (1º ESO)</span>
-                            </a>
-                        </li>
-
-
-                    </ul>
-                </div>
-            </li>
+                            <li class="side-nav-item">
+                                <a href="ecommerce-categories.html" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">Por Centro origen (1º ESO)</span>
+                                </a>
+                            </li>
 
 
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarEstAmonSanc" aria-expanded="false"
-                   aria-controls="sidebarEstAmonSanc" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-chart-dots"></i></span>
-                    <span class="menu-text" data-lang="ecommerce">Amon./Sanc.</span>
-                    <span class="menu-arrow"></span>
-                </a>
-                <div class="collapse" id="sidebarEstAmonSanc">
-                    <ul class="sub-menu">
+                        </ul>
+                    </div>
+                </li>
 
-                        <li class="side-nav-item">
-                            <a href="/convivencia/estadistica" class="side-nav-link">
-                                <span class="menu-text" data-lang="eco-categories">General</span>
-                            </a>
-                        </li>
 
-                        <li class="side-nav-item">
-                            <a href="/convivencia/horas" class="side-nav-link">
-                                <span class="menu-text" data-lang="eco-categories">Tramos</span>
-                            </a>
-                        </li>
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarEstAmonSanc" aria-expanded="false"
+                       aria-controls="sidebarEstAmonSanc" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-chart-dots"></i></span>
+                        <span class="menu-text" data-lang="ecommerce">Amon./Sanc.</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse" id="sidebarEstAmonSanc">
+                        <ul class="sub-menu">
 
-                        <li class="side-nav-item">
-                            <a href="/convivencia/profesores" class="side-nav-link">
-                                <span class="menu-text" data-lang="eco-categories">Profesorado</span>
-                            </a>
-                        </li>
+                            <li class="side-nav-item">
+                                <a href="/convivencia/estadistica" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">General</span>
+                                </a>
+                            </li>
 
-                        <li class="side-nav-item">
-                            <a href="/convivencia/niveles" class="side-nav-link">
-                                <span class="menu-text" data-lang="eco-categories">Niveles</span>
-                            </a>
-                        </li>
+                            <li class="side-nav-item">
+                                <a href="/convivencia/horas" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">Tramos</span>
+                                </a>
+                            </li>
 
-                        <li class="side-nav-item">
-                            <a href="/convivencia/grupos" class="side-nav-link">
-                                <span class="menu-text" data-lang="eco-categories">Grupos</span>
-                            </a>
-                        </li>
+                            <li class="side-nav-item">
+                                <a href="/convivencia/profesores" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">Profesorado</span>
+                                </a>
+                            </li>
 
-                        <li class="side-nav-item">
-                            <a href="/convivencia/alumnos" class="side-nav-link">
-                                <span class="menu-text" data-lang="eco-categories">Alumnos</span>
-                            </a>
-                        </li>
+                            <li class="side-nav-item">
+                                <a href="/convivencia/niveles" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">Niveles</span>
+                                </a>
+                            </li>
 
-                    </ul>
-                </div>
-            </li>
+                            <li class="side-nav-item">
+                                <a href="/convivencia/grupos" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">Grupos</span>
+                                </a>
+                            </li>
 
-            <li class="side-nav-item">
-                <a href="/guardias/estadisticas" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-user-cancel"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Ausencias</span>
-                </a>
-            </li>
+                            <li class="side-nav-item">
+                                <a href="/convivencia/alumnos" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">Alumnos</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="side-nav-item">
+                    <a href="/guardias/estadisticas" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-user-cancel"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Ausencias</span>
+                    </a>
+                </li>
             {% endif %}
 
-            <li class="side-nav-title mt-2" data-lang="pages-title">HORARIOS</li>
+        {% endif %}
+
+        {% if user|has_group:"conserjes" %}
+        <li class="side-nav-title mt-2" data-lang="pages-title">HORARIOS</li>
+
+            <li class="side-nav-item">
+                <a href="/horarios/horarioprofe" class="side-nav-link">
+                                <span class="menu-text" data-lang="pages-profile">Horario Profesorado</span>
+                            </a>
+            </li>
+
+            <li class="side-nav-item">
+                <a href="/horarios/horariogrupo" class="side-nav-link">
+                                <span class="menu-text" data-lang="pages-faq">Horario Grupos</span>
+                            </a>
+            </li>
+
+            <li class="side-nav-item">
+                <a href="/horarios/horarioaula" class="side-nav-link">
+                                <span class="menu-text" data-lang="pages-pricing">Horario Aulas</span>
+                            </a>
+            </li>
+
+        {% else %}
+        <li class="side-nav-title mt-2" data-lang="pages-title">HORARIOS</li>
 
             <li class="side-nav-item">
                 <a href="/horarios/mihorario" class="side-nav-link">
@@ -490,21 +521,21 @@
                 </a>
             </li>
 
-        <li class="side-nav-item">
+            <li class="side-nav-item">
                 <a href="/centro/mipreferenciahoraria/" class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-calendar-smile"></i></span>
                     <span class="menu-text" data-lang="landing-page">Mi Preferencia horaria</span>
                 </a>
             </li>
 
-        {% if user|has_group:"jefatura de estudios" %}
-            <li class="side-nav-item">
-                <a href="/centro/preferenciashorarias/" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-calendar-search"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Ver Preferencias horarias</span>
-                </a>
-            </li>
-        {% endif %}
+            {% if user|has_group:"jefatura de estudios" %}
+                <li class="side-nav-item">
+                    <a href="/centro/preferenciashorarias/" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-calendar-search"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Ver Preferencias horarias</span>
+                    </a>
+                </li>
+            {% endif %}
 
             <li class="side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarHorarioOtros" aria-expanded="false"
@@ -534,7 +565,10 @@
                     </ul>
                 </div>
             </li>
+        {% endif %}
 
+
+        {% if user|not_in_group:"conserjes" %}
 
             <li class="side-nav-title mt-2" data-lang="layouts-title">GUARDIAS</li>
 
@@ -552,12 +586,12 @@
                 </a>
             </li>
             {% if user|has_group:"jefatura de estudios" %}
-            <li class="side-nav-item">
-                <a href="/guardias/ver-guardias" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Ausencias profesorado</span>
-                </a>
-            </li>
+                <li class="side-nav-item">
+                    <a href="/guardias/ver-guardias" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Ausencias profesorado</span>
+                    </a>
+                </li>
             {% endif %}
 
 
@@ -570,14 +604,14 @@
                 </a>
             </li>
 
-        {% if user|has_group:"jefatura de estudios" %}
-            <li class="side-nav-item">
-                <a href="/reservas/verreservas" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-devices-question"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Ver Reservas</span>
-                </a>
-            </li>
-{% endif %}
+            {% if user|has_group:"jefatura de estudios" %}
+                <li class="side-nav-item">
+                    <a href="/reservas/verreservas" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-devices-question"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Ver Reservas</span>
+                    </a>
+                </li>
+            {% endif %}
 
             <li class="side-nav-title mt-2" data-lang="components-title">TDE/TIC</li>
 
@@ -598,13 +632,13 @@
 
 
             {% if user|has_group:"jefatura de estudios" or user|has_group:"tde" %}
-            <li class="side-nav-item">
-                <a href="/tde/incidenciastic" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-device-imac-bolt"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Ver Incidencias TIC</span>
-                </a>
-            </li>
-        {% endif %}
+                <li class="side-nav-item">
+                    <a href="/tde/incidenciastic" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-device-imac-bolt"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Ver Incidencias TIC</span>
+                    </a>
+                </li>
+            {% endif %}
 
 
             <li class="side-nav-title mt-2" data-lang="components-title">LIBROS DE TEXTO</li>
@@ -677,16 +711,16 @@
                     <span class="menu-text" data-lang="landing-page">Mis Actividades</span>
                 </a>
             </li>
-        {% if user|has_group:"jefatura de estudios" or user|has_group:"dace" %}
-        <li class="side-nav-item">
-                <a href="/DACE/actividadesdace" class="side-nav-link">
-                    <span class="menu-icon"><i class="ti ti-calendar-month"></i></span>
-                    <span class="menu-text" data-lang="landing-page">Actividades DACE</span>
-                </a>
-            </li>
+            {% if user|has_group:"jefatura de estudios" or user|has_group:"dace" %}
+                <li class="side-nav-item">
+                    <a href="/DACE/actividadesdace" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-calendar-month"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Actividades DACE</span>
+                    </a>
+                </li>
+            {% endif %}
+
         {% endif %}
-
-
         </ul>
     </div>
 </div>

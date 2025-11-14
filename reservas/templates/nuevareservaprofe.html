@@ -130,6 +130,7 @@
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top" title="">1ª Hora
                             </button>
+                            <small style="display:block; width:100%; text-align:center; font-weight: bold; margin-top: 3px;"></small>
                         </div>
                         <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
                             <button type="button" data-reference="2"
@@ -137,6 +138,7 @@
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top" title="">2ª Hora
                             </button>
+                            <small style="display:block; width:100%; text-align:center; font-weight: bold; margin-top: 3px;"></small>
                         </div>
                         <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
                             <button type="button" data-reference="3"
@@ -144,6 +146,7 @@
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top" title="">3ª Hora
                             </button>
+                            <small style="display:block; width:100%; text-align:center; font-weight: bold; margin-top: 3px;"></small>
                         </div>
                         <div class="col-12 text-center" style="margin-top: 15px;">
                             <button type="button" data-reference="4"
@@ -152,6 +155,7 @@
                                     data-bs-placement="top" title="">
                                 Recreo
                             </button>
+                            <small style="display:block; width:100%; text-align:center; font-weight: bold; margin-top: 3px;"></small>
                         </div>
                         <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
                             <button type="button" data-reference="5"
@@ -159,6 +163,7 @@
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top" title="">4ª Hora
                             </button>
+                            <small style="display:block; width:100%; text-align:center; font-weight: bold; margin-top: 3px;"></small>
                         </div>
                         <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
                             <button type="button" data-reference="6"
@@ -166,6 +171,7 @@
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top" title="">5ª Hora
                             </button>
+                            <small style="display:block; width:100%; text-align:center; font-weight: bold; margin-top: 3px;"></small>
                         </div>
                         <div class="col-6 col-sm-4 text-center" style="margin-top: 15px;">
                             <button type="button" data-reference="7"
@@ -173,6 +179,7 @@
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top" title="">6ª Hora
                             </button>
+                            <small style="display:block; width:100%; text-align:center; font-weight: bold; margin-top: 3px;"></small>
                         </div>
 
 
@@ -287,7 +294,9 @@
                 forceParse: false,
                 calendarWeeks: true,
                 autoclose: true,
-                language: "es"
+                language: "es",
+                startDate: new Date(),  // Hoy
+                endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // Dos semanas desde hoy
             }).on('changeDate', function (e) {
                 $('#TramosHorarios').show();
                 $('#row-periodicidad').show();
@@ -409,10 +418,17 @@
                                     if (disponibilidad.existe_reserva && disponibilidad.profesor_id != profesor_actual_id) {
                                         $(this).attr('title', `Reservado por: ${disponibilidad.profesor_nombre}`);
                                         $(this).tooltip('enable');  // Habilitar el tooltip
+
+                                        // Cambiar el texto del <small> justo debajo del botón
+                                        $(this).next('small').text(disponibilidad.profesor_nombre || '');
+
                                     } else {
                                         $(this).prop('disabled', false)
                                         $(this).attr('title', '');
                                         $(this).tooltip('disable');  // Deshabilitar el tooltip
+
+                                        // Vaciar el <small> justo debajo del botón
+                                        $(this).next('small').text('');
                                     }
                                 }
                             });

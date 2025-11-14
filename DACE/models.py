@@ -34,7 +34,7 @@ class Actividades(models.Model):
     curso_academico = models.ForeignKey(CursoAcademico, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return self.titulo
+        return self.Titulo
 
     class Meta:
         verbose_name="Actividad DACE"

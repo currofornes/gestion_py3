@@ -16,7 +16,7 @@ from django.db import connection
 
 from centro.models import Alumnos, Cursos, MateriaImpartida, Profesores
 from centro.utils import importar_profesores, get_current_academic_year
-from centro.views import is_tutor, group_check_je
+from centro.views import is_tutor, group_check_je, group_check_je_or_conserjes
 from convivencia.models import Amonestaciones, Sanciones, PropuestasSancion, IntervencionAulaHorizonte
 from convivencia.views import calcular_alumnado_sancionable, ContarFaltas, ContarFaltasHistorico
 from gestion.forms import CustomPasswordChangeForm, QueryForm
@@ -67,6 +67,11 @@ def cambiar_password_custom(request):
 @login_required(login_url='/login/')
 def index(request):
     user = request.user
+
+
+    if user.groups.filter(name='conserjes').exists():
+        return redirect(reverse('dashboard_conserjes'))
+
 
     # Verificar cambio de contraseña para roles normales (excluyendo superuser y jefatura)
     if not user.is_superuser and not user.groups.filter(name='jefatura de estudios').exists():
@@ -405,6 +410,65 @@ def dashboard_jefatura(request):
     }
 
     return render(request, 'indexje.html', contexto)
+
+
+
+
+@login_required(login_url='/login/')
+@user_passes_test(group_check_je_or_conserjes, login_url='/')
+def dashboard_conserjes(request):
+    curso_actual = get_current_academic_year()
+
+
+
+    profesores = Profesores.objects.filter(Baja=False)
+    cursos = Cursos.objects.all()
+
+    hoy = date.today()
+    manana = hoy + timedelta(days=1)
+
+
+
+    tramos = ['1', '2', '3', 'rec', '4', '5', '6']
+
+    horario_hoy = []
+    tramos_horarios = ['1ª hora', '2ª hora', '3ª hora', 'RECREO', '4ª hora', '5ª hora', '6ª hora']
+    dia_semana = date.today().isoweekday()  # 1 (lunes) - 7 (domingo)
+
+
+
+    tramo_map = {
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "rec": 4,
+        "4": 5,
+        "5": 6,
+        "6": 7,
+    }
+
+    # Agrupa ausencias por tramo
+    guardias_por_tramo = {}
+    for tramo_name in tramos:
+        item_guardias = ItemGuardia.objects.filter(
+            Fecha=hoy,
+            Tramo=tramo_map[tramo_name],
+            curso_academico=curso_actual,
+        ).select_related('Unidad', 'Aula', 'ProfesorAusente')
+        guardias_por_tramo[tramo_name] = item_guardias
+
+
+
+    contexto = {
+
+        'profesores': profesores,
+        'cursos': cursos,
+        'tramos': tramos,
+        'horario_hoy': horario_hoy,
+        'guardias_por_tramo': guardias_por_tramo,
+    }
+
+    return render(request, 'indexcons.html', contexto)
 
 
 @login_required(login_url='/')

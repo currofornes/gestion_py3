@@ -12,10 +12,15 @@ class ReservaForm(forms.ModelForm):
         required=True,
         initial='puntual'
     )
-    num_semanas = forms.CharField(
+    num_semanas = forms.IntegerField(
         required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'value': '1'}),
-        label='Número de semanas'
+        max_value=3,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'value': '1',
+            'max': '3'
+        }),
+        label='Número de semanas (máx. 3)'
     )
 
     tipo = forms.ChoiceField(
@@ -51,10 +56,15 @@ class ReservaProfeForm(forms.ModelForm):
         required=True,
         initial='puntual'
     )
-    num_semanas = forms.CharField(
+    num_semanas = forms.IntegerField(
         required=False,
-        widget=forms.TextInput(attrs={'class': 'touchspin1', 'value': '1'}),
-        label='Número de semanas'
+        max_value=3,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'value': '1',
+            'max': '3'
+        }),
+        label='Número de semanas (máx. 3)'
     )
 
     tipo = forms.ChoiceField(

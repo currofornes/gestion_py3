@@ -53,6 +53,9 @@ def group_check_prof(user):
 def group_check_prof_or_guardia(user):
     return user.groups.filter(name__in=['jefatura de estudios', 'profesor', 'guardia']).exists()
 
+def group_check_prof_or_guardia_or_conserje(user):
+    return user.groups.filter(name__in=['jefatura de estudios', 'profesor', 'guardia', 'conserjes']).exists()
+
 
 def group_check_prof_and_tutor(user):
     return group_check_prof(user) and is_tutor(user)
@@ -71,6 +74,9 @@ def group_check_je_or_dace(user):
 
 def group_check_prof_and_tutor_or_je_or_orientacion(user):
     return group_check_prof_and_tutor(user) or group_check_je_or_orientacion(user)
+
+def group_check_je_or_conserjes(user):
+    return user.groups.filter(name__in=['jefatura de estudios', 'conserjes']).exists()
 
 
 def is_tutor(user):
@@ -253,20 +259,40 @@ def misalumnos(request):
     return render(request, 'misalumnos.html', context)
 
 
+def obtener_tramo_actual():
+    ahora = datetime.now()
+    minutos_actuales = ahora.hour * 60 + ahora.minute
+    dia_actual = ahora.isoweekday()  # Lunes=1, Domingo=7, compatible con tu modelo
+
+    tramos = [
+        (1, 8*60+15, 9*60+15),
+        (2, 9*60+15, 10*60+15),
+        (3, 10*60+15, 11*60+15),
+        (4, 11*60+15, 11*60+45),  # Recreo
+        (5, 11*60+45, 12*60+45),
+        (6, 12*60+45, 13*60+45),
+        (7, 13*60+45, 14*60+45),
+    ]
+
+    for tramo, inicio, fin in tramos:
+        if inicio <= minutos_actuales < fin:
+            return dia_actual, tramo
+    return dia_actual, None
+
 @login_required(login_url='/')
-@user_passes_test(group_check_je, login_url='/')
+@user_passes_test(group_check_je_or_conserjes, login_url='/')
 def busqueda(request):
     query = ""
     resultados_actuales = []
     resultados_antiguos = []
     num_resultados = 0
     tiempo_busqueda = 0
+    curso_actual = get_current_academic_year()
 
     if request.method == 'POST':
         query = request.POST.get('q')
         if query:
             query_normalizada = normalizar_texto(query)
-
             start_time = time.time()
 
             resultados = Alumnos.objects.all()
@@ -280,10 +306,36 @@ def busqueda(request):
 
             end_time = time.time()
             tiempo_busqueda = round(end_time - start_time, 2)
-
-            # Dividir en actuales y antiguos
             resultados_actuales = [a for a in resultados if a.Unidad]
             resultados_antiguos = [a for a in resultados if not a.Unidad]
+
+            dia, tramo = obtener_tramo_actual()
+
+            # Añadir localización
+            for alumno in resultados_actuales:
+                alumno.localizaciones = []
+                if not tramo:
+                    continue
+                matriculas = MatriculaMateria.objects.filter(alumno=alumno, curso_academico=curso_actual)
+                for m in matriculas:
+                    imp = m.materia_impartida
+                    print(dia)
+                    print(tramo)
+                    items = ItemHorario.objects.filter(
+                        unidad=imp.curso,
+                        profesor=imp.profesor,
+                        dia=dia,
+                        tramo=tramo,
+                        curso_academico=curso_actual
+                    )
+                    for item in items:
+                        alumno.localizaciones.append({
+                            'aula': item.aula.Aula,
+                            'materia': imp.materia.nombre,
+                            'profesor': str(imp.profesor)
+                        })
+
+
 
             num_resultados = len(resultados)
 
@@ -1308,7 +1360,7 @@ def editar_revision_libros(request, revision_id):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def morosos_view(request):
-    niveles_deseados = ["3º ESO"]
+    niveles_deseados = ["1º ESO"]
     curso_actual = get_current_academic_year()
 
     alumnos = Alumnos.objects.filter(Unidad__Nivel__Abr__in=niveles_deseados).select_related('Unidad__Nivel')
