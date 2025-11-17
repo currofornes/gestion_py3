@@ -47,6 +47,7 @@ class IndicadoresAlumnado(models.Model):
     IdoneidadCursoEdad = models.BooleanField(default=None, null=True, blank=True)
     AbandonoEscolar = models.BooleanField(default=None, null=True, blank=True)
     Modalidad = models.CharField(max_length=10, null=True, blank=True)
+    Promocion = models.BooleanField(default=None, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Indicadores del Alumnado'

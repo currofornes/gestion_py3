@@ -12,7 +12,7 @@ from django.http import JsonResponse
 
 from centro.models import Alumnos, InfoAlumnos, CursoAcademico, Centros, Niveles
 from centro.utils import get_encoding
-from analres.models import Calificaciones, IndicadoresAlumnado
+from analres.models import Calificaciones
 from .forms import CargaCalificacionesSeneca, CargaRegAlumSeneca, CargaAdmisionSeneca
 
 
@@ -46,8 +46,6 @@ def calificaciones(request):
                                     calificaciones_alumno['Curso Academico'] = curso_academico.nombre
                                     calificaciones_alumno['Convocatoria'] = convocatoria
                                     calificaciones_alumno['nombre_archivo'] = nombre_archivo_csv
-                                    if convocatoria == 'ORD':
-                                        calificaciones_alumno['Promoción'] = row['Resultado de la promoción']
                                     data['nro_registros'] += 1
                                     data['datos'].append(calificaciones_alumno)
                 return JsonResponse(data)
@@ -78,7 +76,7 @@ def calificaciones_procesar_datos(request):
         nivel = get_nivel(data['nombre_archivo'])
 
         for key, val in data.items():
-            if key not in ['Alumno/a', 'Unidad', 'Curso Academico', 'Convocatoria', 'nombre_archivo', 'Resultado de la promoción']:
+            if key not in ['Alumno/a', 'Unidad', 'Curso Academico', 'Convocatoria', 'nombre_archivo']:
                 if val:
                     calif = val
                     error = False
@@ -108,18 +106,6 @@ def calificaciones_procesar_datos(request):
                     if not creado:
                         calificacion.Calificacion = calif
                         calificacion.save()
-            if key == 'Resultado de la promoción':
-                indicador_prom, creado = IndicadoresAlumnado.objects.get_or_create(
-                    Alumno=alumno,
-                    curso_academico=curso_academico,
-                    Convocatoria=convocatoria,
-                    defaults={
-                        'EstimacionPromocion': data['Resultado de la promoción'] in ('PRO', 'TIT')
-                    }
-                )
-                if not creado:
-                    indicador_prom.EstimacionPromocion = data['Resultado de la promoción']
-                    indicador_prom.save()
 
         return JsonResponse({'status': 'success'})
     else:
@@ -217,13 +203,14 @@ def admision(request):
         form = CargaAdmisionSeneca(request.POST, request.FILES)
         if form.is_valid():
             archivo_csv_1_eso = form.cleaned_data['ArchivoCSV_1_ESO']
+            archivo_csv_3_eso = form.cleaned_data['ArchivoCSV_3_ESO']
             archivo_csv_1_bto_cyt = form.cleaned_data['ArchivoCSV_1_BTO_CyT']
             archivo_csv_1_bto_hycs = form.cleaned_data['ArchivoCSV_1_BTO_HyCS']
             curso_academico = form.cleaned_data['CursoAcademico']
 
             try:
                 data = {'nro_registros': 0, 'datos': []}
-                archivos = [archivo_csv_1_eso, archivo_csv_1_bto_cyt, archivo_csv_1_bto_hycs]
+                archivos = [archivo_csv_1_eso, archivo_csv_3_eso, archivo_csv_1_bto_cyt, archivo_csv_1_bto_hycs]
                 # Process the CSV files
                 for archivo in archivos:
                     encoding = get_encoding(archivo)
@@ -280,7 +267,7 @@ def admision_procesar_datos(request):
         if not info_alumno:
             return JsonResponse({'error': f'No se ha encontrado información adicional  de {data["Alumno/a"]}.'})
 
-        if info_alumno.Nivel.Abr in ['1º ESO', '1º BTO CyT', '1º BTO HyCS']:
+        if info_alumno.Nivel.Abr in ['1º ESO', '3º ESO', '1º BTO CyT', '1º BTO HyCS']:
             info_alumno.CentroOrigen = centro_origen
         else:
             info_alumno.CentroOrigen = None

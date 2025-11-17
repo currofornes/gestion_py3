@@ -67,6 +67,7 @@ def cambiar_password_custom(request):
 @login_required(login_url='/login/')
 def index(request):
     user = request.user
+    curso_academico_actual = get_current_academic_year()
 
     # Verificar cambio de contraseña para roles normales (excluyendo superuser y jefatura)
     if not user.is_superuser and not user.groups.filter(name='jefatura de estudios').exists():
@@ -117,7 +118,7 @@ def index(request):
     if profesor:
 
         if dia_semana in range(1, 6):  # Solo lunes a viernes
-            items_hoy = ItemHorario.objects.filter(profesor=profesor, dia=dia_semana, curso_academico=curso_actual).order_by('tramo')
+            items_hoy = ItemHorario.objects.filter(profesor=profesor, dia=dia_semana, curso_academico=curso_academico_actual).order_by('tramo')
             # Agrupar por tramo como en tu vista de horario
             items_por_tramo = {tramo: [] for tramo in range(1, 8)}
             for item in items_hoy:
@@ -152,7 +153,7 @@ def index(request):
         item_guardias = ItemGuardia.objects.filter(
             Fecha=hoy,
             Tramo=tramo_map[tramo_name],
-            curso_academico=curso_actual,
+            curso_academico=curso_academico_actual,
         ).select_related('Unidad', 'Aula', 'ProfesorAusente')
         guardias_por_tramo[tramo_name] = item_guardias
 

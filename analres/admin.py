@@ -30,7 +30,7 @@ class IndicadoresAlumnadoAdmin(admin.ModelAdmin):
     }
 
     list_display = ['curso_acad', 'alumno_nombre', 'nivel', 'conv', 'Modalidad',
-                    'EstimacionPromocion', 'EficaciaTransito', 'EvaluacionPositivaTodo', 'EficaciaRepeticion',
+                    'EstimacionPromocion', 'Promocion', 'EficaciaTransito', 'EvaluacionPositivaTodo', 'EficaciaRepeticion',
                     'IdoneidadCursoEdad', 'AbandonoEscolar']
     search_fields = ['Alumno__Nombre']
     list_filter = ['curso_academico', 'Convocatoria']
@@ -41,7 +41,11 @@ class IndicadoresAlumnadoAdmin(admin.ModelAdmin):
     curso_acad.short_description = 'Curso Académico'
 
     def nivel(self, obj):
-        return obj.Alumno.info_adicional.filter(curso_academico=obj.curso_academico).first().Nivel
+        res = obj.Alumno.info_adicional.filter(curso_academico=obj.curso_academico).first()
+        if res:
+            return res.Nivel
+        else:
+            return 'N/A'
     nivel.short_description = 'Nivel'
 
     def alumno_nombre(self, obj):

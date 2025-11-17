@@ -86,10 +86,14 @@ class EstimacionPromocion(Indicador):
     def calcular(self, calificaciones, **kwargs):
         nro_suspensos = Nro_Suspensos()
         nivel = kwargs['nivel']
-        if 'ESO' in nivel.Abr or 'BTO' in nivel.Abr:
-            return nro_suspensos.calcular(calificaciones) <= 4
+        promo_ord = kwargs.get('promocion', None)
+        if promo_ord is None:
+            if 'ESO' in nivel.Abr or 'BTO' in nivel.Abr:
+                return nro_suspensos.calcular(calificaciones) <= 4
+            else:
+                return nro_suspensos.calcular(calificaciones) == 0
         else:
-            return nro_suspensos.calcular(calificaciones) == 0
+            return promo_ord
 
 
 class EficaciaTransito(Indicador):

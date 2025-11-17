@@ -47,17 +47,22 @@ class CargaAdmisionSeneca(forms.Form):
     ArchivoCSV_1_ESO = forms.FileField(
         label="Archivo CSV 1º ESO",
         widget=forms.FileInput(attrs={'class': 'custom-file-input'}),
-        help_text="Selecciona un archivo con los datos de admisión del del alumnado de 1º ESO"
+        help_text="Selecciona un archivo con los datos de admisión del alumnado de 1º ESO"
+    )
+    ArchivoCSV_3_ESO = forms.FileField(
+        label="Archivo CSV 3º ESO",
+        widget=forms.FileInput(attrs={'class': 'custom-file-input'}),
+        help_text="Selecciona un archivo con los datos de admisión del alumnado de 3º ESO"
     )
     ArchivoCSV_1_BTO_CyT = forms.FileField(
         label="Archivo CSV 1º BTO CyT",
         widget=forms.FileInput(attrs={'class': 'custom-file-input'}),
-        help_text="Selecciona un archivo con los datos de admisión del del alumnado de 1º BTO CyT"
+        help_text="Selecciona un archivo con los datos de admisión del alumnado de 1º BTO CyT"
     )
     ArchivoCSV_1_BTO_HyCS = forms.FileField(
         label="Archivo CSV 1º BTO HyCS",
         widget=forms.FileInput(attrs={'class': 'custom-file-input'}),
-        help_text="Selecciona un archivo con los datos de admisión del del alumnado de 1º BTO HyCS"
+        help_text="Selecciona un archivo con los datos de admisión del alumnado de 1º BTO HyCS"
     )
     CursoAcademico = forms.ModelChoiceField(
         queryset=CursoAcademico.objects.all(),
