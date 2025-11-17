@@ -17,12 +17,12 @@ from django.utils.timezone import localtime
 
 from centro.models import Profesores, Cursos, Aulas, CursoAcademico
 from centro.utils import get_current_academic_year
-from centro.views import group_check_je, group_check_prof, group_check_prof_or_guardia
+from centro.views import group_check_je, group_check_prof, group_check_prof_or_guardia, group_check_je_or_conserjes
 from convivencia.forms import FechasForm
 from guardias.forms import ItemGuardiaForm
 from guardias.models import ItemGuardia, TiempoGuardia
 from horarios.models import ItemHorario
-from datetime import datetime
+from datetime import datetime, date
 
 from itertools import groupby
 from operator import itemgetter
@@ -1080,3 +1080,29 @@ def actualizar_guardia_ajax(request):
 
 def modal_registrar_ausencia(request):
     return render(request, "partials/modal_registrar_ausencia.html")
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je_or_conserjes, login_url='/')
+def verausencias_hoy(request):
+    curso_academico_actual = get_current_academic_year()
+    hoy = date.today()  # Día actual
+
+    # Filtrar solo ausencias de hoy
+    ausencias_hoy = ItemGuardia.objects.filter(
+        curso_academico=curso_academico_actual,
+        Fecha=hoy
+    ).order_by('TramoHorario', 'ProfesorAusente__first_name')
+
+    # Organiza las ausencias por tramo
+    guardias_por_tramo = defaultdict(list)
+    tramos = ["1", "2", "3", "rec", "4", "5", "6"]  # Ajusta según tus claves reales
+
+    for ausencia in ausencias_hoy:
+        guardias_por_tramo[str(ausencia.TramoHorario)].append(ausencia)
+
+    context = {
+        'tramos': tramos,
+        'guardias_por_tramo': guardias_por_tramo,
+        'menu_guardias': True
+    }
+    return render(request, 'dashboard.html', context)

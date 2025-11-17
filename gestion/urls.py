@@ -18,7 +18,7 @@ from django.contrib import admin
 
 from gestion.views import (
     index, salir, login_view, cambiar_password, cambiar_password_custom, descargar_base_datos,
-    cargar_qry, dashboard_jefatura
+    cargar_qry, dashboard_jefatura, dashboard_conserjes
 )
 
 urlpatterns = [
@@ -57,6 +57,8 @@ urlpatterns = [
     path('cambiar-password-custom/', cambiar_password_custom, name='cambiar_password_custom'),
 
     path('indexje/', dashboard_jefatura, name='dashboard_jefatura'),
+
+    path('indexcons/', dashboard_conserjes, name='dashboard_conserjes'),
 
 
 

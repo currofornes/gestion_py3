@@ -14,12 +14,13 @@ from django.views.generic import ListView, UpdateView, DeleteView, CreateView
 
 from centro.models import Cursos, Aulas
 from centro.utils import get_current_academic_year
-from centro.views import group_check_prof, group_check_prof_or_guardia, group_check_je
+from centro.views import group_check_prof, group_check_prof_or_guardia, group_check_je, \
+    group_check_prof_or_guardia_or_conserje
 from .forms import ItemHorarioForm, CopiarHorarioForm
 from .models import Profesores, ItemHorario
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof_or_guardia, login_url='/')
+@user_passes_test(group_check_prof_or_guardia_or_conserje, login_url='/')
 def horario_profesor_view(request):
 
     curso_academico_actual = get_current_academic_year()
@@ -137,7 +138,7 @@ def mihorario(request):
     return render(request, 'mihorario.html', context)
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof_or_guardia, login_url='/')
+@user_passes_test(group_check_prof_or_guardia_or_conserje, login_url='/')
 def horario_curso_view(request):
     curso_id = request.GET.get('curso')  # Obtener el ID del curso seleccionado desde el GET
     cursos = Cursos.objects.all()  # Lista de todos los cursos para el desplegable
@@ -187,7 +188,7 @@ def horario_curso_view(request):
     return render(request, 'horario_grupo.html', context)
 
 @login_required(login_url='/')
-@user_passes_test(group_check_prof_or_guardia, login_url='/')
+@user_passes_test(group_check_prof_or_guardia_or_conserje, login_url='/')
 def horario_aula_view(request):
     aula_id = request.GET.get('aula')  # Obtener el ID del curso seleccionado desde el GET
     aulas = Aulas.objects.all()  # Lista de todos los cursos para el desplegable

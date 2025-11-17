@@ -77,6 +77,7 @@
                                             </div>
                                         </div>
 
+
                                         <div class="col-md-2 forum-info">
                                             <h4 class="link-dark fw-semibold lh-sm d-block">
                                                 {% if alumno.Unidad %}
@@ -89,30 +90,59 @@
                                                 <p>Unidad</p>
                                             </div>
                                         </div>
-                                        <div class="col-md-2 forum-info">
-                                            <h4 class="link-dark fw-semibold lh-sm d-block">
-                                                {% if alumno.DNI %}
-                                                    {{ alumno.DNI }}
-                                                {% else %}
-                                                    - - -
-                                                {% endif %}
-                                            </h4>
-                                            <div>
-                                                <p class="text-muted text-uppercase mb-2 fw-semibold">DNI</p>
+
+
+                                        {% if alumno.localizaciones %}
+                                            <div class="col-md-4 forum-info">
+                                                {% for loc in alumno.localizaciones %}
+                                                    <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                        {{ loc.aula }} - {{ loc.materia }} ({{ loc.profesor }})
+                                                    </h4>
+                                                {% endfor %}
+                                                <div class="text-muted text-uppercase mb-2 fw-semibold">
+                                                    <p>Localización</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <h4 class="link-dark fw-semibold lh-sm d-block">
-                                                {% if alumno.NIE %}
-                                                    {{ alumno.NIE }}
-                                                {% else %}
-                                                    - - -
-                                                {% endif %}
-                                            </h4>
-                                            <div>
-                                                <p class="text-muted text-uppercase mb-2 fw-semibold">NIE</p>
+                                        {% else %}
+                                            <div class="col-md-4 forum-info">
+                                                <h4 class="link-dark fw-semibold lh-sm d-block">
+                                                    Desconocida
+                                                </h4>
+                                                <div class="text-muted text-uppercase mb-2 fw-semibold">
+                                                    <p>Localización</p>
+                                                </div>
                                             </div>
-                                        </div>
+                                        {% endif %}
+
+
+
+
+
+
+                                        {#                                        <div class="col-md-2 forum-info">#}
+                                        {#                                            <h4 class="link-dark fw-semibold lh-sm d-block">#}
+                                        {#                                                {% if alumno.DNI %}#}
+                                        {#                                                    {{ alumno.DNI }}#}
+                                        {#                                                {% else %}#}
+                                        {#                                                    - - -#}
+                                        {#                                                {% endif %}#}
+                                        {#                                            </h4>#}
+                                        {#                                            <div>#}
+                                        {#                                                <p class="text-muted text-uppercase mb-2 fw-semibold">DNI</p>#}
+                                        {#                                            </div>#}
+                                        {#                                        </div>#}
+                                        {#                                        <div class="col-md-2">#}
+                                        {#                                            <h4 class="link-dark fw-semibold lh-sm d-block">#}
+                                        {#                                                {% if alumno.NIE %}#}
+                                        {#                                                    {{ alumno.NIE }}#}
+                                        {#                                                {% else %}#}
+                                        {#                                                    - - -#}
+                                        {#                                                {% endif %}#}
+                                        {#                                            </h4>#}
+                                        {#                                            <div>#}
+                                        {#                                                <p class="text-muted text-uppercase mb-2 fw-semibold">NIE</p>#}
+                                        {#                                            </div>#}
+                                        {#                                        </div>#}
                                     </div>
                                 </div>
                             </div>
@@ -193,7 +223,6 @@
                             <p class="px-4 py-3">No se encontraron antiguos alumnos.</p>
                         {% endfor %}
                     </div>
-                    
 
 
                 </div> <!-- end card-->
