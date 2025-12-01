@@ -1,3 +1,21 @@
+"""
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                                                                            ║
+║ Copyright © 2023-2025 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
+║                                                                            ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ modificación o comercialización sin consentimiento expreso de los autores. ║
+║                                                                            ║
+║ Este archivo es parte de la aplicación Gestion@.                          ║
+║                                                                            ║
+║ Para consultas sobre licencias o permisos:                                ║
+║ Email: fforrum559@g.educaand.es                                           ║
+╚════════════════════════════════════════════════════════════════════════════╝
+"""
+
+
 import csv
 import io
 import json
@@ -533,7 +551,7 @@ def importar_materias_impartidas(request):
                 continue
 
             # Buscar Curso (Unidad)
-            curso = Cursos.objects.filter(Curso=nombre_unidad, Nivel=nivel).first()
+            curso = Cursos.objects.filter(Curso=nombre_unidad).first()
             if not curso:
                 messages.warning(request, f"Curso (Unidad) no encontrado: {nombre_unidad} en {nombre_nivel}")
                 continue
@@ -592,10 +610,7 @@ def quitar_tildes(texto):
 @user_passes_test(group_check_je, login_url='/')
 def importar_matriculas_materias(request):
     if request.method == "POST" and 'csv_matriculas' in request.FILES:
-        nivel = request.POST.get('nivel')
-        if not nivel:
-            messages.error(request, "Debes seleccionar un nivel.")
-            return redirect('importar_matriculas_materias')
+
 
         csv_file = request.FILES['csv_matriculas']
 
@@ -615,9 +630,9 @@ def importar_matriculas_materias(request):
 
         curso_academico_actual = get_current_academic_year()
 
-        cursos_del_nivel = Cursos.objects.filter(Curso__icontains=nivel)
+        cursos_del_nivel = Cursos.objects.all()
         if not cursos_del_nivel.exists():
-            messages.error(request, f"No se encontraron cursos para el nivel '{nivel}'")
+            messages.error(request, f"No se encontraron cursos")
             return redirect('importar_matriculas_materias')
 
         for row_index, row in enumerate(csv_reader, start=2):  # Desde fila 2 por encabezado
@@ -625,6 +640,7 @@ def importar_matriculas_materias(request):
             nombre_unidad_csv = quitar_tildes(row[1]).strip().lower()
 
             try:
+
                 curso = cursos_del_nivel.get(Curso__iexact=row[1].strip())
             except Cursos.DoesNotExist:
                 errores.append(f"Fila {row_index}: Unidad no encontrada - {row[1]}")
@@ -677,7 +693,7 @@ def importar_matriculas_materias(request):
             'nuevas': nuevas,
             'existentes': existentes,
             'errores': errores,
-            'multi_profesores': multi_profesores,
+            'multi_profesores': multi_profesores
         }
 
         return render(request, 'importar_matriculas_materias.html', {'resumen': resumen})

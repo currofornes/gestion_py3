@@ -562,6 +562,15 @@
                             </a>
                         </li>
 
+                        {% if user|has_group:"jefatura de estudios" %}
+                            <li class="side-nav-item">
+                                <a href="/horarios/aulaslibres" class="side-nav-link">
+                                    <span class="menu-text" data-lang="pages-pricing">Aulas libres</span>
+                                </a>
+                            </li>
+                        {% endif %}
+
+
                     </ul>
                 </div>
             </li>

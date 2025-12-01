@@ -1,3 +1,21 @@
+"""
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                                                                            ║
+║ Copyright © 2023-2025 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
+║                                                                            ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ modificación o comercialización sin consentimiento expreso de los autores. ║
+║                                                                            ║
+║ Este archivo es parte de la aplicación Gestion@.                          ║
+║                                                                            ║
+║ Para consultas sobre licencias o permisos:                                ║
+║ Email: fforrum559@g.educaand.es                                           ║
+╚════════════════════════════════════════════════════════════════════════════╝
+"""
+
+
 from collections import defaultdict
 from sqlite3 import IntegrityError
 
@@ -366,7 +384,8 @@ def show(request, tipo=None, mes=None, ano=None, dia=None):
 
     form = ResumenForm(initial={'fecha': fecha, 'tipo': tipo})
 
-
+    print(datos)
+    print(datos.values("IdAlumno"))
 
     datos = zip(range(1, len(datos) + 1), datos, ContarFaltas(datos.values("IdAlumno")), ContarFaltasHistorico(datos.values("IdAlumno")))
     context = {
@@ -383,6 +402,8 @@ def show(request, tipo=None, mes=None, ano=None, dia=None):
 
     }
     context[tipo] = True
+
+
 
 
 
@@ -896,6 +917,7 @@ def ContarFaltas(lista_id):
         sa = str(len(Sanciones.objects.filter(IdAlumno_id=list(alum.values())[0], curso_academico=curso_academico_actual)))
 
         contar.append(am + "/" + sa)
+
     return contar
 
 def ContarFaltasHistorico(lista_id):
