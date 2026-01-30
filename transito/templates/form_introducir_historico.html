@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Gestión Histórica de Informes de Tránsito</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title text-white mb-0"><i class="ti ti-archive me-2"></i> Selector de Contexto</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3 mb-4 p-3 bg-light border rounded">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">1. Curso Académico</label>
+                                {{ form.curso }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">2. Campaña</label>
+                                {{ form.campana_seleccion }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">3. Centro Origen</label>
+                                {{ form.centro_seleccion }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">4. Materia</label>
+                                {{ form.materia_seleccion }}
+                            </div>
+                        </div>
+
+                        {% if form.materia_seleccion.value and form.centro_seleccion.value %}
+                            {% if informe_encontrado %}
+                                <div class="alert alert-warning">
+                                    <i class="ti ti-alert-circle"></i> 
+                                    <strong>Modo Edición:</strong> Ya existe un informe para esta selección. Se han cargado los datos existentes.
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="ti ti-plus"></i> 
+                                    <strong>Nuevo Informe:</strong> No hay datos previos. Estás creando un nuevo registro.
+                                </div>
+                            {% endif %}
+                            
+                            <hr>
+                            <h5 class="mb-3 text-primary">Contenido del Informe</h5>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Análisis General / Cuestiones Clave</label>
+                                {{ form.cuestiones_generales }}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-success">Fortalezas</label>
+                                    {{ form.fortalezas }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-danger">Debilidades / Propuestas de Mejora</label>
+                                    {{ form.debilidades }}
+                                </div>
+                            </div>
+
+                            <div class="text-end mt-3">
+                                <button type="submit" name="guardar_datos" class="btn btn-primary btn-lg">
+                                    <i class="ti ti-device-floppy me-1"></i> Guardar Informe
+                                </button>
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="ti ti-arrow-up display-6"></i>
+                                <p class="mt-2">Selecciona todos los campos superiores para comenzar a rellenar el informe.</p>
+                            </div>
+                        {% endif %}
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -5,13 +5,15 @@ import statistics
 import matplotlib.pyplot as plt
 import io
 import base64
+from datetime import date
 
 import numpy as np
 from matplotlib.lines import lineStyles
 
 from analres.models import Calificaciones, IndicadoresAlumnado
-from centro.models import Niveles
+from centro.models import Niveles, InfoAlumnos
 from horarios.templatetags.horario_tags import get_item
+from convivencia.models import Amonestaciones, Sanciones
 
 
 def isdigit(s):
@@ -167,22 +169,41 @@ class Modalidad(Indicador):
         return None
 
 
-def calcular_indicador(curso_academico, convocatoria, niveles, modalidad=None, indicador=None, abandono_cuenta=False):
+def calcular_indicador(curso_academico, convocatoria, niveles, modalidad=None, indicador=None, abandono_cuenta=False, centros=None):
     if not abandono_cuenta:
-        datos = IndicadoresAlumnado.objects.filter(
-            curso_academico=curso_academico,
-            Convocatoria=convocatoria,
-            Alumno__info_adicional__curso_academico=curso_academico,
-            Alumno__info_adicional__Nivel__in=niveles
-        )
+        if centros is None:
+            datos = IndicadoresAlumnado.objects.filter(
+                curso_academico=curso_academico,
+                Convocatoria=convocatoria,
+                Alumno__info_adicional__curso_academico=curso_academico,
+                Alumno__info_adicional__Nivel__in=niveles
+            )
+        else:
+            datos = IndicadoresAlumnado.objects.filter(
+                curso_academico=curso_academico,
+                Convocatoria=convocatoria,
+                Alumno__info_adicional__curso_academico=curso_academico,
+                Alumno__info_adicional__Nivel__in=niveles,
+                Alumno__Centro_EP__in=centros
+            )
     else:
-        datos = IndicadoresAlumnado.objects.filter(
-            curso_academico=curso_academico,
-            Convocatoria=convocatoria,
-            AbandonoEscolar=False,
-            Alumno__info_adicional__curso_academico=curso_academico,
-            Alumno__info_adicional__Nivel__in=niveles
-        )
+        if centros is None:
+            datos = IndicadoresAlumnado.objects.filter(
+                curso_academico=curso_academico,
+                Convocatoria=convocatoria,
+                AbandonoEscolar=False,
+                Alumno__info_adicional__curso_academico=curso_academico,
+                Alumno__info_adicional__Nivel__in=niveles
+            )
+        else:
+            datos = IndicadoresAlumnado.objects.filter(
+                curso_academico=curso_academico,
+                Convocatoria=convocatoria,
+                AbandonoEscolar=False,
+                Alumno__info_adicional__curso_academico=curso_academico,
+                Alumno__info_adicional__Nivel__in=niveles,
+                Alumno__Centro_EP__in=centros
+            )
     if modalidad:
         datos = datos.filter(Modalidad=modalidad)
 
@@ -198,6 +219,7 @@ def calcular_indicador(curso_academico, convocatoria, niveles, modalidad=None, i
     else:
         return None
 
+# Esta serie se usa sólo para resultados académicos. Tiene "hardcoded" la opción de tener o no tener en cuenta el abandono.
 class Serie(object):
     curso_academico = None
     nro_cursos = None
@@ -207,12 +229,13 @@ class Serie(object):
     indicador = None
     titulo = None
     abandono_cuenta = None
+    centros = None
 
     resultados = None
     mu = None
     sigma = None
 
-    def __init__(self, curso_academico, nro_cursos, convocatoria, niveles, abandono_cuenta=False, modalidades=None, indicador="", titulo=""):
+    def __init__(self, curso_academico, nro_cursos, convocatoria, niveles, abandono_cuenta=False, modalidades=None, indicador="", titulo="", centros=None):
         self.curso_academico = curso_academico
         self.nro_cursos = nro_cursos
         self.convocatoria = convocatoria
@@ -221,6 +244,7 @@ class Serie(object):
         self.modalidades = modalidades
         self.indicador = indicador
         self.titulo = titulo
+        self.centros = centros
 
         self.cursos = [self.curso_academico - i for i in range(nro_cursos - 1, -1, -1)]
 
@@ -251,7 +275,7 @@ class Serie(object):
                 res = []
                 for curso in self.cursos:
                     self.resultados[curso][modalidad] = calcular_indicador(
-                        curso, self.convocatoria, self.niveles, modalidad, self.indicador
+                        curso, self.convocatoria, self.niveles, modalidad, self.indicador, centros=self.centros
                     )
                     if self.resultados[curso][modalidad]:
                         res.append(self.resultados[curso][modalidad])
@@ -263,10 +287,10 @@ class Serie(object):
             for curso in self.cursos:
                 if self.abandono_cuenta:
                     resultados_sin_abandonos = calcular_indicador(
-                        curso, self.convocatoria, self.niveles, indicador=self.indicador, abandono_cuenta=True
+                        curso, self.convocatoria, self.niveles, indicador=self.indicador, abandono_cuenta=True, centros=self.centros
                     )
                 resultados_totales = calcular_indicador(
-                    curso, self.convocatoria, self.niveles, indicador=self.indicador, abandono_cuenta=False
+                    curso, self.convocatoria, self.niveles, indicador=self.indicador, abandono_cuenta=False, centros=self.centros
                 )
                 if self.abandono_cuenta:
                     self.resultados[curso] = (resultados_sin_abandonos, resultados_totales)
@@ -288,6 +312,7 @@ class Serie(object):
 
     def grafica(self):
         cursos =[curso.nombre for curso in self.cursos]
+        valor_max = 0
 
         if self.modalidades:
             porcentajes = {mod: [] for mod in self.modalidades}
@@ -297,12 +322,15 @@ class Serie(object):
                         porcentajes[modalidad].append(self.resultados[curso][modalidad])
                     else:
                         porcentajes[modalidad].append(0)
+            valor_max = max(max(porcentajes[modalidad]) for modalidad in porcentajes)
         else:
             if self.abandono_cuenta:
                 porcentajes_sin_abandono = [self.resultados[curso][0] for curso in self.cursos]
                 porcentajes_total = [self.resultados[curso][1] for curso in self.cursos]
+                valor_max = max(max(porcentajes_sin_abandono), max(porcentajes_total))
             else:
                 porcentajes = [self.resultados[curso] if self.resultados[curso] else 0 for curso in self.cursos]
+                valor_max = max(porcentajes)
 
         fig, ax = plt.subplots(figsize=(8, 4), layout='constrained')
 
@@ -366,7 +394,8 @@ class Serie(object):
 
         ax.set_ylabel('Porcentaje (%)')
         ax.set_title(self.titulo)
-        ax.set_ylim(0, 120)
+        y_max = 120 if valor_max <= 100 else valor_max + 20
+        ax.set_ylim(0, y_max)
 
 
         buffer = io.BytesIO()
@@ -426,6 +455,89 @@ class SerieManual(object):
         return imagen_base64
 
 
+class SerieConvivencia(Serie):
+    """
+    Calcula la evolución de la tasa de incidencias (amonestaciones/sanciones)
+    filtradas por la convocatoria seleccionada.
+    """
 
+    def __init__(self, curso_academico, nro_cursos, convocatoria, niveles, tipo='amonestaciones', titulo=""):
+        # Pasamos la convocatoria al padre
+        super().__init__(curso_academico, nro_cursos, convocatoria=convocatoria, niveles=niveles, titulo=titulo)
+        self.tipo = tipo  # 'amonestaciones' o 'sanciones'
 
+    def _get_rango_fechas(self, curso_obj):
+        """
+        Devuelve (fecha_inicio, fecha_fin) según la convocatoria y el curso académico.
+        """
+        from .views import calcular_domingo_de_ramos
+        año_inicio = curso_obj.año_inicio
+        año_fin = curso_obj.año_fin
 
+        if self.convocatoria == '1EV':
+            # 1 Sep al 31 Dic del año de inicio
+            inicio = date(año_inicio, 9, 1)
+            fin = date(año_inicio, 12, 31)
+
+        elif self.convocatoria == '2EV':
+            # 1 Ene al Domingo de Ramos del año de fin
+            inicio = date(año_fin, 1, 1)
+            fin = calcular_domingo_de_ramos(año_fin)
+
+        elif self.convocatoria == 'Ord':
+            # Domingo de Ramos al 30 de Junio del año de fin
+            inicio = calcular_domingo_de_ramos(año_fin)
+            fin = date(año_fin, 6, 30)
+
+        else:
+            # Si no hay convocatoria definida, cogemos todo el curso (fallback)
+            inicio = date(año_inicio, 9, 1)
+            fin = date(año_fin, 6, 30)
+
+        return inicio, fin
+
+    def calcular(self):
+        self.resultados = {curso: 0. for curso in self.cursos}
+        res_valores = []
+
+        for curso in self.cursos:
+            # 1. Definir rango de fechas para este curso histórico y la convocatoria actual
+            fecha_inicio, fecha_fin = self._get_rango_fechas(curso)
+
+            # 2. Denominador: Alumnos matriculados en ese curso y niveles
+            total_alumnos = InfoAlumnos.objects.filter(
+                curso_academico=curso,
+                Nivel__in=self.niveles
+            ).count()
+
+            if total_alumnos > 0:
+                # 3. Numerador: Incidencias en ese rango de fechas
+                kwargs_filtro = {
+                    'curso_academico': curso,
+                    'IdAlumno__info_adicional__curso_academico': curso,
+                    'IdAlumno__info_adicional__Nivel__in': self.niveles,
+                    'Fecha__range': (fecha_inicio, fecha_fin)  # <--- Filtro clave
+                }
+
+                if self.tipo == 'amonestaciones':
+                    num_incidencias = Amonestaciones.objects.filter(**kwargs_filtro).count()
+                elif self.tipo == 'sanciones':
+                    num_incidencias = Sanciones.objects.filter(**kwargs_filtro).count()
+                else:
+                    num_incidencias = 0
+
+                # Cálculo de tasa por 100 alumnos
+                tasa = (num_incidencias / total_alumnos) * 100
+            else:
+                tasa = 0
+
+            self.resultados[curso] = tasa
+            res_valores.append(tasa)
+
+        # Estadísticas
+        if res_valores:
+            self.mu = statistics.mean(res_valores)
+            self.sigma = statistics.stdev(res_valores) if len(res_valores) > 1 else 0
+        else:
+            self.mu = 0
+            self.sigma = 0

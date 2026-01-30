@@ -18,8 +18,8 @@ from django.contrib import messages
 class AlumnosAdmin(admin.ModelAdmin):
     # date_hierarchy = 'Fecha_nacimiento'
     actions_selection_counter = False
-    list_filter = ['Unidad', 'Localidad']
-    list_display = ["Nombre", 'DNI', 'Localidad', 'Telefono1', 'email']
+    list_filter = ['Unidad', 'Localidad', 'Centro_EP']
+    list_display = ["Nombre", 'DNI', 'Centro_EP', 'Telefono1', 'email']
 
     search_fields = ['Nombre', 'DNI']
     icon_name = 'face'
@@ -38,6 +38,7 @@ class ProfesoresAdmin(admin.ModelAdmin):
 @admin.register(Departamentos)
 class DepartamentosAdmin(admin.ModelAdmin):
     icon_name = 'folder_shared'
+    search_fields = ['Nombre', 'Abr']
 
     change_list_template = "admin/departamentos_changelist.html"  # Usar una plantilla personalizada
 

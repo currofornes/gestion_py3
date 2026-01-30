@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Tránsito - {{ centro.Nombre }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-family: 'Roboto', sans-serif;
+                font-size: 10px;
+            }
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            font-size: 11pt;
+            line-height: 1.4;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 { font-size: 18pt; color: #0056b3; margin: 0; }
+        .header h2 { font-size: 14pt; margin: 5px 0; color: #555; }
+
+        .info-box {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .materia-section {
+            margin-bottom: 25px;
+            page-break-inside: avoid; /* Intenta no cortar una materia a mitad */
+        }
+
+        .materia-title {
+            background-color: #0056b3;
+            color: white;
+            padding: 5px 10px;
+            font-weight: bold;
+            font-size: 12pt;
+            border-radius: 3px;
+        }
+
+        .content-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+        .content-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            vertical-align: top;
+        }
+        .label-col {
+            background-color: #f0f0f0;
+            width: 25%;
+            font-weight: bold;
+            color: #444;
+        }
+        .empty-msg {
+            color: #999;
+            font-style: italic;
+            padding: 10px;
+            border: 1px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>INFORME DE TRÁNSITO</h1>
+        <h2>{{ campana.configuracion.descripcion }}</h2>
+        <h3>Curso Académico {{ campana.curso_academico }}</h3>
+    </div>
+
+    <div class="info-box">
+        <strong>Centro de Procedencia:</strong> {{ centro.Nombre }}<br>
+        <strong>Fecha de emisión:</strong> {% now "d/m/Y" %}
+    </div>
+
+    {% for item in resultados %}
+        <div class="materia-section">
+            <div class="materia-title">
+                {{ item.materia.nombre }}
+            </div>
+
+            {% if item.informe %}
+                <table class="content-table">
+                    {% if item.informe.cuestiones_generales %}
+                    <tr>
+                        <td class="label-col">Análisis General</td>
+                        <td>{{ item.informe.cuestiones_generales|linebreaks }}</td>
+                    </tr>
+                    {% endif %}
+
+                    <tr>
+                        <td class="label-col">Fortalezas Detectadas</td>
+                        <td>
+                            {% if item.informe.fortalezas %}
+                                {{ item.informe.fortalezas|linebreaks }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="label-col">Debilidades / Áreas de Mejora</td>
+                        <td>
+                            {% if item.informe.debilidades %}
+                                {{ item.informe.debilidades|linebreaks }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            {% else %}
+                <div class="empty-msg">
+                    No se ha recibido informe para esta materia.
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+</body>
+</html>

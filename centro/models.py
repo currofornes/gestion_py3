@@ -161,6 +161,8 @@ class Alumnos(models.Model):
     Obs = models.TextField(blank=True, verbose_name="Observaciones")
     PDC = models.BooleanField(default=False)
     NEAE = models.BooleanField(default=False)
+    Centro_EP = models.ForeignKey('centro.Centros', related_name='alumnado_ESO', on_delete=models.SET_NULL, null=True, blank=True)
+    Centro_ESO = models.ForeignKey('centro.Centros', related_name='alumnado_BTOCF', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         dni = self.DNI if self.DNI else "Sin DNI"
@@ -216,6 +218,7 @@ class Alumnos(models.Model):
 class Centros(models.Model):
     Codigo = models.CharField(max_length=8, blank=True, null=True)
     Nombre = models.CharField(max_length=50, blank=True, null=True)
+    Compensatoria = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Centro"
@@ -254,7 +257,7 @@ class Materia(models.Model):
     curso_academico = models.ForeignKey('centro.CursoAcademico', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.abr} - {self.nombre}"
+        return f"{self.abr} - {self.nombre} ({self.nivel.Abr})"
 
     class Meta:
         verbose_name = "Materia"
@@ -343,7 +346,7 @@ class RevisionLibro(models.Model):
         unique_together = ('profesor', 'curso', 'materia', 'libro', 'momento', 'fecha', 'curso_academico')
 
     def __str__(self):
-        return f"{self.profesor} - {self.curso} - {self.materia} - {self.libro} - {self.momento} ({self.fecha})"
+        return f"{self.profesor} - {self.curso} - {self.º} - {self.libro} - {self.momento} ({self.fecha})"
 
 class RevisionLibroAlumno(models.Model):
     revision = models.ForeignKey('RevisionLibro', on_delete=models.CASCADE, related_name='detalles')

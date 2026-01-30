@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Rendimiento</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        @page { size: A4; margin: 1.5cm; } /* Reduje un poco el margen para aprovechar espacio */
+        body { font-family: 'Roboto', sans-serif; font-size: 11pt; color: #333; }
+
+        /* Estilos del Encabezado */
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 { font-size: 16pt; color: #28a745; margin: 0; }
+        .header h2 { font-size: 11pt; color: #555; margin-top: 5px; }
+
+        /* Bloque de Materia */
+        .materia-block {
+            /* Esto asegura que cada materia empiece en una página nueva */
+            page-break-after: always;
+        }
+
+        /* Evitamos hoja en blanco al final del todo */
+        .materia-block:last-child {
+            page-break-after: auto;
+        }
+
+        .materia-title {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-left: 5px solid #28a745;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .materia-nombre {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        .materia-nivel {
+            font-size: 10pt;
+            color: #666;
+            margin-left: 10px;
+            font-style: italic;
+            border: 1px solid #ccc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th { background-color: #f8f9fa; border-bottom: 2px solid #ddd; padding: 8px; text-align: left; font-size: 10pt; }
+        td { border-bottom: 1px solid #eee; padding: 8px; font-size: 10pt; }
+
+        .text-center { text-align: center; }
+        .text-success { color: #28a745; font-weight: bold; }
+        .text-danger { color: #dc3545; font-weight: bold; }
+        .text-muted { color: #999; }
+
+        .global-badge {
+            font-size: 10pt; font-weight: bold; color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    {% for item in datos %}
+    <div class="materia-block">
+
+        <div class="header">
+            <h1>INFORME DE RENDIMIENTO ACADÉMICO</h1>
+            <h2>{{ campana.configuracion.descripcion }} ({{ campana.curso_academico }})</h2>
+        </div>
+        <div class="materia-title">
+            <div>
+                <span class="materia-nombre">{{ item.materia.nombre }}</span>
+                {% if item.materia.nivel %}
+                    <span class="materia-nivel">{{ item.materia.nivel }}</span>
+                {% endif %}
+            </div>
+
+            <span class="global-badge">
+                Media Global:
+                {% if item.tasa_global is not None %}
+                    {{ item.tasa_global|floatformat:1 }}%
+                {% else %}
+                    -
+                {% endif %}
+            </span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th width="50%">Centro de Origen</th>
+                    <th width="25%" class="text-center">% Aprobados</th>
+                    <th width="25%" class="text-center">Diferencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in item.filas %}
+                <tr>
+                    <td>{{ fila.centro.Nombre }}</td>
+
+                    <td class="text-center">
+                        {% if fila.tasa is not None %}
+                            {{ fila.tasa|floatformat:1 }}%
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="text-center">
+                        {% if fila.diferencia is not None %}
+                            {% if fila.diferencia >= 0 %}
+                                <span class="text-success">+{{ fila.diferencia|floatformat:1 }}%</span>
+                            {% else %}
+                                <span class="text-danger">{{ fila.diferencia|floatformat:1 }}%</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% empty %}
+        <div class="header">
+            <h1>INFORME DE RENDIMIENTO ACADÉMICO</h1>
+            <h2>{{ campana.configuracion.descripcion }}</h2>
+        </div>
+        <p class="text-center text-muted" style="margin-top: 50px;">
+            No se han encontrado materias configuradas para esta campaña.
+        </p>
+    {% endfor %}
+</body>
+</html>

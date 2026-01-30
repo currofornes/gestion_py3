@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h2>Análisis Histórico de Resultados por Centro de Origen</h2>
+                        <h3>Evolución temporal comparativa</h3>
+                    </div>
+                    <div class="ibox-content">
+                        <form method="post" id="form-analisis">
+                            {% csrf_token %}
+                            <div class="input-group row">
+                                <label class="col-sm-2 col-form-label" for="id_Convocatoria">Convocatoria</label>
+                                <div class="col-sm-10">
+                                    {{ form.Convocatoria }}
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+
+                            <div class="input-group row">
+                                <label class="col-sm-2 col-form-label" for="id_Cursos">Nivel</label>
+                                <div class="col-sm-10">
+                                    {{ form.Cursos }}
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+
+                            <div class="input-group row">
+                                <label class="col-sm-2 col-form-label" for="id_Centros">Centro(s) de origen</label>
+                                <div class="col-sm-10">
+                                    {{ form.Centros }}
+                                </div>
+                            </div>
+                            <br/>
+                            <button type="submit" class="btn btn-primary" id="submit-button">Calcular Evolución</button>
+                        </form>
+                    </div>
+                </div>
+
+                {% if resultados %}
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>Resultados: {{ nivel_seleccionado }} (Alumnos procedentes de: {{ centros_seleccionados }})</h5>
+                    </div>
+                    <div class="ibox-content">
+                        {% for resultado in resultados %}
+                            <div class="row" style="margin-bottom: 40px; border-bottom: 1px solid #e7eaec; padding-bottom: 20px;">
+                                <div class="col-lg-5">
+                                    <h3>{{ resultado.titulo }}</h3>
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>Estadística</th>
+                                            <th>Valor</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td>Media del periodo</td>
+                                            <td>{{ resultado.mu|floatformat:2 }}%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Desviación típica</td>
+                                            <td>{{ resultado.sigma|floatformat:2 }}%</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-lg-7">
+                                    {% if resultado.grafica %}
+                                        <img src="data:image/png;base64,{{ resultado.grafica }}"
+                                             class="img-fluid"
+                                             alt="Gráfica de {{ resultado.titulo }}"
+                                             style="max-height: 400px; width: 100%; object-fit: contain;">
+                                    {% else %}
+                                        <div class="alert alert-warning">
+                                            No hay datos suficientes para generar la gráfica.
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/plugins/select2/select2.full.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            $(".select2_Convocatoria").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona convocatoria",
+                allowClear: false
+            });
+            $(".select2_Centros").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona centro(s) de procedencia",
+                allowClear: false
+            });
+            // Si usas un select simple para cursos en lugar de multiple, ajusta esto
+            $("#id_Cursos").select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecciona el nivel",
+                allowClear: false
+            });
+        });
+    </script>
+{% endblock %}

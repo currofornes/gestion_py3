@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="card-title text-white mb-0"><i class="ti ti-chart-bar me-2"></i> Informe de Rendimiento por Departamentos</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endfor %}
+                        <div class="text-end mt-4">
+                            <button type="submit" name="generar_pdf" class="btn btn-success">
+                                <i class="ti ti-file-analytics me-1"></i> Generar Informe PDF
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

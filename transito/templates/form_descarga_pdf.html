@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title text-white mb-0"><i class="ti ti-file-download me-2"></i> Generar Informe de Tránsito</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endfor %}
+
+                        <div class="alert alert-info small">
+                            <i class="ti ti-info-circle"></i> Selecciona las opciones en orden. La página se recargará para cargar los datos dependientes.
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" name="generar_pdf" class="btn btn-danger btn-lg">
+                                <i class="ti ti-file-text me-1"></i> Generar PDF
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

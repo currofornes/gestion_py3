@@ -272,6 +272,16 @@ def admision_procesar_datos(request):
         else:
             info_alumno.CentroOrigen = None
         info_alumno.save()
+        # Añado la info del centro de origen al alumnado de nueva admisión. Esto es válido para alumnado de admisión
+        # que no viene del GN. Para el alumnado de BTO que hizo ESO en el GN no vale este procedimiento.
+        # ToDo: Hacer script para cargar Centro_ESO al alumnado de BTO o FP que aparezca en info_alumnos en algún curso
+        #  anterior al actual.
+        if info_alumno.Nivel.Abr in ['1º ESO', '3º ESO']:
+            alumno.Centro_EP = centro_origen
+            alumno.save()
+        if info_alumno.Nivel.Abr in ['1º BTO CyT', '1º BTO HyCS']:
+            alumno.Centro_ESO = centro_origen
+            alumno.save()
 
         return JsonResponse({'status': 'success'})
 

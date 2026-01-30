@@ -402,6 +402,38 @@
                     </a>
                 </li>
                 -->
+            {% if user|has_group:"jefatura de departamento" or user|has_group:"jefatura de estudios"%}
+                <li class="side-nav-title" data-lang="apps.title">TRÁNSITO</li>
+                {% if user|has_group:"jefatura de departamento" %}
+                    <li class="side-nav-item">
+                        <a href="/transito/informe/" class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-edit"></i></span>
+                            <span class="menu-text" data-lang="transito-fill">Rellenar informe</span>
+                        </a>
+                    </li>
+                {%  endif %}
+
+                {% if user|has_group:"jefatura de estudios" %}
+                    <li class="side-nav-item">
+                        <a href="{% url 'transito:introducir_historico' %}" class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-archive"></i></span>
+                            <span class="menu-text" data-lang="transito-history">Introducir Histórico</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item">
+                        <a href="{% url 'transito:descargar_informe' %}" class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-file-download"></i></span>
+                            <span class="menu-text" data-lang="transito-pdf">Descargar Informe PDF</span>
+                        </a>
+                    </li>
+                    <li class="side-nav-item">
+                        <a href="{% url 'transito:rendimiento_departamentos' %}" class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-chart-pie"></i></span>
+                            <span class="menu-text">Generar informe para Dptos.</span>
+                        </a>
+                    </li>
+                {%  endif %}
+            {% endif %}
             {% if user|has_group:"jefatura de estudios" %}
                 <li class="side-nav-title" data-lang="apps-title">ESTADÍSTICAS Y ANÁLISIS</li>
 
@@ -416,14 +448,26 @@
                         <ul class="sub-menu">
 
                             <li class="side-nav-item">
-                                <a href="ecommerce-categories.html" class="side-nav-link">
+                                <a href="/analres/ver_analisis/" class="side-nav-link">
                                     <span class="menu-text" data-lang="eco-categories">Tras Evaluación</span>
                                 </a>
                             </li>
 
                             <li class="side-nav-item">
-                                <a href="ecommerce-categories.html" class="side-nav-link">
+                                <a href="/analres/analisis_por_centros_1_ESO/" class="side-nav-link">
                                     <span class="menu-text" data-lang="eco-categories">Por Centro origen (1º ESO)</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="/analres/analisis_por_centros_ESO/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">Por Centro origen (ESO)</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
+                                <a href="/analres/analisis_historico_por_centros_ESO/" class="side-nav-link">
+                                    <span class="menu-text" data-lang="eco-categories">Por Centro origen - histórico (ESO)</span>
                                 </a>
                             </li>
 
@@ -727,280 +771,3 @@
         </ul>
     </div>
 </div>
-<!-- Sidenav Menu End -->
-<!-- Control del buscador de menús -->
-
-<!-- Fin del control del buscador de menús -->
-
-{#<nav class="navbar-default navbar-static-side" role="navigation">#}
-{#    <div class="sidebar-collapse">#}
-{#        <ul class="nav metismenu" id="side-menu">#}
-{#            <li class="nav-header">#}
-{#                <div class="dropdown profile-element" style="text-align: center;">#}
-{#                    <span style="color: white;">#}
-{#                        {% if user.is_superuser %}#}
-{#                            <i class="fa fa-user-secret fa-4x"></i>#}
-{#                        {% else %}#}
-{#                            <i class="fa fa-address-card-o fa-4x"></i>#}
-{#                        {% endif %}#}
-{##}
-{#                    </span>#}
-{#                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">#}
-{#                        <span class="clear"> <span class="block m-t-xs"> <strong#}
-{#                                class="font-bold">{{ user.username }}</strong>#}
-{#                         </span> <span class="text-muted text-xs block">{{ user.get_full_name }} <b#}
-{#                                class="caret"></b></span> </span> </a>#}
-{#                    <ul class="dropdown-menu animated fadeInRight m-t-xs">#}
-{#                        {% if user|not_in_group:"guardia" %}#}
-{#                            <li><a href="/cambiar-password-custom">Cambiar contraseña</a></li>#}
-{#                        {% endif %}#}
-{#                        <li><a href="/logout">Desconectar</a></li>#}
-{#                    </ul>#}
-{#                </div>#}
-{#                <div class="logo-element">#}
-{#                    IESGN#}
-{#                </div>#}
-{#            </li>#}
-{#            {% if user.is_authenticated %}#}
-{#                {% if user.is_superuser %}#}
-{#                    <li>#}
-{#                        <a href="/admin"><i class="fa fa-cogs"></i> <span class="nav-label">Administración</span> </a>#}
-{#                    </li>#}
-{#                {% endif %}#}
-{#                {% if user|not_in_group:"guardia" %}#}
-{#                    <li class="menu-convivencia {% if menu_convivencia %} active{% endif %}">#}
-{#                        <a href="#"><i class="fa fa-thumbs-down"></i> <span class="nav-label">Convivencia</span><span#}
-{#                                class="fa arrow"></span></a>#}
-{#                        <ul class="nav nav-second-level collapse">#}
-{#                            {% if user|has_group:"jefatura de estudios" %}#}
-{#                                <li><a href="/convivencia/alumnadosancionable/False">Alumnado sancionable</a></li>#}
-{#                                <li><a href="/centro/busqueda">Búsqueda general</a></li>#}
-{#                                <li><a href="/centro/alumnos">Todos los Grupos</a></li>#}
-{#                                <li><a href="/convivencia/show">Resumen</a></li>#}
-{#                                <li><a href="/convivencia/aulaconvivencia">Aula de Convivencia</a></li>#}
-{#                                <li><a href="/convivencia/sancionesactivas">Sanciones Activas</a></li>#}
-{#                                <li><a href="/convivencia/reincorporacionsanciones">Reincorporación Alumnado sancionado</a></li>#}
-{#                            {% endif %}#}
-{#                            {% if user|has_group:"profesor" %}#}
-{#                                <li><a href="/centro/misalumnos">Mis alumnos</a></li>#}
-{#                                <li><a href="/convivencia/misamonestaciones">Mis amonestaciones</a></li>#}
-{#                            {% endif %}#}
-{##}
-{##}
-{#                        </ul>#}
-{#                    </li>#}
-{##}
-{#                {% endif %}#}
-{##}
-{#                {% if user|has_group:"jefatura de estudios" %}#}
-{#                    <li class="{% if menu_estadistica %} active{% endif %}">#}
-{#                        <a href="#"><i class="fa fa-bar-chart"></i> <span class="nav-label">Estadística</span><span#}
-{#                                class="fa arrow"></span></a>#}
-{#                        <ul class="nav nav-second-level collapse">#}
-{#                            <li><a href="/convivencia/estadistica">General</a></li>#}
-{#                            <li><a href="/convivencia/horas">Horas</a></li>#}
-{#                            <li><a href="/convivencia/profesores">Profesores</a></li>#}
-{#                            <li><a href="/convivencia/grupos">Grupos</a></li>#}
-{#                            <li><a href="/convivencia/niveles">Niveles</a></li>#}
-{#                            <li><a href="/convivencia/alumnos">Alumnos</a></li>#}
-{#                            <li><a href="/guardias/estadisticas">Ausencias</a></li>#}
-{#                        </ul>#}
-{#                    </li>#}
-{#                    <li>#}
-{#                        <a href="/centro/cursos"><i class="fa fa-graduation-cap"></i> <span#}
-{#                                class="nav-label">Cursos</span> </a>#}
-{#                    </li>#}
-{#                    <li>#}
-{#                        <a href="/centro/profesores"><i class="fa fa-user-circle"></i> <span class="nav-label">Profesores</span>#}
-{#                        </a>#}
-{#                    </li>#}
-{#                {% endif %}#}
-{#                {% if is_tutor %}#}
-{#                    <li>#}
-{#                        <a href="/absentismo/misalumnos"><i class="fa fa-university"></i> <span class="nav-label">Absentismo (Tutoría)</span>#}
-{#                        </a>#}
-{#                    </li>#}
-{#                {% elif user|has_group:"jefatura de estudios" or user|has_group:"orientacion" %}#}
-{#                    <li class="{% if menu_absentismo %} active{% endif %}">#}
-{#                        <a href="#"><i class="fa fa-university"></i>#}
-{#                            <span class="nav-label">Absentismo</span>#}
-{#                            <span class="fa arrow"></span></a>#}
-{#                        <ul class="nav nav-second-level collapse">#}
-{#                            <li><a href="/absentismo/alumnos">Protocolos abiertos</a></li>#}
-{#                            <li><a href="/absentismo/todoalumnado">Alumnado completo</a></li>#}
-{#                        </ul>#}
-{#                    </li>#}
-{#                {% endif %}#}
-{#                {%  if user|has_group:"jefatura de estudios" %}#}
-{#                    <li class="{% if menu_analisis %} active{% endif %}">#}
-{#                        <a href="#">#}
-{#                            <i class="fa fa-line-chart"></i>#}
-{#                            <span class="nav-label">Análisis de resultados</span>#}
-{#                            <span class="fa arrow"></span>#}
-{#                        </a>#}
-{#                        <ul class="nav nav-second-level collapse">#}
-{#                            <li><a href="/analres/ver_analisis">Análisis de resultados (tras Eval.)</a></li>#}
-{#                            <li><a href="/analres/analisis_por_centros_1_ESO/">Análisis de resultados (tras Eval.) por centro de origen (1º ESO)</a></li>#}
-{#                        </ul>#}
-{#                    </li>#}
-{#                {% endif %}#}
-{##}
-{#                {% if user.is_superuser %}#}
-{#                    <li class="{%  if menu_carga %} active{% endif %}">#}
-{#                        <a href="#">#}
-{#                            <i class="fa fa-upload"></i>#}
-{#                            <span class="nav-label">Carga de archivos</span>#}
-{#                            <span class="fa arrow"></span>#}
-{#                        </a>#}
-{#                        <ul class="nav nav-second-level collapse">#}
-{#                            <li><a href="/carga_archivos/RegAlum/">Carga de datos adicionales de alumnado desde Séneca</a></li>#}
-{#                            <li><a href="/carga_archivos/calificaciones/">Carga de calificaciones desde Séneca</a></li>#}
-{#                            <li><a href="/carga_archivos/admision/">Carga de datos de admisión</a></li>#}
-{##}
-{#                            <li><a href="/centro/importar_materias/">Importar Materias por Nivel</a></li>#}
-{#                            <li><a href="/centro/importar_materias_impartidas/">Importar Materias Impartidas</a></li>#}
-{#                            <li><a href="/centro/importar_matriculas_materias/">Importar Matrículas-Materias</a></li>#}
-{#                            <li><a href="/centro/importar_libros/">Importar Libros de Texto</a></li>#}
-{#                            <li><a href="/centro/ver_matriculas/">Ver Matrículas importadas</a></li>#}
-{#                            <li><a href="/centro/materias_impartidas/">Ver Materias impartidas</a></li>#}
-{#                            <li><a href="/centro/ver_libros/">Ver Libros de Texto</a></li>#}
-{#                        </ul>#}
-{#                    </li>#}
-{#                {% endif %}#}
-{#                <li class="{% if menu_horarios %} active{% endif %}">#}
-{#                    <a href="#"><i class="fa fa-calendar-o"></i> <span class="nav-label">Horarios</span><span#}
-{#                            class="fa arrow"></span></a>#}
-{#                    <ul class="nav nav-second-level collapse">#}
-{#                        {% if user|has_group:"profesor" %}#}
-{#                            <li><a href="/horarios/mihorario">Mi Horario</a></li>#}
-{#                        {% endif %}#}
-{#                        <li><a href="/horarios/horarioprofe">Horario Profesorado</a></li>#}
-{#                        <li><a href="/horarios/horariogrupo">Horario Grupos</a></li>#}
-{#                        <li><a href="/horarios/horarioaula">Horario Aulas</a></li>#}
-{#                        {% if user|has_group:"jefatura de estudios" %}#}
-{#                            <li><a href="/horarios/aulaslibres">Aulas libres</a></li>#}
-{#                            <li><a href="/horarios/copiar_horario/">Copiar horario</a></li>#}
-{##}
-{#                        {% endif %}#}
-{#                    </ul>#}
-{#                </li>#}
-{##}
-{#                <li class="{% if menu_guardias %} active{% endif %}">#}
-{#                    <a href="#"><i class="fa fa-users"></i> <span class="nav-label">Guardias</span><span#}
-{#                            class="fa arrow"></span></a>#}
-{#                    <ul class="nav nav-second-level collapse">#}
-{##}
-{#                        {% if user|has_group:"profesor" %}#}
-{##}
-{#                            <li><a href="/guardias/misausencias">Mis ausencias</a>#}
-{#                            </li>#}
-{##}
-{#                        {% endif %}#}
-{##}
-{#                        <li><a href="/guardias/parteguardias">Parte de Guardias</a></li>#}
-{#                        {% if user|has_group:"jefatura de estudios" %}#}
-{##}
-{#                            <li><a href="/guardias/ver-guardias">Ausencias Profesorado</a></li>#}
-{##}
-{#                        {% endif %}#}
-{#                    </ul>#}
-{#                </li>#}
-{##}
-{#                <li class="{% if menu_glt %} active{% endif %}">#}
-{#                    <a href="#"><i class="fa fa-book"></i> <span class="nav-label">G.L.T.</span><span#}
-{#                            class="fa arrow"></span></a>#}
-{#                    <ul class="nav nav-second-level collapse">#}
-{##}
-{#                        {% if user|has_group:"profesor" %}#}
-{##}
-{#                            <li><a href="/centro/revisar-libros">Revisar Libros</a>#}
-{#                            </li>#}
-{#                            <li><a href="/centro/mis-revisiones-libros">Mis Revisiones</a>#}
-{#                            </li>#}
-{##}
-{#                        {% endif %}#}
-{##}
-{##}
-{#                        {% if user|has_group:"jefatura de estudios" %}#}
-{#                            <li><a href="/centro/revision-libros">Revision Libros (JE)</a>#}
-{#                            </li>#}
-{#                            <li><a href="/centro/resumen-revisiones">Resumen revisiones</a>#}
-{#                            </li>#}
-{#                        {% endif %}#}
-{#                    </ul>#}
-{#                </li>#}
-{##}
-{#                {% if user|has_group:"jefatura de estudios" or user|has_group:"tde" %}#}
-{##}
-{#                    <li class="{% if menu_reservas %} active{% endif %}">#}
-{#                        <a href="#"><i class="fa fa-calendar"></i> <span class="nav-label">Reservas</span><span#}
-{#                                class="fa arrow"></span></a>#}
-{#                        <ul class="nav nav-second-level collapse">#}
-{#                            <li><a href="/reservas/verreservas">Ver Reservas</a></li>#}
-{#                            <li><a href="/reservas/misreservas">Mis Reservas</a></li>#}
-{#                        </ul>#}
-{#                    </li>#}
-{##}
-{#                {% elif user|not_in_group:"guardia" %}#}
-{#                    <li>#}
-{#                        <a href="/reservas/misreservas"><i class="fa fa-calendar"></i> <span#}
-{#                                class="nav-label">Reservas</span> </a>#}
-{#                    </li>#}
-{#                {% endif %}#}
-{##}
-{#                {% if user|has_group:"jefatura de estudios" or user|has_group:"tde" %}#}
-{##}
-{#                    <li class="{% if menu_tde %} active{% endif %}">#}
-{#                        <a href="#"><i class="fa fa-laptop"></i> <span class="nav-label">TDE</span><span#}
-{#                                class="fa arrow"></span></a>#}
-{#                        <ul class="nav nav-second-level collapse">#}
-{#                            <li><a href="/tde/incidenciastic"><i class="fa fa-tasks"></i>Incidencias TIC</a>#}
-{#                            </li>#}
-{#                            <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i>Mis Incidencias TIC</a>#}
-{#                            </li>#}
-{#                        </ul>#}
-{#                    </li>#}
-{#                {% elif user|not_in_group:"guardia" %}#}
-{#                    <li><a href="/tde/misincidenciastic"><i class="fa fa-keyboard-o"></i>Incidencias TIC</a>#}
-{#                    </li>#}
-{#                {% endif %}#}
-{##}
-{#            {% endif %}#}
-{#        </ul>#}
-{#    </div>#}
-{#</nav>#}
-{##}
-{#{% block js %}#}
-{##}
-{#    <script src="{% static 'js/jquery-3.1.1.min.js' %}"></script>#}
-{#    <script>#}
-{##}
-{#        /*#}
-{#        $(document).ready(function () {#}
-{#            var currentPath = window.location.pathname;#}
-{##}
-{#             // Lista de submenús con patrones regex#}
-{#            var submenus = {#}
-{#                "menu-convivencia": [#}
-{#                    /^\/centro\/alumnos$/,#}
-{#                    /^\/convivencia\/show$/,#}
-{#                    /^\/centro\/misalumnos$/,#}
-{#                    /^\/convivencia\/show\/amonestacion\/\d+\/\d{4}\/\d{2}\/\d{2}$/#}
-{#                ],#}
-{#                // Agrega más submenús aquí#}
-{#            };#}
-{##}
-{#            $.each(submenus, function(menuClass, regexPatterns) {#}
-{#                for (var i = 0; i < regexPatterns.length; i++) {#}
-{#                    if (regexPatterns[i].test(currentPath)) {#}
-{#                        $("." + menuClass).addClass("active");#}
-{#                        $("." + menuClass + " ul").addClass("in");#}
-{#                        break;  // Detiene el bucle si encuentra una coincidencia#}
-{#                    }#}
-{#                }#}
-{#            });#}
-{#        });#}
-{##}
-{#         */#}
-{#    </script>#}
-{#{% endblock %}#}

@@ -6,5 +6,8 @@ urlpatterns = [
     path('ver_analisis/recalcular_indicadores/', views.recalcular_indicadores),
     path('analisis_pdf/', views.GenerarPDFView.as_view(), name='analisis_pdf'),
     path('analisis_por_centros_1_ESO/', views.analisis_por_centros_1_ESO),
+    path('analisis_por_centros_ESO/', views.analisis_por_centros_ESO),
+    path('analisis_historico_por_centros_ESO/', views.analisis_historico_por_centros_ESO),
     path('analisis_1ESO_pdf/', views.GenerarPDF1ESOView.as_view(), name='analisis_1ESO_pdf'),
+    path('analisis_ESO_pdf/', views.GenerarPDFESOView.as_view(), name='analisis_ESO_pdf'),
 ]
