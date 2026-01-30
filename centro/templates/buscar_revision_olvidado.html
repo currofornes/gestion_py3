@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Buscar revisión libro olvidado{% endblock %}
+
+{% block css %}
+    <!-- Select Plugin CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-title-head d-flex align-items-center">
+        <div class="flex-grow-1">
+            <h4 class="fs-sm text-uppercase fw-bold m-0">Buscar Libro Entregado Tarde</h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-lg-4">
+                                <label class="form-label">Alumno:</label>
+                                <select name="alumno_id" id="id_alumno" class="form-control select2_Alumno">
+                                    <option value="">-- Selecciona alumno --</option>
+                                    {% for alumno in alumnos %}
+                                        <option value="{{ alumno.id }}"
+                                                {% if alumno_seleccionado and alumno_seleccionado.id == alumno.id %}selected{% endif %}>
+                                            {{ alumno.Nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <label class="form-label">Libro:</label>
+                                <select name="libro_id" id="id_libro" class="form-control select2_Libro">
+                                    <option value="">-- Selecciona libro --</option>
+                                    {% for libro in libros %}
+                                        <option value="{{ libro.id }}"
+                                                {% if libro_seleccionado and libro_seleccionado.id == libro.id %}selected{% endif %}>
+                                            {{ libro.titulo|default:libro }} - {{ libro.materia.nombre }} ({{ libro.curso_academico.nombre }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-lg-3">
+                                <label class="form-label">Curso académico:</label>
+                                <select name="curso_academico_id" id="id_curso_academico" class="form-control select2_CursoAcademico">
+                                    <option value="">-- Todos los cursos --</option>
+                                    {% for ca in cursos_academicos %}
+                                        <option value="{{ ca.id }}"
+                                                {% if curso_academico_seleccionado and curso_academico_seleccionado.id == ca.id %}selected{% endif %}>
+                                            {{ ca }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-lg-1 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="ti ti-search fs-5 me-1"></i>
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                {% if revisiones_posibles %}
+                    <div class="card-body border-top">
+                        <h5 class="mb-3">
+                            <i class="ti ti-file-search text-primary me-2"></i>
+                            Revisiones encontradas ({{ revisiones_posibles|length }})
+                        </h5>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Profesor/a</th>
+                                        <th>Materia</th>
+                                        <th>Curso</th>
+                                        <th>Momento</th>
+                                        <th>Curso Acad.</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in revisiones_posibles %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ item.revision.fecha|date:"d/m/Y" }}</strong>
+                                            </td>
+                                            <td>{{ item.revision.profesor }}</td>
+                                            <td>{{ item.revision.materia.nombre }}</td>
+                                            <td>{{ item.revision.curso }}</td>
+                                            <td>{{ item.revision.momento }}</td>
+                                            <td>{{ item.revision.curso_academico.nombre }}</td>
+                                            <td>
+                                                <a href="{% url 'editar_revision_libros' item.revision.id %}" 
+                                                   class="btn btn-sm btn-warning" 
+                                                   title="Editar revisión">
+                                                    <i class="ti ti-edit"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3 border-0">
+                            <i class="ti ti-info-circle fs-5 me-2"></i>
+                            <strong>Nota:</strong> Haz clic en "Editar" para actualizar el estado del libro 
+                            (por ejemplo, marcar como "Entregado").
+                        </div>
+                    </div>
+                {% elif alumno_seleccionado or libro_seleccionado %}
+                    <div class="card-body border-top bg-light">
+                        <div class="alert alert-warning">
+                            <i class="ti ti-alert-circle fs-5 me-2"></i>
+                            No se encontraron revisiones coincidentes.
+                            <br><small>Intenta con menos filtros o revisa los datos.</small>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+    <!-- Select2 Plugin Js -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Inicializar Select2 con tema Bootstrap 4
+            $('.select2_Alumno').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Buscar alumno...',
+                allowClear: true
+            });
+
+            $('.select2_Libro').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Buscar libro...',
+                allowClear: true
+            });
+
+            $('.select2_CursoAcademico').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Todos los cursos...',
+                allowClear: true
+            });
+        });
+    </script>
+{% endblock %}

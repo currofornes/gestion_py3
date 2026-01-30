@@ -1,3 +1,21 @@
+"""
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                                                                            ║
+║ Copyright © 2023-2025 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
+║                                                                            ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ modificación o comercialización sin consentimiento expreso de los autores. ║
+║                                                                            ║
+║ Este archivo es parte de la aplicación Gestion@.                          ║
+║                                                                            ║
+║ Para consultas sobre licencias o permisos:                                ║
+║ Email: fforrum559@g.educaand.es                                           ║
+╚════════════════════════════════════════════════════════════════════════════╝
+"""
+
+
 from collections import defaultdict
 from sqlite3 import IntegrityError
 
@@ -366,7 +384,8 @@ def show(request, tipo=None, mes=None, ano=None, dia=None):
 
     form = ResumenForm(initial={'fecha': fecha, 'tipo': tipo})
 
-
+    print(datos)
+    print(datos.values("IdAlumno"))
 
     datos = zip(range(1, len(datos) + 1), datos, ContarFaltas(datos.values("IdAlumno")), ContarFaltasHistorico(datos.values("IdAlumno")))
     context = {
@@ -383,6 +402,8 @@ def show(request, tipo=None, mes=None, ano=None, dia=None):
 
     }
     context[tipo] = True
+
+
 
 
 
@@ -896,6 +917,7 @@ def ContarFaltas(lista_id):
         sa = str(len(Sanciones.objects.filter(IdAlumno_id=list(alum.values())[0], curso_academico=curso_academico_actual)))
 
         contar.append(am + "/" + sa)
+
     return contar
 
 def ContarFaltasHistorico(lista_id):
@@ -1505,3 +1527,57 @@ def busq_amonestaciones(request):
     }
 
     return render(request, 'busq_amonestaciones.html', context)
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def historico_sanciones(request):
+    curso_academico_id = request.GET.get('curso_academico')
+    unidad_id = request.GET.get('unidad')
+    trimestre = request.GET.get('trimestre')  # '', '1', '2', '3'
+
+    # Filtrar amonestaciones históricas
+    qs = Sanciones.objects.select_related(
+        'IdAlumno', 'IdAlumno__Unidad'
+    ).order_by('-Fecha')
+
+    if curso_academico_id:
+        qs = qs.filter(curso_academico_id=curso_academico_id)
+
+        # Cálculo de fechas de inicio/fin según trimestre
+        if trimestre in ['1', '2', '3']:
+            # Suponiendo que CursoAcademico tiene campos inicio_curso y fin_curso
+            curso = CursoAcademico.objects.get(id=curso_academico_id)
+            year_inicio = curso.año_inicio  # p.ej. 2024
+            # 1 de septiembre siempre del año de inicio del curso
+            if trimestre == '1':
+                start = date(year_inicio, 9, 1)
+                end = date(year_inicio, 12, 31)
+            elif trimestre == '2':
+                # 1 enero–31 marzo del año siguiente
+                start = date(year_inicio + 1, 1, 1)
+                end = date(year_inicio + 1, 3, 31)
+            elif trimestre == '3':
+                # 1 abril–30 junio del año siguiente
+                start = date(year_inicio + 1, 4, 1)
+                end = date(year_inicio + 1, 6, 30)
+
+            qs = qs.filter(Fecha__range=(start, end))
+    if unidad_id:
+        qs = qs.filter(IdAlumno__Unidad_id=unidad_id)
+
+    amonestaciones = list(qs)
+    datos = zip(range(1, len(amonestaciones) + 1), amonestaciones)
+
+    context = {
+        'amonestaciones': datos,
+        'cursos_academicos': CursoAcademico.objects.all().order_by('-id'),
+        'unidades': Cursos.objects.all().order_by('Curso'),  # ajusta modelo
+        'curso_academico_selected': curso_academico_id,
+        'unidad_selected': unidad_id,
+        'trimestre_selected': trimestre,
+        'menu_sanciones': True,
+        'menu_convivencia': True,
+    }
+
+    return render(request, 'historicosanciones.html', context)

@@ -16,16 +16,24 @@
 """
 
 
-from django.urls import include, re_path, path
+from django.urls import path
 from . import views
 
+app_name = 'permisos'
+
 urlpatterns = [
-    path('ver_analisis/', views.analisis, name='analisis'),
-    path('ver_analisis/recalcular_indicadores/', views.recalcular_indicadores),
-    path('analisis_pdf/', views.GenerarPDFView.as_view(), name='analisis_pdf'),
-    path('analisis_por_centros_1_ESO/', views.analisis_por_centros_1_ESO),
-    path('analisis_por_centros_ESO/', views.analisis_por_centros_ESO),
-    path('analisis_historico_por_centros_ESO/', views.analisis_historico_por_centros_ESO),
-    path('analisis_1ESO_pdf/', views.GenerarPDF1ESOView.as_view(), name='analisis_1ESO_pdf'),
-    path('analisis_ESO_pdf/', views.GenerarPDFESOView.as_view(), name='analisis_ESO_pdf'),
+    # Vista para jefatura: registrar solicitudes
+    path('asuntos-propio/crear/', views.crear_asunto_propio, name='crear_asunto_propio'),
+
+    # API JSON para calendario profesores (lectura pública)
+    path('api/asuntos-propio/', views.api_asuntos_propios_calendar, name='api_asuntos_propios_calendar'),
+
+    # Calendario público para profesores
+    path('asuntos-propio/calendario/', views.calendario_asuntos_propios, name='calendario_asuntos_propios'),
+
+    # Opcional: lista de todas las solicitudes (solo jefatura)
+    path('asuntos-propio/lista/', views.lista_asuntos_propios, name='lista_asuntos_propios'),
+
+    path('eliminar/', views.eliminar_asunto_propio, name='eliminar_asunto_propio'),
+
 ]

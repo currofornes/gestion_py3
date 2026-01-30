@@ -123,6 +123,22 @@
                                                href="#" data-bs-toggle="modal" data-bs-target="#aprobarModal"
                                                data-actividad-id="{{ a.id }}">Aprobar</a>
                                         {% endif %}
+                                        {% if a.Estado.nombre == 'Aprobada' %}
+                                            <!-- Botón DESAPROBAR (solo si está aprobada) -->
+                                            <button class="btn btn-sm btn-danger desaprobar-btn"
+                                                    data-actividad-id="{{ a.id }}">
+                                                Denegar
+                                            </button>
+                                        {% endif %}
+
+                                        <button class="btn btn-icon btn-outline-danger borrar-btn"
+                                                data-actividad-id="{{ a.id }}"
+                                                data-actividad-titulo="{{ a.Titulo }}"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-title="Borrar"
+                                                title="Borrar">
+                                            <i class="ti ti-trash fs-lg"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -275,6 +291,7 @@
 
         $(document).ready(function () {
 
+
             $('.dataTables-actividades').each(function () {
                 $(this).DataTable({
                     dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
@@ -377,6 +394,70 @@
                 },
                 error: function (xhr) {
                     alert("Error: " + xhr.responseJSON.error);
+                }
+            });
+        });
+
+        $(document).on("click", ".borrar-btn", function () {
+            const actividadId = $(this).data("actividad-id");
+            const actividadTitulo = $(this).data("actividad-titulo");
+
+            Swal.fire({
+                title: '¿Borrar actividad?',
+                html: `¿Estás seguro de que quieres <strong>BORRAR</strong> la actividad:<br><strong>${actividadTitulo}</strong>?`,
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, borrar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/DACE/borrar_actividad/${actividadId}/`,
+                        type: "POST",
+                        data: {},
+                        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+                        success: function (response) {
+                            Swal.fire('Borrada!', 'La actividad ha sido eliminada.', 'success');
+                            location.reload();
+                        },
+                        error: function (xhr) {
+                            Swal.fire('Error!', xhr.responseJSON?.error || 'Error al borrar.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on("click", ".desaprobar-btn", function () {
+            const actividadId = $(this).data("actividad-id");
+
+            Swal.fire({
+                title: '¿Desaprobar actividad?',
+                text: "¿Estás seguro de que quieres desaprobar esta actividad? Se eliminará la aprobación y volverá a estado Pendiente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, desaprobar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/DACE/desaprobar_actividad/${actividadId}/`,
+                        type: "POST",
+                        data: {},
+                        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+                        success: function (response) {
+                            Swal.fire('Desaprobada!', 'La actividad ha sido desaprobada.', 'success');
+                            location.reload();
+                        },
+                        error: function (xhr) {
+                            Swal.fire('Error!', xhr.responseJSON?.error || 'Error al desaprobar.', 'error');
+                        }
+                    });
                 }
             });
         });

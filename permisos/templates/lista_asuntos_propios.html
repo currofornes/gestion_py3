@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lista solicitudes asuntos propios{% endblock %}
+
+{% block css %}
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- Select2 CSS -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+    <!-- SweetAlert2 CSS -->
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="page-title-head d-flex align-items-center mb-4">
+        <div class="flex-grow-1">
+            <h4 class="fs-sm text-uppercase fw-bold m-0">
+                Lista solicitudes asuntos propios
+            </h4>
+            <h6 class="mb-0">
+                <strong>{{ curso_actual }}</strong> | Total solicitudes: <strong>{{ total_solicitudes }}</strong>
+            </h6>
+        </div>
+        <div>
+            <a href="{% url 'permisos:crear_asunto_propio' %}" class="btn btn-primary">
+                <i class="ti ti-plus me-2"></i>Nueva solicitud
+            </a>
+        </div>
+    </div>
+
+
+    <!-- Tabla con DataTables -->
+    <div class="card">
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover dt-responsive align-middle mb-0 dataTables-asuntos">
+                    <thead class="thead-sm text-uppercase fs-xxs">
+                        <tr>
+                            <th class="text-center">Fecha</th>
+                            <th class="text-center">Profesor/a</th>
+                            <th class="text-center">Fecha creación</th>
+
+                            {# <th class="text-center">Estado</th> #}
+                            {# <th class="text-center">Creado por</th> #}
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sol in solicitudes %}
+                            <tr>
+                                <td  class="text-center" style="vertical-align: middle;">
+                                    <strong>{{ sol.fecha|date:"d/m/Y" }}</strong>
+                                </td>
+                                <td style="vertical-align: middle;">{{ sol.profesor }}</td>
+                                <td  class="text-center" style="vertical-align: middle;">{{ sol.creado_en|date:"d/m/Y H:i" }}</td>
+
+                                {# <td style="vertical-align: middle;"> #}
+                                {#     <span class="badge bg-{{ sol.estado|lower }}"> #}
+                                {#         {{ sol.get_estado_display }} #}
+                                {#     </span> #}
+                                {# </td> #}
+                                {# <td style="vertical-align: middle;">{{ sol.creado_por|default:"Automático" }}</td> #}
+                                {# <td style="vertical-align: middle;"> #}
+                                {#     <div class="btn-group btn-group-sm" role="group"> #}
+                                {#         ... #}
+                                {#     </div> #}
+                                {# </td> #}
+
+                            <td class="text-center" style="vertical-align: middle;">
+                                    <button class="btn btn-danger eliminar-solicitud"
+                                            data-id="{{ sol.id }}"
+                                            data-fecha="{{ sol.fecha|date:'d/m/Y' }}"
+                                            data-profesor="{{ sol.profesor }}">
+                                        <i class="ti ti-trash me-1"></i>Borrar
+                                    </button>
+                                </td>
+
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">
+                                    <i class="ti ti-inbox fs-1 d-block mb-2 opacity-50"></i>
+                                    No hay solicitudes para mostrar
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <!-- Select2 JS -->
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <!-- SweetAlert2 JS -->
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Select2 para filtro profesor
+            $('.select2_Profesor').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Todos los profesores...',
+                allowClear: true
+            });
+
+            // DataTable (igual que tu ejemplo)
+            $('.dataTables-asuntos').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                     "rt" +
+                     "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item'
+                            }
+                        ]
+                    }
+                ],
+                order: [[0, 'desc']],  // Ordenar por fecha descendente
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+            });
+
+            // SweetAlert para borrar solicitud
+            $('.eliminar-solicitud').on('click', function (e) {
+                e.preventDefault();
+
+                const $btn = $(this);
+                const id = $btn.data('id');
+                const fecha = $btn.data('fecha');
+                const profesor = $btn.data('profesor');
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    html: `¿Eliminar la solicitud de <strong>${profesor}</strong> para el <strong>${fecha}</strong>?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="ti ti-trash"></i> Sí, eliminar',
+                    cancelButtonText: '<i class="ti ti-x"></i> Cancelar',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn btn-danger px-4',
+                        cancelButton: 'btn btn-outline-secondary px-4'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // AJAX DELETE
+                        $.ajax({
+                            url: '{% url "permisos:eliminar_asunto_propio" %}',
+                            type: 'POST',
+                            data: {
+                                'id': id,
+                                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: '¡Eliminada!',
+                                        text: 'La solicitud ha sido eliminada correctamente.',
+                                        icon: 'success',
+                                        confirmButtonText: 'OK'
+                                    }).then(() => {
+                                        location.reload();  // Recarga para actualizar DataTable
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: response.error || 'No se pudo eliminar la solicitud.',
+                                        icon: 'error'
+                                    });
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: 'Error de conexión. Intenta de nuevo.',
+                                    icon: 'error'
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+

@@ -609,6 +609,15 @@
                             </a>
                         </li>
 
+                        {% if user|has_group:"jefatura de estudios" %}
+                            <li class="side-nav-item">
+                                <a href="/horarios/aulaslibres" class="side-nav-link">
+                                    <span class="menu-text" data-lang="pages-pricing">Aulas libres</span>
+                                </a>
+                            </li>
+                        {% endif %}
+
+
                     </ul>
                 </div>
             </li>
@@ -640,6 +649,22 @@
                     </a>
                 </li>
             {% endif %}
+
+            {% if user|has_group:"jefatura de estudios" %}
+                <li class="side-nav-item">
+                    <a href="/permisos/asuntos-propio/lista/" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Gestión Días Asuntos propios</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            <li class="side-nav-item">
+                    <a href="/permisos/asuntos-propio/calendario/" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-stack-front"></i></span>
+                        <span class="menu-text" data-lang="landing-page">Calendario Días Asuntos propios</span>
+                    </a>
+                </li>
 
 
             <li class="side-nav-title mt-2" data-lang="components-title">RESERVAS</li>

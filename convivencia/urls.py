@@ -1,3 +1,20 @@
+"""
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                                                                            ║
+║ Copyright © 2023-2025 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
+║                                                                            ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ modificación o comercialización sin consentimiento expreso de los autores. ║
+║                                                                            ║
+║ Este archivo es parte de la aplicación Gestion@.                          ║
+║                                                                            ║
+║ Para consultas sobre licencias o permisos:                                ║
+║ Email: fforrum559@g.educaand.es                                           ║
+╚════════════════════════════════════════════════════════════════════════════╝
+"""
+
 from django.urls import re_path, path
 
 from . import views
@@ -51,4 +68,6 @@ urlpatterns = [
 	path('derivaciones-aula-horizonte/', views.listado_derivaciones_aula_horizonte, name='listado_derivaciones_aula_horizonte'),
 
 	path('busq-amonestaciones/', views.busq_amonestaciones, name='busq_amonestaciones'),
+
+	path('historico-sanciones/', views.historico_sanciones, name='historico_sanciones'),
 ]

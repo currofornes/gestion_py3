@@ -1,3 +1,20 @@
+"""
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                                                                            ║
+║ Copyright © 2023-2025 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
+║                                                                            ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ modificación o comercialización sin consentimiento expreso de los autores. ║
+║                                                                            ║
+║ Este archivo es parte de la aplicación Gestion@.                          ║
+║                                                                            ║
+║ Para consultas sobre licencias o permisos:                                ║
+║ Email: fforrum559@g.educaand.es                                           ║
+╚════════════════════════════════════════════════════════════════════════════╝
+"""
+
 from django.urls import re_path, path
 
 from . import views
@@ -69,5 +86,8 @@ urlpatterns = [
     path('gestion-sustitutos/', views.crear_sustituto, name='crear_sustituto'),
 
     path('gestion-sustitutos/lista/', views.lista_sustitutos, name='lista_sustitutos'),
-    path('reincorporar-titular/', views.reincorporar_titular, name='reincorporar_titular')
+    path('reincorporar-titular/', views.reincorporar_titular, name='reincorporar_titular'),
+
+    path('buscar-libro-olvidado/', views.buscar_revision_libro_olvidado,
+     name='buscar_revision_olvidado'),
 ]

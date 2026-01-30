@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Calendario asuntos propios{% endblock %}
+
+
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-title-head d-flex align-items-center mb-4">
+        <div class="flex-grow-1">
+            <h4 class="fs-sm text-uppercase fw-bold m-0">
+                <i class="ti ti-calendar me-2 text-primary"></i>
+                Días de asuntos propios retribuidos
+            </h4>
+            <small class="text-muted d-block mt-1">
+                <strong>Máximo 4 personas por día</strong>. Si un día está en <span class="text-danger">rojo</span>,
+                ya está completo o muy saturado.
+            </small>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div id="calendar" style="height: 600px; background: white;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<!-- Fullcalendar js -->
+    <script src="{% static 'plugins/fullcalendar/index.global.min.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        buttonText: {
+                        today: 'Hoy',
+                        month: 'Mes',
+                        week: 'Semana',
+                        day: 'Día',
+                        list: 'Lista',
+
+                    },
+                    locale: 'es',
+        firstDay: 1,
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+        },
+        height: 'auto',
+        events: '{% url "permisos:api_asuntos_propios_calendar" %}',
+        eventDidMount: function(info) {
+            // Tooltip con info adicional
+            info.el.title = info.event.title;
+        },
+        dayMaxEvents: 4,  // Muestra máximo 4, luego "+X más"
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}

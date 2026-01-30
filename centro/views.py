@@ -1,3 +1,21 @@
+"""
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                                                                            ║
+║ Copyright © 2023-2025 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
+║                                                                            ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ modificación o comercialización sin consentimiento expreso de los autores. ║
+║                                                                            ║
+║ Este archivo es parte de la aplicación Gestion@.                          ║
+║                                                                            ║
+║ Para consultas sobre licencias o permisos:                                ║
+║ Email: fforrum559@g.educaand.es                                           ║
+╚════════════════════════════════════════════════════════════════════════════╝
+"""
+
+
 import csv
 import io
 import json
@@ -533,7 +551,7 @@ def importar_materias_impartidas(request):
                 continue
 
             # Buscar Curso (Unidad)
-            curso = Cursos.objects.filter(Curso=nombre_unidad, Nivel=nivel).first()
+            curso = Cursos.objects.filter(Curso=nombre_unidad).first()
             if not curso:
                 messages.warning(request, f"Curso (Unidad) no encontrado: {nombre_unidad} en {nombre_nivel}")
                 continue
@@ -592,10 +610,7 @@ def quitar_tildes(texto):
 @user_passes_test(group_check_je, login_url='/')
 def importar_matriculas_materias(request):
     if request.method == "POST" and 'csv_matriculas' in request.FILES:
-        nivel = request.POST.get('nivel')
-        if not nivel:
-            messages.error(request, "Debes seleccionar un nivel.")
-            return redirect('importar_matriculas_materias')
+
 
         csv_file = request.FILES['csv_matriculas']
 
@@ -615,9 +630,9 @@ def importar_matriculas_materias(request):
 
         curso_academico_actual = get_current_academic_year()
 
-        cursos_del_nivel = Cursos.objects.filter(Curso__icontains=nivel)
+        cursos_del_nivel = Cursos.objects.all()
         if not cursos_del_nivel.exists():
-            messages.error(request, f"No se encontraron cursos para el nivel '{nivel}'")
+            messages.error(request, f"No se encontraron cursos")
             return redirect('importar_matriculas_materias')
 
         for row_index, row in enumerate(csv_reader, start=2):  # Desde fila 2 por encabezado
@@ -625,6 +640,7 @@ def importar_matriculas_materias(request):
             nombre_unidad_csv = quitar_tildes(row[1]).strip().lower()
 
             try:
+
                 curso = cursos_del_nivel.get(Curso__iexact=row[1].strip())
             except Cursos.DoesNotExist:
                 errores.append(f"Fila {row_index}: Unidad no encontrada - {row[1]}")
@@ -677,7 +693,7 @@ def importar_matriculas_materias(request):
             'nuevas': nuevas,
             'existentes': existentes,
             'errores': errores,
-            'multi_profesores': multi_profesores,
+            'multi_profesores': multi_profesores
         }
 
         return render(request, 'importar_matriculas_materias.html', {'resumen': resumen})
@@ -1687,3 +1703,87 @@ def reincorporar_titular(request):
 
     except Profesores.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Profesor no encontrado'})
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def buscar_revision_libro_olvidado(request):
+    """Vista para localizar revisiones de libros entregados tarde (cursos anteriores)"""
+
+    # Filtros iniciales
+    alumno_seleccionado = None
+    libro_seleccionado = None
+    curso_academico_seleccionado = None
+
+    # Búsqueda
+    if request.method == 'POST':
+        alumno_id = request.POST.get('alumno_id')
+        libro_id = request.POST.get('libro_id')
+        curso_academico_id = request.POST.get('curso_academico_id')
+
+        if alumno_id:
+            alumno_seleccionado = get_object_or_404(Alumnos, id=alumno_id)
+        if libro_id:
+            libro_seleccionado = get_object_or_404(LibroTexto, id=libro_id)
+        if curso_academico_id:
+            curso_academico_seleccionado = get_object_or_404(CursoAcademico, id=curso_academico_id)
+
+    # Búsqueda inteligente de revisiones posibles
+    revisiones_posibles = []
+
+    if alumno_seleccionado and libro_seleccionado:
+        # Estrategia 1: Búsqueda exacta (alumno + libro + curso)
+        if curso_academico_seleccionado:
+            revisiones_exactas = RevisionLibroAlumno.objects.filter(
+                alumno=alumno_seleccionado,
+                revision__libro=libro_seleccionado,
+                revision__curso_academico=curso_academico_seleccionado
+            ).select_related('revision__profesor', 'revision__materia',
+                             'revision__libro', 'revision__momento', 'estado')
+
+            revisiones_posibles.extend(revisiones_exactas)
+
+        # Estrategia 2: Solo alumno + libro (todos los cursos)
+        revisiones_libro = RevisionLibroAlumno.objects.filter(
+            alumno=alumno_seleccionado,
+            revision__libro=libro_seleccionado
+        ).select_related('revision__profesor', 'revision__materia',
+                         'revision__libro', 'revision__momento', 'estado').distinct()
+
+        revisiones_posibles.extend(revisiones_libro)
+
+    elif alumno_seleccionado:
+        # Estrategia 3: Solo alumno (todos los libros)
+        revisiones_alumno = RevisionLibroAlumno.objects.filter(
+            alumno=alumno_seleccionado
+        ).select_related('revision__profesor', 'revision__materia',
+                         'revision__libro', 'revision__momento', 'estado')[:10]
+
+        revisiones_posibles.extend(revisiones_alumno)
+
+    # Agrupar por revisión única para evitar duplicados
+    revisiones_unicas = {}
+    for rev_alumno in revisiones_posibles:
+        rev = rev_alumno.revision
+        if rev.id not in revisiones_unicas:
+            revisiones_unicas[rev.id] = {
+                'revision': rev,
+                'detalle_alumno': rev_alumno,
+                'estado_actual': rev_alumno.estado,
+                'observaciones': rev_alumno.observaciones,
+            }
+
+
+
+    context = {
+        'alumno_seleccionado': alumno_seleccionado,
+        'libro_seleccionado': libro_seleccionado,
+        'curso_academico_seleccionado': curso_academico_seleccionado,
+        'revisiones_posibles': list(revisiones_unicas.values()),
+        'cursos_academicos': CursoAcademico.objects.all().order_by('-año_inicio'),
+        'alumnos': Alumnos.objects.all().order_by('Nombre'),
+        'libros': LibroTexto.objects.only('id', 'titulo', 'isbn', 'editorial').order_by('titulo')[:200],
+    }
+
+
+    return render(request, 'buscar_revision_olvidado.html', context)
