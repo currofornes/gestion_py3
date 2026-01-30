@@ -86,5 +86,8 @@ urlpatterns = [
     path('gestion-sustitutos/', views.crear_sustituto, name='crear_sustituto'),
 
     path('gestion-sustitutos/lista/', views.lista_sustitutos, name='lista_sustitutos'),
-    path('reincorporar-titular/', views.reincorporar_titular, name='reincorporar_titular')
+    path('reincorporar-titular/', views.reincorporar_titular, name='reincorporar_titular'),
+
+    path('buscar-libro-olvidado/', views.buscar_revision_libro_olvidado,
+     name='buscar_revision_olvidado'),
 ]

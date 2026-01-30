@@ -377,3 +377,34 @@ def actividadesdace_json(request):
 
 def actividades_calendario(request):
     return render(request, "actividadescal.html")
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+def desaprobar_actividad(request, actividad_id):
+    if request.method == 'POST':
+        actividad = get_object_or_404(Actividades, id=actividad_id)
+
+        # Eliminar aprobaciones relacionadas
+        actividad.aprobaciones.all().delete()
+
+        # Restaurar estado Pendiente
+        estado_pendiente = get_object_or_404(EstadoActividad, nombre="Pendiente")
+        actividad.Estado = estado_pendiente
+        actividad.save()
+
+        return JsonResponse({'message': 'Actividad desaprobada correctamente.'})
+    return JsonResponse({'error': 'Método no permitido.'}, status=405)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+def borrar_actividad(request, actividad_id):
+    if request.method == 'POST':
+        actividad = get_object_or_404(Actividades, id=actividad_id)
+
+        # Opcional: verificar permisos antes de borrar
+
+        # Borrar actividad y relaciones en cascada
+        actividad.delete()
+
+        return JsonResponse({'message': 'Actividad borrada correctamente.'})
+    return JsonResponse({'error': 'Método no permitido.'}, status=405)

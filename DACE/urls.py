@@ -15,7 +15,6 @@
 ╚════════════════════════════════════════════════════════════════════════════╝
 """
 
-
 from django.urls import path
 from . import views
 
@@ -41,5 +40,8 @@ urlpatterns = [
 
     path('json/', views.actividadesdace_json, name='actividadesdace_json'),
 
-path("calendario/", views.actividades_calendario, name="actividades_calendario"),
+    path("calendario/", views.actividades_calendario, name="actividades_calendario"),
+
+    path('desaprobar_actividad/<int:actividad_id>/', views.desaprobar_actividad, name='desaprobar_actividad'),
+    path('borrar_actividad/<int:actividad_id>/', views.borrar_actividad, name='borrar_actividad'),
 ]

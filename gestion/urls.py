@@ -54,6 +54,8 @@ urlpatterns = [
 
     path('DACE/', include('DACE.urls')),
 
+    path('permisos/', include('permisos.urls')),
+
     path('cambiar-password/', cambiar_password, name='cambiar_password'),
     path('cambiar-password-custom/', cambiar_password_custom, name='cambiar_password_custom'),
 

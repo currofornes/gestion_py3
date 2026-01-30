@@ -68,4 +68,6 @@ urlpatterns = [
 	path('derivaciones-aula-horizonte/', views.listado_derivaciones_aula_horizonte, name='listado_derivaciones_aula_horizonte'),
 
 	path('busq-amonestaciones/', views.busq_amonestaciones, name='busq_amonestaciones'),
+
+	path('historico-sanciones/', views.historico_sanciones, name='historico_sanciones'),
 ]

@@ -1527,3 +1527,57 @@ def busq_amonestaciones(request):
     }
 
     return render(request, 'busq_amonestaciones.html', context)
+
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def historico_sanciones(request):
+    curso_academico_id = request.GET.get('curso_academico')
+    unidad_id = request.GET.get('unidad')
+    trimestre = request.GET.get('trimestre')  # '', '1', '2', '3'
+
+    # Filtrar amonestaciones históricas
+    qs = Sanciones.objects.select_related(
+        'IdAlumno', 'IdAlumno__Unidad'
+    ).order_by('-Fecha')
+
+    if curso_academico_id:
+        qs = qs.filter(curso_academico_id=curso_academico_id)
+
+        # Cálculo de fechas de inicio/fin según trimestre
+        if trimestre in ['1', '2', '3']:
+            # Suponiendo que CursoAcademico tiene campos inicio_curso y fin_curso
+            curso = CursoAcademico.objects.get(id=curso_academico_id)
+            year_inicio = curso.año_inicio  # p.ej. 2024
+            # 1 de septiembre siempre del año de inicio del curso
+            if trimestre == '1':
+                start = date(year_inicio, 9, 1)
+                end = date(year_inicio, 12, 31)
+            elif trimestre == '2':
+                # 1 enero–31 marzo del año siguiente
+                start = date(year_inicio + 1, 1, 1)
+                end = date(year_inicio + 1, 3, 31)
+            elif trimestre == '3':
+                # 1 abril–30 junio del año siguiente
+                start = date(year_inicio + 1, 4, 1)
+                end = date(year_inicio + 1, 6, 30)
+
+            qs = qs.filter(Fecha__range=(start, end))
+    if unidad_id:
+        qs = qs.filter(IdAlumno__Unidad_id=unidad_id)
+
+    amonestaciones = list(qs)
+    datos = zip(range(1, len(amonestaciones) + 1), amonestaciones)
+
+    context = {
+        'amonestaciones': datos,
+        'cursos_academicos': CursoAcademico.objects.all().order_by('-id'),
+        'unidades': Cursos.objects.all().order_by('Curso'),  # ajusta modelo
+        'curso_academico_selected': curso_academico_id,
+        'unidad_selected': unidad_id,
+        'trimestre_selected': trimestre,
+        'menu_sanciones': True,
+        'menu_convivencia': True,
+    }
+
+    return render(request, 'historicosanciones.html', context)

@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% load static %}
+{% load grupo_tags %}
+
+{% block title %}Histórico Sanciones{% endblock %}
+
+{% block css %}
+    <!-- Datatables css -->
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/select2-bootstrap4.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Histórico de sanciones</h4>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label">Curso académico</label>
+                <select id="curso_academico" class="form-select select2">
+                    <option value="">Todos</option>
+                    {% for c in cursos_academicos %}
+                        <option value="{{ c.id }}"
+                                {% if curso_academico_selected == c.id|stringformat:"s" %}selected{% endif %}>
+                            {{ c }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Unidad</label>
+                <select id="unidad" class="form-select select2">
+                    <option value="">Todas</option>
+                    {% for u in unidades %}
+                        <option value="{{ u.id }}"
+                                {% if unidad_selected == u.id|stringformat:"s" %}selected{% endif %}>
+                            {{ u }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Trimestre</label>
+                <select id="trimestre" class="form-select select2">
+                    <option value="">Todos</option>
+                    <option value="1" {% if trimestre_selected == '1' %}selected{% endif %}>1.º trimestre</option>
+                    <option value="2" {% if trimestre_selected == '2' %}selected{% endif %}>2.º trimestre</option>
+                    <option value="3" {% if trimestre_selected == '3' %}selected{% endif %}>3.º trimestre</option>
+                </select>
+            </div>
+
+
+            <div class="col-md-3 d-flex align-items-end">
+                <a href="{% url 'historico_sanciones' %}" class="btn btn-outline-secondary">
+                    <i class="ti ti-refresh me-1"></i>Limpiar filtros
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        {% if amonestaciones %}
+                            <table id="child-rows-data" class="table table-striped dt-responsive align-middle mb-0">
+                                <thead class="thead-sm text-uppercase fs-xxs">
+                                <tr>
+                                    <th>Alumno/a</th>
+                                    <th>Unidad</th>
+                                    <th>Fecha Inicio</th>
+                                    <th>Fecha Fin</th>
+                                    <th>Sanción</th>
+                                    <th>Comentario</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for n, amonestacion in amonestaciones %}
+                                    <tr>
+                                        <td>
+                                            <a href="/convivencia/historial/{{ amonestacion.IdAlumno.id }}/">
+                                                <strong>{{ amonestacion.IdAlumno.Nombre }}</strong>
+                                                {% if amonestacion.IdAlumno.PDC %} (PDC){% endif %}
+                                                {% if amonestacion.IdAlumno.NEAE %} (NEAE){% endif %}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a href="/centro/alumnos/{{ amonestacion.IdAlumno.Unidad_id.id }}">
+                                                {{ amonestacion.IdAlumno.Unidad }}
+                                            </a>
+                                        </td>
+                                        <td data-value="{{ amonestacion.Fecha }}">{{ amonestacion.Fecha|date:"d/m/Y" }}</td>
+                                        <td data-value="{{ amonestacion.Fecha_fin }}">{{ amonestacion.Fecha_fin|date:"d/m/Y" }}</td>
+
+
+                                        <td>{{ amonestacion.Sancion }}</td>
+                                        <td>{{ amonestacion.Comentario }}</td>
+
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted">No hay sanciones para los filtros seleccionados.</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div data-table-pagination-info="projects"></div>
+                            <div data-table-pagination></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <!-- Tus DataTables y plugins exactos -->
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+    <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Select2
+            $('.select2').select2({
+                width: '100%',
+                theme: 'bootstrap4',
+                allowClear: true
+            });
+
+            // Recargar página al cambiar filtros (mantiene tu patrón)
+            $('#curso_academico, #unidad, #trimestre').on('change', function () {
+                let params = [];
+
+                if ($('#curso_academico').val()) {
+                    params.push('curso_academico=' + $('#curso_academico').val());
+                }
+                if ($('#unidad').val()) {
+                    params.push('unidad=' + $('#unidad').val());
+                }
+                if ($('#trimestre').val()) {
+                    params.push('trimestre=' + $('#trimestre').val());
+                }
+
+                let query = params.length ? '?' + params.join('&') : '';
+                window.location.href = window.location.pathname + query;
+            });
+
+            // Tu DataTable exacta
+            const tabla = $('#child-rows-data').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                    "rt" +
+                    "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 50,
+                fixedHeader: {
+                    header: true,
+                    headerOffset: 65
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar datos',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            {
+                                extend: 'copy',
+                                text: '<i class="ti ti-copy me-1 fs-lg align-middle"></i> Copiar',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'csv',
+                                text: '<i class="ti ti-file-type-csv me-1 fs-lg align-middle"></i> CSV',
+                                className: 'dropdown-item',
+                                filename: function () {
+                                    return 'Sanciones_' + getUnidadTrimestre();
+                                }
+                            },
+                            {
+                                extend: 'excel',
+                                text: '<i class="ti ti-file-spreadsheet me-1 fs-lg align-middle"></i> Excel',
+                                className: 'dropdown-item',
+                                filename: function () {
+                                    return 'Sanciones_' + getUnidadTrimestre();
+                                }
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="ti ti-printer me-1 fs-lg align-middle"></i> Imprimir',
+                                className: 'dropdown-item'
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="ti ti-file-text me-1 fs-lg align-middle"></i> PDF',
+                                className: 'dropdown-item',
+                                filename: function () {
+                                    return 'Sanciones_' + getUnidadTrimestre();
+                                }
+                            }
+                        ]
+                    }
+                ],
+                columnDefs: [
+                    {
+                        targets: [2, 3],
+                        type: 'date-eu'
+                    }
+                ],
+
+                order: [[0, 'asc']],
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                }
+            });
+
+            function getUnidadTrimestre() {
+                let unidad_val = $('#unidad').val();
+                let unidad = unidad_val ? $('#unidad option:selected').text().trim() : 'Todas';
+
+                let trimestre = '';
+                let trimestre_val = $('#trimestre').val();
+                if (trimestre_val == '1') trimestre = '1T';
+                else if (trimestre_val == '2') trimestre = '2T';
+                else if (trimestre_val == '3') trimestre = '3T';
+                else trimestre = 'Todo';
+
+                // Limpieza: quita espacios múltiples y caracteres especiales
+                unidad = unidad.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+
+                return unidad + '_' + trimestre;
+            }
+
+
+        });
+    </script>
+{% endblock %}
