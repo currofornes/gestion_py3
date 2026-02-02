@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-title-head d-flex align-items-center mb-3">
+        <div class="flex-grow-1">
+            <h4 class="fs-sm text-uppercase fw-bold m-0">Consulta de Equipo Docente</h4>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" id="filtro-equipo" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">1. Seleccionar Unidad</label>
+                    <select name="unidad" class="form-control select2" onchange="this.form.submit()">
+                        <option value="">---------</option>
+                        {% for u in unidades %}
+                            <option value="{{ u.id }}" {% if u.id == unidad_id %}selected{% endif %}>{{ u.Curso }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">2. Seleccionar Alumno/a</label>
+                    <select name="alumno" class="form-control select2" {% if not alumnos %}disabled{% endif %} onchange="this.form.submit()">
+                        <option value="">---------</option>
+                        {% for a in alumnos %}
+                            <option value="{{ a.id }}" {% if a.id == alumno_id %}selected{% endif %}>{{ a.Nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <a href="{% url 'ver_equipo_docente' %}" class="btn btn-outline-secondary w-100">Limpiar Filtros</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if equipo %}
+    <div class="card shadow">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="card-title m-0">Equipo Educativo de: <strong>{{ alumno_sel.Nombre }}</strong></h5>
+            <span class="badge bg-primary">{{ alumno_sel.Unidad }}</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Materia</th>
+                            <th>Profesor/a</th>
+                            <th>Email de contacto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in equipo %}
+                        <tr>
+                            <td class="fw-bold">{{ item.materia_impartida.materia.nombre }}</td>
+                            <td>
+                                <i class="ti ti-user-check text-success me-2"></i>
+                                {{ item.materia_impartida.profesor.nombre_completo }}
+                            </td>
+                            <td>
+                                <a href="mailto:{{ item.materia_impartida.profesor.Email }}">
+                                    <i class="ti ti-mail me-1"></i> {{ item.materia_impartida.profesor.Email }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">No se han encontrado materias asignadas para este alumno en el curso actual.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% elif alumno_id %}
+    <div class="alert alert-info">
+        No hay datos de matrícula registrados para el alumno seleccionado.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

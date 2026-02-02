@@ -214,6 +214,23 @@
             {% endif %}
 
             {% if user|not_in_group:"conserjes" %}
+                <li class="side-nav-title">GESTIÓN ACADÉMICA</li>
+                <li class="side-nav-item">
+                    <a href="{% url 'ver_equipo_docente' %}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-users"></i></span>
+                        <span class="menu-text">Equipos Docentes</span>
+                    </a>
+                </li>
+
+
+                {% if user|has_group:"jefatura de estudios" %}
+                <li class="side-nav-item">
+                    <a href="{% url 'gestionar_equipos' %}" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-adjustments-horizontal"></i></span>
+                        <span class="menu-text">Configurar Desdobles</span>
+                    </a>
+                </li>
+                {% endif %}
             <li class="side-nav-title" data-lang="menu-title">CONVIVENCIA</li>
             {% if user|has_group:"jefatura de estudios" %}
                 <li class="side-nav-item">

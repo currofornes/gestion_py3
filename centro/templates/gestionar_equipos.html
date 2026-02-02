@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Gestión de Equipos Docentes (Desdobles)</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" id="form-filtro">
+                <div class="row">
+                    <div class="col-md-6">{{ form_seleccion.unidad.label_tag }}{{ form_seleccion.unidad }}</div>
+                    {% if unidad_id %}
+                    <div class="col-md-6">{{ form_seleccion.materia.label_tag }}{{ form_seleccion.materia }}</div>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if form_asignacion %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-header bg-primary text-white">Paso 3 y 4: Selección de Alumnado y Profesor</div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-5">
+                        <label>Alumnado en la materia (Unidad)</label>
+                        {{ form_asignacion.alumnos }}
+                    </div>
+
+                    <div class="col-md-2 text-center">
+                        <button type="button" class="btn btn-outline-primary mb-2 w-100" onclick="moverAlumnos('alumnos_origen', 'alumnos_destino')">
+                            Añadir <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary w-100" onclick="moverAlumnos('alumnos_destino', 'alumnos_origen')">
+                            <i class="fas fa-chevron-left"></i> Quitar
+                        </button>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label>Alumnado Seleccionado para cambio</label>
+                        <select id="alumnos_destino" name="alumnos_destino" multiple class="form-control" size="10"></select>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <label class="font-weight-bold">{{ form_asignacion.profesor_impartida.label }}</label>
+                        {{ form_asignacion.profesor_impartida }}
+                        <small class="form-text text-muted">Selecciona el profesor que se hará cargo del grupo seleccionado.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-right">
+                <button type="submit" class="btn btn-success btn-lg" onclick="seleccionarTodoAlEnviar()">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+<script>
+function moverAlumnos(origenId, destinoId) {
+    let origen = document.getElementById(origenId);
+    let destino = document.getElementById(destinoId);
+    Array.from(origen.selectedOptions).forEach(option => {
+        destino.add(option);
+    });
+}
+
+function seleccionarTodoAlEnviar() {
+    // Es vital seleccionar todos los del panel derecho antes de enviar el POST
+    let destino = document.getElementById('alumnos_destino');
+    for (let i = 0; i < destino.options.length; i++) {
+        destino.options[i].selected = true;
+    }
+}
+</script>
+{% endblock %}

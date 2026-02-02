@@ -1,5 +1,8 @@
 from django import forms
-from centro.models import Cursos, Departamentos, Areas, Profesores, MomentoRevisionLibros, RevisionLibroAlumno
+from centro.models import (
+    Alumnos, Materia, MateriaImpartida,
+    Cursos, Departamentos, Areas, Profesores, MomentoRevisionLibros, RevisionLibroAlumno)
+from centro.utils import get_current_academic_year
 
 
 class UnidadForm(forms.Form):
@@ -164,3 +167,65 @@ class ProfesorSustitutoForm(forms.Form):
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("El nombre de usuario ya existe.")
         return username
+
+
+class SeleccionUnidadMateriaForm(forms.Form):
+    unidad = forms.ModelChoiceField(
+        queryset=Cursos.objects.all(),
+        label="Seleccionar Unidad",
+        widget=forms.Select(attrs={'class': 'form-control select2', 'onchange': 'this.form.submit()'})
+    )
+    materia = forms.ModelChoiceField(
+        queryset=Materia.objects.none(),
+        label="Seleccionar Materia",
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control select2', 'onchange': 'this.form.submit()'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        unidad_id = kwargs.pop('unidad_id', None)
+        super().__init__(*args, **kwargs)
+
+        # Obtenemos el objeto del curso actual
+        curso_act = get_current_academic_year()
+
+        if unidad_id:
+            # Filtramos materias que pertenezcan al curso académico actual
+            # y que estén asociadas a esa unidad mediante MateriaImpartida
+            self.fields['materia'].queryset = Materia.objects.filter(
+                curso_academico=curso_act,
+                materiaimpartida__curso_id=unidad_id
+            ).distinct()
+
+
+class AsignacionEquipoForm(forms.Form):
+    alumnos = forms.ModelMultipleChoiceField(
+        queryset=Alumnos.objects.none(),
+        widget=forms.SelectMultiple(attrs={'class': 'form-control', 'id': 'alumnos_origen', 'size': '12'}),
+        label="Alumnado en esta materia",
+        required=False  # <--- IMPORTANTE: Para que no falle al enviar
+    )
+    profesor_impartida = forms.ModelChoiceField(
+        queryset=MateriaImpartida.objects.none(),
+        label="Nuevo profesor/a asignado",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        unidad_id = kwargs.pop('unidad_id')
+        materia_id = kwargs.pop('materia_id')
+        super().__init__(*args, **kwargs)
+
+        curso_act = get_current_academic_year()
+
+        self.fields['alumnos'].queryset = Alumnos.objects.filter(
+            Unidad_id=unidad_id,
+            matriculamateria__materia_impartida__materia_id=materia_id,
+            matriculamateria__curso_academico=curso_act
+        ).distinct()
+
+        self.fields['profesor_impartida'].queryset = MateriaImpartida.objects.filter(
+            curso_id=unidad_id,
+            materia_id=materia_id,
+            curso_academico=curso_act
+        )

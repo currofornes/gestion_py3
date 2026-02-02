@@ -14,13 +14,26 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 
 # Register your models here.
+class MatriculaMateriaInline(admin.TabularInline):
+    model = MatriculaMateria
+    extra = 1
+    autocomplete_fields = ['materia_impartida'] # Búsqueda rápida de materia/profe
+    fields = ['materia_impartida', 'curso_academico']
+
+class MateriaImpartidaInline(admin.TabularInline):
+    model = MateriaImpartida
+    extra = 0
+    autocomplete_fields = ['materia', 'curso']
+    verbose_name = "Materia que imparte"
+    verbose_name_plural = "Materias que imparte"
+
 @admin.register(Alumnos)
 class AlumnosAdmin(admin.ModelAdmin):
     # date_hierarchy = 'Fecha_nacimiento'
     actions_selection_counter = False
     list_filter = ['Unidad', 'Localidad', 'Centro_EP']
     list_display = ["Nombre", 'DNI', 'Centro_EP', 'Telefono1', 'email']
-
+    inlines = [MatriculaMateriaInline] # Ver materias del alumno en su ficha
     search_fields = ['Nombre', 'DNI']
     icon_name = 'face'
 
@@ -30,7 +43,7 @@ class ProfesoresAdmin(admin.ModelAdmin):
     actions_selection_counter = False
     list_filter = ['Departamento', 'Baja']
     list_display = ["Nombre", 'Apellidos', 'Email', 'Departamento', 'Baja']
-
+    inlines = [MateriaImpartidaInline]  # Ver carga horaria en la ficha del profe
     search_fields = ['Nombre', 'Apellidos']
     icon_name = 'recent_actors'
 
@@ -156,20 +169,94 @@ class InfoAlumnosAdmin(admin.ModelAdmin):
     ordering = ('-curso_academico__año_inicio', 'Nivel__Abr', 'Unidad', 'Alumno__Nombre')
 
 
+
 @admin.register(Materia)
 class MateriaAdmin(admin.ModelAdmin):
-    list_display = ['abr', 'nombre', 'nivel', 'horas', 'curso_academico']
-    search_fields = ['nombre', 'abr']
+    # 1. Configuración del Listado (Interfaz principal)
+    list_display = ('nombre', 'abr', 'nivel', 'horas', 'curso_academico', 'get_num_profesores')
+    list_filter = ('curso_academico', 'nivel', 'horas')
+    search_fields = ('nombre', 'abr')
+    list_editable = ('abr', 'horas')  # Permite correcciones rápidas sin entrar en la ficha
+    ordering = ('-curso_academico__año_inicio', 'nivel', 'nombre')
+    list_per_page = 50
+
+    # 2. Organización del Formulario de Edición
+    fieldsets = (
+        ('Información Básica', {
+            'fields': (('nombre', 'abr'), ('nivel', 'horas'))
+        }),
+        ('Configuración de Sistema', {
+            'fields': ('curso_academico',),
+            'classes': ('collapse',)  # Por defecto oculto para no estorbar
+        }),
+    )
+
+    # 3. Relaciones y Componentes
+    inlines = [MateriaImpartidaInline]
+
+    # 4. Acciones Personalizadas
+    actions = ['clonar_materias_al_curso_actual']
+
+    @admin.display(description='Profesores')
+    def get_num_profesores(self, obj):
+        """Muestra cuántos profesores imparten esta materia actualmente"""
+        return obj.materiaimpartida_set.count()
+
+    @admin.action(description="Clonar materias seleccionadas al curso académico actual")
+    def clonar_materias_al_curso_actual(self, request, queryset):
+        """
+        Acción para copiar materias de años anteriores al curso actual con un solo clic.
+        """
+        curso_actual = get_current_academic_year()
+        contador = 0
+
+        for materia in queryset:
+            # Evitamos duplicar si ya existe en el curso actual
+            if materia.curso_academico == curso_actual:
+                continue
+
+            # Clonamos el objeto cambiando solo el curso académico
+            materia.pk = None
+            materia.curso_academico = curso_actual
+            materia.save()
+            contador += 1
+
+        if contador > 0:
+            self.message_user(request, f"Se han clonado {contador} materias al curso {curso_actual}.", messages.SUCCESS)
+        else:
+            self.message_user(request, "No se clonaron materias (o ya pertenecían al curso actual).", messages.WARNING)
+
+
 
 @admin.register(MateriaImpartida)
 class MateriaImpartidaAdmin(admin.ModelAdmin):
-    list_display = ['profesor', 'materia', 'curso', 'curso_academico']
-    search_fields = ['materia__nombre', 'profesor__Nombre']
+    list_display = ['get_materia_nombre', 'profesor', 'curso', 'curso_academico']
+    list_filter = ['curso_academico', 'curso', 'materia__nivel']
+    search_fields = ['materia__nombre', 'profesor__Nombre', 'profesor__Apellidos']
+    autocomplete_fields = ['profesor', 'materia', 'curso']
+
+    @admin.display(description='Materia', ordering='materia__nombre')
+    def get_materia_nombre(self, obj):
+        return obj.materia.nombre
 
 @admin.register(MatriculaMateria)
 class MatriculaMateriaAdmin(admin.ModelAdmin):
-    list_display = ['alumno', 'materia_impartida', 'curso_academico']
-    search_fields = ['alumno__Nombre', 'materia_impartida__materia__nombre']
+    list_display = ['alumno', 'get_unidad', 'get_materia', 'get_profesor', 'curso_academico']
+    list_filter = ['curso_academico', 'materia_impartida__curso', 'materia_impartida__materia__nivel']
+    search_fields = ['alumno__Nombre', 'materia_impartida__materia__nombre', 'materia_impartida__profesor__Nombre']
+    autocomplete_fields = ['alumno', 'materia_impartida']
+
+    @admin.display(description='Unidad', ordering='materia_impartida__curso')
+    def get_unidad(self, obj):
+        return obj.materia_impartida.curso
+
+    @admin.display(description='Materia')
+    def get_materia(self, obj):
+        return obj.materia_impartida.materia
+
+    @admin.display(description='Profesor')
+    def get_profesor(self, obj):
+        return obj.materia_impartida.profesor
 
 @admin.register(LibroTexto)
 class LibroTextoAdmin(admin.ModelAdmin):

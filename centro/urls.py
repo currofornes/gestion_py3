@@ -1,17 +1,17 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════╗
-║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS          ║
 ║                                                                            ║
-║ Copyright © 2023-2026 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║ Copyright © 2023-2026 Francisco Fornés Rumbao, Raúl Reina Molina           ║
 ║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
 ║                                                                            ║
-║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,    ║
 ║ modificación o comercialización sin consentimiento expreso de los autores. ║
 ║                                                                            ║
-║ Este archivo es parte de la aplicación Gestion@.                          ║
+║ Este archivo es parte de la aplicación Gestion@.                           ║
 ║                                                                            ║
-║ Para consultas sobre licencias o permisos:                                ║
-║ Email: fforrum559@g.educaand.es                                           ║
+║ Para consultas sobre licencias o permisos:                                 ║
+║ Email: fforrum559@g.educaand.es                                            ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -90,4 +90,6 @@ urlpatterns = [
 
     path('buscar-libro-olvidado/', views.buscar_revision_libro_olvidado,
      name='buscar_revision_olvidado'),
+    path('equipos/gestionar/', views.gestionar_equipos_docentes, name='gestionar_equipos'),
+    path('equipos/consultar/', views.ver_equipo_docente, name='ver_equipo_docente'),
 ]

@@ -1,17 +1,17 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════╗
-║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS          ║
 ║                                                                            ║
-║ Copyright © 2023-2026 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║ Copyright © 2023-2026 Francisco Fornés Rumbao, Raúl Reina Molina           ║
 ║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
 ║                                                                            ║
-║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,    ║
 ║ modificación o comercialización sin consentimiento expreso de los autores. ║
 ║                                                                            ║
-║ Este archivo es parte de la aplicación Gestion@.                          ║
+║ Este archivo es parte de la aplicación Gestion@.                           ║
 ║                                                                            ║
-║ Para consultas sobre licencias o permisos:                                ║
-║ Email: fforrum559@g.educaand.es                                           ║
+║ Para consultas sobre licencias o permisos:                                 ║
+║ Email: fforrum559@g.educaand.es                                            ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -43,7 +43,8 @@ from centro.models import Alumnos, Cursos, Departamentos, Profesores, Niveles, M
 from centro.utils import get_current_academic_year, get_previous_academic_years
 from convivencia.models import Amonestaciones, Sanciones
 from centro.forms import UnidadForm, DepartamentosForm, UnidadProfeForm, UnidadesProfeForm, SeleccionRevisionForm, \
-    RevisionLibroAlumnoForm, SeleccionRevisionProfeForm, ProfesorSustitutoForm
+    RevisionLibroAlumnoForm, SeleccionRevisionProfeForm, ProfesorSustitutoForm, SeleccionUnidadMateriaForm, \
+    AsignacionEquipoForm
 from datetime import datetime, timedelta
 
 from gestion import settings
@@ -1812,3 +1813,85 @@ def buscar_revision_libro_olvidado(request):
 
 
     return render(request, 'buscar_revision_olvidado.html', context)
+
+
+@login_required()
+def ver_equipo_docente(request):
+    curso_act = get_current_academic_year()
+    unidad_id = request.GET.get('unidad')
+    alumno_id = request.GET.get('alumno')
+
+    # 1. Cargamos todas las unidades activas para el primer selector
+    unidades = Cursos.objects.filter(Activo=True).order_by('Curso')
+
+    alumnos = None
+    equipo = None
+    alumno_sel = None
+
+    # 2. Si hay unidad, cargamos sus alumnos
+    if unidad_id:
+        alumnos = Alumnos.objects.filter(Unidad_id=unidad_id).order_by('Nombre')
+
+    # 3. Si hay alumno, cargamos su equipo docente (Matrículas)
+    if alumno_id:
+        alumno_sel = Alumnos.objects.filter(pk=alumno_id).first()
+        equipo = MatriculaMateria.objects.filter(
+            alumno_id=alumno_id,
+            curso_academico=curso_act
+        ).select_related('materia_impartida__materia', 'materia_impartida__profesor')
+
+    return render(request, 'ver_equipo.html', {
+        'unidades': unidades,
+        'alumnos': alumnos,
+        'equipo': equipo,
+        'unidad_id': int(unidad_id) if unidad_id else None,
+        'alumno_id': int(alumno_id) if alumno_id else None,
+        'alumno_sel': alumno_sel
+    })
+
+@user_passes_test(group_check_je)
+def gestionar_equipos_docentes(request):
+    unidad_id = request.GET.get('unidad')
+    materia_id = request.GET.get('materia')
+    curso_act = get_current_academic_year()
+
+    form_seleccion = SeleccionUnidadMateriaForm(request.GET or None, unidad_id=unidad_id)
+    form_asignacion = None
+
+    if unidad_id and materia_id:
+        if request.method == 'POST':
+            form_asignacion = AsignacionEquipoForm(request.POST, unidad_id=unidad_id, materia_id=materia_id)
+            alumnos_seleccionados = request.POST.getlist('alumnos_destino')
+
+            if form_asignacion.is_valid() and alumnos_seleccionados:
+                nueva_materia_impartida = form_asignacion.cleaned_data['profesor_impartida']
+
+                # Usamos una transacción para que si algo falla, no se quede a medias
+                with transaction.atomic():
+                    for alu_id in alumnos_seleccionados:
+                        # 1. Borramos cualquier otra matrícula que tenga este alumno
+                        # en esta materia concreta (evitamos duplicados de otros grupos/profesores)
+                        MatriculaMateria.objects.filter(
+                            alumno_id=alu_id,
+                            materia_impartida__materia_id=materia_id,
+                            curso_academico=curso_act
+                        ).exclude(materia_impartida=nueva_materia_impartida).delete()
+
+                        # 2. Creamos o actualizamos la matrícula con el nuevo profesor
+                        # get_or_create evita el IntegrityError si ya existía el registro
+                        MatriculaMateria.objects.get_or_create(
+                            alumno_id=alu_id,
+                            materia_impartida=nueva_materia_impartida,
+                            curso_academico=curso_act
+                        )
+
+                return redirect(f"{request.path}?unidad={unidad_id}&materia={materia_id}")
+        else:
+            form_asignacion = AsignacionEquipoForm(unidad_id=unidad_id, materia_id=materia_id)
+
+    return render(request, 'gestionar_equipos.html', {
+        'form_seleccion': form_seleccion,
+        'form_asignacion': form_asignacion,
+        'unidad_id': unidad_id,
+        'materia_id': materia_id
+    })
