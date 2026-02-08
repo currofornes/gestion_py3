@@ -23,19 +23,64 @@ class MatriculaMateriaInline(admin.TabularInline):
 class MateriaImpartidaInline(admin.TabularInline):
     model = MateriaImpartida
     extra = 0
+    classes = ['collapse']  # Esto permite colapsar el inline completo en algunas versiones de Django
     autocomplete_fields = ['materia', 'curso']
     verbose_name = "Materia que imparte"
     verbose_name_plural = "Materias que imparte"
 
+class InfoAlumnosInline(admin.TabularInline):
+    model = InfoAlumnos
+    extra = 0  # No añade filas vacías por defecto
+    classes = ['collapse']  # Esto permite colapsar el inline completo en algunas versiones de Django
+    fields = ('curso_academico', 'Nivel', 'Unidad', 'Repetidor', 'Edad', 'Sexo', 'CentroOrigen')
+    # Si quieres que aparezca de forma más compacta, usa admin.TabularInline
+
+
 @admin.register(Alumnos)
 class AlumnosAdmin(admin.ModelAdmin):
-    # date_hierarchy = 'Fecha_nacimiento'
     actions_selection_counter = False
-    list_filter = ['Unidad', 'Localidad', 'Centro_EP']
-    list_display = ["Nombre", 'DNI', 'Centro_EP', 'Telefono1', 'email']
-    inlines = [MatriculaMateriaInline] # Ver materias del alumno en su ficha
-    search_fields = ['Nombre', 'DNI']
     icon_name = 'face'
+
+    # Listado principal
+    list_display = ["Nombre", 'Unidad', 'DNI', 'Centro_EP', 'Telefono1', 'email']
+    list_filter = ['Unidad', 'Localidad', 'Centro_EP']
+    search_fields = ['Nombre', 'DNI']
+
+    # Organización del formulario en "secciones/pestañas"
+    fieldsets = (
+        # 1. Información principal (Siempre visible)
+        (None, {
+            'fields': ('Nombre', 'Unidad')
+        }),
+        # 2. Identificación (Oculta por defecto)
+        ('Información de Identificación', {
+            'classes': ('collapse',),
+            'fields': ('NIE', 'DNI', 'Fecha_nacimiento')
+        }),
+        # 3. Datos de contacto y residencia (Oculta por defecto)
+        ('Dirección y Ubicación', {
+            'classes': ('collapse',),
+            'fields': ('Direccion', 'CodPostal', 'Localidad', 'Provincia')
+        }),
+        # 4. Centros de procedencia (Oculta por defecto)
+        ('Historial Escolar (Centros)', {
+            'classes': ('collapse',),
+            'fields': ('Centro_EP', 'Centro_ESO')
+        }),
+        # Otros campos que no mencionaste pero están en el modelo (opcional)
+        ('Datos del Tutor y Observaciones', {
+            'classes': ('collapse',),
+            'fields': (('Nomtutor', 'Ap1tutor', 'Ap2tutor'), ('Telefono1', 'Telefono2'), 'email', 'Obs',
+                       ('PDC', 'NEAE'))
+        }),
+    )
+
+    # 5 y 6. Inlines
+    # Nota: Los inlines en Django estándar aparecen siempre al final.
+    # No se pueden "colapsar" de la misma forma que los fieldsets sin JS personalizado,
+    # pero aparecerán en el orden indicado abajo.
+    inlines = [MatriculaMateriaInline, InfoAlumnosInline]
+
 
 @admin.register(Profesores)
 class ProfesoresAdmin(admin.ModelAdmin):
@@ -161,13 +206,58 @@ class CentrosAdmin(admin.ModelAdmin):
     search_fields = ('Nombre', 'Codigo')
     ordering = ('Nombre', 'Codigo')
 
+
 @admin.register(InfoAlumnos)
 class InfoAlumnosAdmin(admin.ModelAdmin):
-    list_display = ('curso_academico', 'Alumno', 'Nivel', 'Unidad', 'CentroOrigen', 'Repetidor', 'Edad', 'Sexo')
+    # Añadimos 'unidad_anterior' al list_display
+    list_display = ('curso_academico', 'Alumno', 'get_unidad_anterior', 'Unidad', 'Nivel', 'CentroOrigen', 'Repetidor')
     list_filter = ('curso_academico', 'Alumno', 'Nivel__Nombre', 'Nivel__Abr', 'Unidad', 'CentroOrigen')
-    search_fields = ['Alumno__Nombre', 'Unidad', 'Nivel__Nombre', 'Nivel__Abr', 'CentroOrigen__Codigo', 'CentroOrigen__Nombre']  # Busca por el nombre del alumno
+    search_fields = ['Alumno__Nombre', 'Unidad', 'Nivel__Nombre', 'Nivel__Abr', 'CentroOrigen__Codigo',
+                     'CentroOrigen__Nombre']
     ordering = ('-curso_academico__año_inicio', 'Nivel__Abr', 'Unidad', 'Alumno__Nombre')
 
+    # Añadimos la acción a la lista
+    actions = ['asignar_gonzalo_nazareno']
+
+    @admin.action(description="Asignar IES Gonzalo Nazareno como Centro de Origen")
+    def asignar_gonzalo_nazareno(self, request, queryset):
+        try:
+            # Buscamos el centro por el código proporcionado
+            centro_gn = Centros.objects.get(Codigo='41011038')
+
+            # Actualizamos el campo CentroOrigen de todos los registros seleccionados en el queryset
+            filas_actualizadas = queryset.update(CentroOrigen=centro_gn)
+
+            self.message_user(
+                request,
+                f"Se ha asignado correctamente el IES Gonzalo Nazareno a {filas_actualizadas} registros.",
+                messages.SUCCESS
+            )
+        except Centros.DoesNotExist:
+            self.message_user(
+                request,
+                "Error: No se ha encontrado ningún centro con el código 41011038 en la base de datos.",
+                messages.ERROR
+            )
+
+    @admin.display(description='Unidad Año Anterior')
+    def get_unidad_anterior(self, obj):
+        # 1. Obtenemos el curso académico anterior usando la lógica de tu modelo
+        try:
+            curso_previo = obj.curso_academico - 1  # Resta un año al inicio
+        except (TypeError, NotImplementedError):
+            return "-"
+
+        if curso_previo:
+            # 2. Buscamos el registro de InfoAlumnos para ese alumno en el año anterior
+            registro_anterior = InfoAlumnos.objects.filter(
+                Alumno=obj.Alumno,
+                curso_academico=curso_previo
+            ).first()
+
+            return registro_anterior.Unidad if registro_anterior else "N/A"
+
+        return "-"
 
 
 @admin.register(Materia)

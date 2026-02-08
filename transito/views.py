@@ -204,6 +204,14 @@ class RendimientoDepartamentosPDFView(LoginRequiredMixin, UserPassesTestMixin, W
             materias = campana.materias_implicadas.all().select_related('nivel').order_by('nivel__Nombre', 'abr')
             centros = campana.centros_origen.all().order_by('Nombre')
 
+            print(f'''
+                PARÁMETROS:
+                    * Campaña: {campana}
+                    * Curso: {curso}
+                    * Materias: {", ".join([m.abr for m in materias])}
+                    * Centros: {", ".join([c.Nombre for c in centros])}
+            ''')
+
             datos_informe = []
 
             # 2. Construimos la matriz de datos

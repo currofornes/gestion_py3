@@ -171,7 +171,7 @@ class ProfesorSustitutoForm(forms.Form):
 
 class SeleccionUnidadMateriaForm(forms.Form):
     unidad = forms.ModelChoiceField(
-        queryset=Cursos.objects.all(),
+        queryset=Cursos.get_unidades_ordenadas(),
         label="Seleccionar Unidad",
         widget=forms.Select(attrs={'class': 'form-control select2', 'onchange': 'this.form.submit()'})
     )

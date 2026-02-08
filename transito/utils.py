@@ -22,9 +22,11 @@ def calcular_tasa_exito(curso, campana, centro, materia):
     }
 
     if centro is not None:
+
         filtros['Alumno__info_adicional__CentroOrigen'] = centro
 
     qs = Calificaciones.objects.filter(**filtros).exclude(Calificacion='')
+    print(f'\t\t {curso} - {centro} - {niveles_ids} - {materia.abr}: {qs.count()}')
 
     total_validos = 0
     total_aprobados = 0

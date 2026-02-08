@@ -1822,7 +1822,7 @@ def ver_equipo_docente(request):
     alumno_id = request.GET.get('alumno')
 
     # 1. Cargamos todas las unidades activas para el primer selector
-    unidades = Cursos.objects.filter(Activo=True).order_by('Curso')
+    unidades = Cursos.get_unidades_ordenadas()
 
     alumnos = None
     equipo = None

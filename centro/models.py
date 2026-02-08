@@ -20,7 +20,7 @@ from datetime import date
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Q
+from django.db.models import Case, When, Value, IntegerField
 
 from .utils import get_current_academic_year
 # from fusiona_old_bbdd import curso_academico_id
@@ -150,6 +150,27 @@ class Cursos(models.Model):
         if isinstance(other, Cursos):
             return self.id < other.id
         return NotImplemented
+
+    @classmethod
+    def get_unidades_ordenadas(cls):
+        """
+        Retorna todas las unidades activas ordenadas por jerarquía académica:
+        ESO > Bachillerato > GM > GS
+        """
+        return cls.objects.filter(
+            Activo=True
+        ).exclude(
+            Nivel__isnull=True
+        ).annotate(
+            prioridad_enseñanza=Case(
+                When(Nivel__Nombre__icontains='E.S.O.', then=Value(1)),
+                When(Nivel__Nombre__icontains='Bachillerato', then=Value(2)),
+                When(Nivel__Nombre__icontains='micro', then=Value(3)),
+                When(Nivel__Nombre__icontains='Administración', then=Value(4)),
+                default=Value(5),
+                output_field=IntegerField(),
+            )
+        ).order_by('prioridad_enseñanza', 'Curso')
 
     class Meta:
         verbose_name = "Curso"
