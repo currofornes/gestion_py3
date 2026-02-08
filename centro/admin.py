@@ -9,6 +9,7 @@ from centro.models import (
     Cursos, Alumnos, Departamentos, Profesores, Areas, Aulas, Niveles, CursoAcademico, InfoAlumnos, Centros, Materia,
     MateriaImpartida, MatriculaMateria, LibroTexto
 )
+from centro.utils import get_current_academic_year
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.shortcuts import render, redirect
 from django.contrib import messages
