@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from .models import InformeDepartamento, AsignacionMateriaDepartamento, CampanaTransito
 from centro.models import Materia, Centros, CursoAcademico
+from centro.utils import get_current_academic_year
 
 
 class InformeDepartamentoForm(forms.ModelForm):
@@ -181,4 +182,40 @@ class InformeHistoricoForm(forms.ModelForm):
                 self.fields['materia_seleccion'].queryset = campana.materias_implicadas.all().order_by(
                     'abr')
             except CampanaTransito.DoesNotExist:
+                pass
+
+
+class FiltroTransitoDeptForm(forms.Form):
+    curso_academico = forms.ModelChoiceField(
+        queryset=CursoAcademico.objects.all().order_by('-año_inicio'),
+        label="Curso Académico",
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control', 'onchange': 'this.form.submit()'})
+    )
+    campana = forms.ModelChoiceField(
+        queryset=CampanaTransito.objects.none(),
+        label="Campaña de Tránsito",
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Obtenemos el ID del curso de los datos enviados (GET/POST) o del inicial
+        curso_id = None
+        if self.data.get('curso_academico'):
+            curso_id = self.data.get('curso_academico')
+        elif self.initial.get('curso_academico'):
+            curso_id = self.initial.get('curso_academico')
+
+        if curso_id:
+            try:
+                # Reconstruimos el queryset de campañas para este curso
+                self.fields['campana'].queryset = CampanaTransito.objects.filter(
+                    curso_academico_id=curso_id
+                ).order_by('-id')
+                # Si hay curso, la campaña pasa a ser obligatoria para ver el informe
+                self.fields['campana'].required = True
+            except (ValueError, TypeError):
                 pass

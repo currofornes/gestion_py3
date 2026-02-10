@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Rendimiento - {{ departamento.Nombre }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Roboto', sans-serif; font-size: 11pt; color: #333; }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 { font-size: 16pt; color: #28a745; margin: 0; }
+        .header h2 { font-size: 11pt; color: #555; margin-top: 5px; }
+        .header h3 { font-size: 13pt; color: #333; margin-top: 5px; text-transform: uppercase; }
+
+        .materia-block {
+            page-break-after: always;
+        }
+        .materia-block:last-child {
+            page-break-after: auto;
+        }
+
+        /* CAMBIO CLAVE: Estructura de tabla para el título */
+        .materia-title-container {
+            background-color: #f0f0f0;
+            border-left: 5px solid #28a745;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        .materia-title-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .materia-title-table td {
+            border: none;
+            padding: 10px;
+            vertical-align: middle;
+        }
+
+        .materia-nombre {
+            font-size: 13pt; /* Reducido ligeramente para dar más aire */
+            font-weight: bold;
+            color: #333;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .materia-nivel {
+            font-size: 9pt;
+            color: #666;
+            font-style: italic;
+            border: 1px solid #ccc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #fff;
+            margin-left: 5px;
+            white-space: nowrap; /* Evita que el nivel se parta en dos */
+        }
+
+        .global-badge {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #0056b3;
+            text-align: right;
+            white-space: nowrap; /* El badge de media siempre en una línea */
+            width: 150px; /* Espacio reservado para la media */
+        }
+
+        table.data-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        .data-table th { background-color: #f8f9fa; border-bottom: 2px solid #ddd; padding: 8px; text-align: left; font-size: 10pt; }
+        .data-table td { border-bottom: 1px solid #eee; padding: 8px; font-size: 10pt; }
+
+        .text-center { text-align: center; }
+        .text-success { color: #28a745; font-weight: bold; }
+        .text-danger { color: #dc3545; font-weight: bold; }
+        .text-muted { color: #999; }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: right;
+            font-size: 8pt;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+
+    {% for item in datos %}
+    <div class="materia-block">
+        <div class="header">
+            <h1>INFORME DE RENDIMIENTO ACADÉMICO</h1>
+            <h3>DEPARTAMENTO: {{ departamento.Nombre }}</h3>
+            <h2>{{ campana.descripcion }} ({{ curso.nombre }})</h2>
+        </div>
+
+        <div class="materia-title-container">
+            <table class="materia-title-table">
+                <tr>
+                    <td>
+                        <span class="materia-nombre">{{ item.materia.nombre }}</span> <br/>
+                        {% if item.materia.nivel %}
+                            <span class="materia-nivel">{{ item.materia.nivel }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="global-badge">
+                        Media Global IES:
+                        {% if item.tasa_global is not None %}
+                            {{ item.tasa_global|floatformat:1 }}%
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th width="50%">Centro de Origen (Primaria)</th>
+                    <th width="25%" class="text-center">% Aprobados</th>
+                    <th width="25%" class="text-center">Diferencial</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in item.filas %}
+                <tr>
+                    <td>{{ fila.centro.Nombre }}</td>
+                    <td class="text-center">
+                        {% if fila.tasa is not None %}
+                            {{ fila.tasa|floatformat:1 }}%
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if fila.diferencia is not None %}
+                            {% if fila.diferencia >= 0 %}
+                                <span class="text-success">+{{ fila.diferencia|floatformat:1 }}%</span>
+                            {% else %}
+                                <span class="text-danger">{{ fila.diferencia|floatformat:1 }}%</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% empty %}
+        {% endfor %}
+
+    <div class="footer">
+        Generado por Gestion@ el {% now "d/m/Y H:i" %}
+    </div>
+</body>
+</html>

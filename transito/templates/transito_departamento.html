@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <h4 class="fw-bold mb-4">Rendimiento por Departamento: {{ departamento.Nombre }}</h4>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action=".">
+                <div class="row g-3">
+                    <div class="col-md-5">{{ form.curso_academico.label_tag }}{{ form.curso_academico }}</div>
+                    <div class="col-md-5">{{ form.campana.label_tag }}{{ form.campana }}</div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Consultar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if datos_rendimiento %}
+        <div class="d-flex justify-content-end mb-3">
+            <a href="{% url 'transito:transito_departamento_pdf' %}?campana={{ campana_id }}" class="btn btn-danger" target="_blank">
+                <i class="ti ti-file-type-pdf"></i> Descargar Informe PDF
+            </a>
+        </div>
+
+        {% for item in datos_rendimiento %}
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="m-0">{{ item.materia.nombre }} <small>(Media Global IES: {{ item.tasa_global|floatformat:2 }}%)</small></h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Centro de Origen</th>
+                                <th class="text-center">Tasa Éxito Centro</th>
+                                <th class="text-center">Diferencial vs Global</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fila in item.filas %}
+                            <tr>
+                                <td>{{ fila.centro.Nombre }}</td>
+                                <td class="text-center">
+                                    {% if fila.tasa != None %}{{ fila.tasa|floatformat:2 }}%{% else %}-{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if fila.diferencia != None %}
+                                        <span class="badge {% if fila.diferencia >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ fila.diferencia|stringformat:"+0.2f" }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">N/C</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endfor %}
+    {% elif request.GET.campana %}
+        <div class="alert alert-warning">
+            No hay datos de matriculación o rendimiento para las materias de su departamento en esta campaña. 
+            Asegúrese de que las materias están correctamente vinculadas en "Asignación Materia-Departamento".
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

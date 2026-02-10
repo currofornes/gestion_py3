@@ -432,6 +432,12 @@
                             <span class="menu-text" data-lang="transito-fill">Rellenar informe</span>
                         </a>
                     </li>
+                    <li class="side-nav-item">
+                        <a href="{% url 'transito:transito_departamento' %}" class="side-nav-link">
+                            <span class="menu-icon"><i class="ti ti-report-analytics"></i></span>
+                            <span class="menu-text">Informe de resultados</span>
+                        </a>
+                    </li>
                 {%  endif %}
 
                 {% if user|has_group:"jefatura de estudios" %}

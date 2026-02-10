@@ -1,17 +1,17 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════╗
-║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS          ║
 ║                                                                            ║
-║ Copyright © 2023-2026 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║ Copyright © 2023-2026 Francisco Fornés Rumbao, Raúl Reina Molina           ║
 ║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
 ║                                                                            ║
-║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,    ║
 ║ modificación o comercialización sin consentimiento expreso de los autores. ║
 ║                                                                            ║
-║ Este archivo es parte de la aplicación Gestion@.                          ║
+║ Este archivo es parte de la aplicación Gestion@.                           ║
 ║                                                                            ║
-║ Para consultas sobre licencias o permisos:                                ║
-║ Email: fforrum559@g.educaand.es                                           ║
+║ Para consultas sobre licencias o permisos:                                 ║
+║ Email: fforrum559@g.educaand.es                                            ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -23,9 +23,13 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.views.generic import TemplateView, View
 from django_weasyprint import WeasyTemplateResponseMixin
+from django.views.generic import FormView, TemplateView
 
-from .models import CampanaTransito, InformeDepartamento
-from .forms import InformeDepartamentoForm, DescargarInformeForm, RendimientoDepartamentosForm, InformeHistoricoForm
+from centro.models import Profesores, MatriculaMateria
+
+from .models import CampanaTransito, InformeDepartamento, AsignacionMateriaDepartamento
+from .forms import InformeDepartamentoForm, DescargarInformeForm, RendimientoDepartamentosForm, InformeHistoricoForm, \
+    FiltroTransitoDeptForm
 
 from .utils import calcular_tasa_exito
 
@@ -356,3 +360,117 @@ class IntroducirInformeHistoricoView(LoginRequiredMixin, UserPassesTestMixin, Vi
             'form': form,
             'informe_encontrado': (informe_existente is not None)
         })
+
+
+class TransitoDepartamentoView(FormView):
+    template_name = 'transito_departamento.html'
+    form_class = FiltroTransitoDeptForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.request.GET:
+            kwargs.update({'data': self.request.GET})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profesor = Profesores.objects.filter(user=self.request.user).first()
+        campana_id = self.request.GET.get('campana')
+
+        if campana_id and profesor and profesor.Departamento:
+            campana = CampanaTransito.objects.get(pk=campana_id)
+            curso = campana.curso_academico
+
+            # 1. Obtenemos las materias asignadas al departamento
+            materias_asignadas = AsignacionMateriaDepartamento.objects.filter(
+                campana=campana,
+                departamento=profesor.Departamento
+            ).select_related('materia')
+
+            centros = campana.centros_origen.all()
+            datos_rendimiento = []
+
+            # 2. Calculamos el rendimiento (igual que en la vista de Jefatura)
+            for asignacion in materias_asignadas:
+                materia = asignacion.materia
+                tasa_global = calcular_tasa_exito(curso, campana, None, materia)
+
+                if tasa_global is not None:
+                    filas_centros = []
+                    for centro in centros:
+                        tasa_centro = calcular_tasa_exito(curso, campana, centro, materia)
+                        filas_centros.append({
+                            'centro': centro,
+                            'tasa': tasa_centro,
+                            'diferencia': (tasa_centro - tasa_global) if tasa_centro is not None else None
+                        })
+
+                    datos_rendimiento.append({
+                        'materia': materia,
+                        'tasa_global': tasa_global,
+                        'filas': filas_centros
+                    })
+
+            context['datos_rendimiento'] = datos_rendimiento
+            context['campana_id'] = campana_id
+            context['departamento'] = profesor.Departamento
+
+        return context
+
+class TransitoDepartamentoPDFView(WeasyTemplateResponseMixin, TemplateView):
+    template_name = 'transito_departamento_pdf.html'
+    pdf_filename = 'rendimiento_transito_departamento.pdf'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        campana_id = self.request.GET.get('campana')
+        profesor = get_object_or_404(Profesores, user=self.request.user)
+        campana = get_object_or_404(CampanaTransito, pk=campana_id)
+        curso = campana.curso_academico
+
+        # 1. Obtener solo las materias que este departamento tiene asignadas en esta campaña
+        materias_dept = AsignacionMateriaDepartamento.objects.filter(
+            campana=campana,
+            departamento=profesor.Departamento
+        ).select_related('materia__nivel').order_by('materia__nivel__Nombre', 'materia__abr')
+
+        centros = campana.centros_origen.all().order_by('Nombre')
+        datos_rendimiento = []
+
+        # 2. Replicar lógica de RendimientoDepartamentosPDFView
+        for asignacion in materias_dept:
+            materia = asignacion.materia
+            tasa_global = calcular_tasa_exito(curso, campana, None, materia)
+
+            if tasa_global is None:
+                continue
+
+            filas_centros = []
+            for centro in centros:
+                tasa_centro = calcular_tasa_exito(curso, campana, centro, materia)
+
+                diferencia = None
+                if tasa_centro is not None:
+                    diferencia = tasa_centro - tasa_global
+
+                filas_centros.append({
+                    'centro': centro,
+                    'tasa': tasa_centro,
+                    'diferencia': diferencia
+                })
+
+            datos_rendimiento.append({
+                'materia': materia,
+                'tasa_global': tasa_global,
+                'filas': filas_centros
+            })
+
+        context.update({
+            'campana': campana,
+            'departamento': profesor.Departamento,
+            'datos': datos_rendimiento,
+            'curso': curso
+        })
+
+        self.pdf_filename = f"Rendimiento_{profesor.Departamento.Abr}_{campana.descripcion}.pdf"
+        return context
