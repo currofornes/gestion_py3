@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.admin import AdminSite
 from django.db import models
 from django.urls import path
+from django.forms import ModelForm, ModelChoiceField
 
 from centro.forms import AsignarProfesoresDepartamentoForm
 from centro.models import (
@@ -34,7 +35,6 @@ class InfoAlumnosInline(admin.TabularInline):
     extra = 0  # No añade filas vacías por defecto
     classes = ['collapse']  # Esto permite colapsar el inline completo en algunas versiones de Django
     fields = ('curso_academico', 'Nivel', 'Unidad', 'Repetidor', 'Edad', 'Sexo', 'CentroOrigen')
-    # Si quieres que aparezca de forma más compacta, usa admin.TabularInline
 
 
 @admin.register(Alumnos)
@@ -83,15 +83,77 @@ class AlumnosAdmin(admin.ModelAdmin):
     inlines = [MatriculaMateriaInline, InfoAlumnosInline]
 
 
+class ProfesorForm(forms.ModelForm):
+    # Creamos un campo que no existe en el modelo Profesores pero sí en la lógica del centro
+    tutoria_asignada = ModelChoiceField(
+        queryset=Cursos.objects.all(),
+        required=False,
+        label="Tutoría de"
+    )
+
+    class Meta:
+        model = Profesores
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            # Si el profesor ya existe, buscamos si es tutor de algún curso
+            self.fields['tutoria_asignada'].initial = Cursos.objects.filter(Tutor=self.instance).first()
+
+    def save(self, commit=True):
+        profesor = super().save(commit=commit)
+        nueva_tutoria = self.cleaned_data.get('tutoria_asignada')
+
+        # Limpiamos tutorías antiguas de este profesor
+        Cursos.objects.filter(Tutor=profesor).update(Tutor=None)
+
+        # Asignamos la nueva si se seleccionó una
+        if nueva_tutoria:
+            nueva_tutoria.Tutor = profesor
+            nueva_tutoria.save()
+        return profesor
+
+
 @admin.register(Profesores)
 class ProfesoresAdmin(admin.ModelAdmin):
-    # date_hierarchy = 'Fecha_nacimiento'
+    form = ProfesorForm
     actions_selection_counter = False
     list_filter = ['Departamento', 'Baja']
-    list_display = ["Nombre", 'Apellidos', 'Email', 'Departamento', 'Baja']
-    inlines = [MateriaImpartidaInline]  # Ver carga horaria en la ficha del profe
+    list_display = ["Nombre", 'Apellidos', 'Email', 'Departamento', 'get_tutoria', 'Baja']
+    inlines = [MateriaImpartidaInline]
     search_fields = ['Nombre', 'Apellidos']
     icon_name = 'recent_actors'
+
+    fieldsets = (
+        ('Información Personal', {
+            'fields': (('Nombre', 'Apellidos'), ('DNI', 'Email'), ('Telefono', 'Movil'))
+        }),
+        ('Configuración Docente', {
+            'fields': (('Departamento', 'tutoria_asignada'), 'Baja')
+        }),
+    )
+
+    def get_queryset(self, request):
+        """
+        Sobrescribimos el queryset para que, por defecto,
+        solo se muestren los profesores que no están de baja.
+        """
+        qs = super().get_queryset(request)
+
+        # Si el usuario ya ha aplicado un filtro manualmente en la barra lateral,
+        # respetamos su elección. Si no hay filtros activos, aplicamos el de Baja=False.
+        if 'Baja__exact' not in request.GET:
+            return qs.filter(Baja=False)
+
+        return qs
+
+    @admin.display(description='Tutoría')
+    def get_tutoria(self, obj):
+        # Muestra la unidad actual en el listado
+        from centro.models import Cursos
+        curso = Cursos.objects.filter(Tutor=obj).first()
+        return curso.Curso if curso else "-"
 
 
 @admin.register(Departamentos)
@@ -158,6 +220,12 @@ class CursosAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Override el queryset para el admin, para que se muestren todos los cursos sin filtrar por defecto"""
         return Cursos.all_objects.all()  # Usamos el manager sin filtro
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Filtra el selector de Tutor para mostrar solo profesores activos"""
+        if db_field.name == "Tutor":
+            kwargs["queryset"] = Profesores.objects.filter(Baja=False)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(Areas)
