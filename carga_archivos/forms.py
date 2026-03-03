@@ -37,7 +37,7 @@ class CargaRegAlumSeneca(forms.Form):
         help_text="Selecciona un archivo con los datos del alumnado (RegAlum)"
     )
     CursoAcademico = forms.ModelChoiceField(
-        queryset=CursoAcademico.objects.all(),
+        queryset=CursoAcademico.selector(),
         label="Curso Académico",
         widget=forms.Select(attrs={'class': 'form-control select2_CursoAcademico'}),
         help_text="Selecciona un curso académico"

@@ -1,369 +1,185 @@
-{% extends "base_menu.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block css %}
-    <link href="{% static 'css/plugins/dataTables/datatables.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet">
+    <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block content %}
-
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="ibox">
-                <div class="ibox-title">
-                    <h2>Protocolos de absentismo</h2>
-                    <h3>Alumno/a: {{ alum.Nombre }}</h3>
-                </div>
+    <div class="container-fluid">
+        <div class="page-title-head d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h4 class="fs-sm text-uppercase fw-bold m-0">Protocolos de absentismo</h4>
             </div>
         </div>
-    </div>
 
-
-    <div class="row animated fadeInRight">
-        <div class="col-lg-12">
-            <div class="ibox ">
-                <div class="ibox-title">
-                    {% if protocolo %}
-                        <div class="float-right">
-                            <a href="/calendario/faltas/{{ protocolo.id }}/" class="btn btn-info"><i class="fa fa-calendar"></i> Ver calendario </a>
-                            <a href="/absentismo/protocolo/{{ protocolo.id }}/cargarfaltas" class="btn btn-info"><i class="fa fa-calendar"></i> Cargar faltas </a>
-                            <a href="#" class="btn btn-danger cerrar-protocolo" data-id="{{ protocolo.id }}"> Cerrar
-                                protocolo </a>
-                            <a href="/absentismo/protocolo/{{ protocolo.id }}/nuevaactuacion" class="btn btn-warning"><i
-                                    class="fa fa-plus"></i> Nueva actuación </a>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header border-light">
+                        <div class="py-1">
+                            <h4 class="card-title mb-1">Alumno/a: {{ alum.Nombre }}</h4>
+                            <p class="text-muted mb-3">{{ alum.Unidad }}</p>
                         </div>
-                    {% endif %}
-                    <h3>Protocolo abierto</h3>
-                </div>
-                <div class="ibox-content">
-                    {% if protocolo %}
+
+                        {% if protocolo %}
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'calendario_asistencia' protocolo.id %}" class="btn btn-sm btn-outline-info text-nowrap">
+                                <i class="ti ti-calendar me-1"></i> Ver calendario
+                            </a>
+                            <a href="/absentismo/protocolo/{{ protocolo.id }}/cargarfaltas" class="btn btn-sm btn-outline-info text-nowrap">
+                                <i class="ti ti-refresh me-1"></i> Cargar faltas
+                            </a>
+                            <a href="{% url 'resumen_faltas_periodos' protocolo.id %}" class="btn btn-sm btn-outline-secondary text-nowrap">
+                                <i class="ti ti-table-analytics me-1"></i> Resumen de Faltas
+                            </a>
+                            <a href="#" class="btn btn-sm btn-danger cerrar-protocolo text-nowrap" data-id="{{ protocolo.id }}">
+                                <i class="ti ti-lock me-1"></i> Cerrar protocolo
+                            </a>
+                            <a href="/absentismo/protocolo/{{ protocolo.id }}/nuevaactuacion" class="btn btn-sm btn-warning text-nowrap">
+                                <i class="ti ti-plus me-1"></i> Nueva actuación
+                            </a>
+                            <a href="{% url 'editar_informe_fm' protocolo.id %}" class="btn btn-sm btn-danger text-nowrap text-start">
+                                <div class="d-flex align-items-center">
+                                    <i class="ti ti-file-description fs-4 me-2"></i>
+                                    <span>Informe<br>Fiscalía de Menores</span>
+                                </div>
+                            </a>
+                            <a href="{% url 'editar_informe_ssc' protocolo.id %}" class="btn btn-sm btn-danger text-nowrap text-start">
+                                <div class="d-flex align-items-center">
+                                    <i class="ti ti-file-description fs-4 me-2"></i>
+                                    <span>Informe<br>Servicios Sociales / Mesa Técnica</span>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-striped table-bordered table-hover">
-                                <thead>
-                                <tr>
-                                    <th class="text-center">Fecha</th>
-                                    <th>Actuación</th>
-                                    <th class="text-center">Medio</th>
-                                    <th class="text-center">Teléfono/s</th>
-                                    <th>Observaciones</th>
-                                    <th></th>
-                                </tr>
+                            <table id="dataTables-protocolos" class="table table-striped table-bordered table-hover dt-responsive align-middle mb-0 w-100">
+                                <thead class="thead-sm text-uppercase fs-xxs">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Actuación</th>
+                                        <th>Medio</th>
+                                        <th>Observaciones</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-
-
-                                {% for a in protocolo.actuaciones.all %}
-                                    <tr>
-                                        <td class="text-center">{{ a.Fecha|date:"d/m/Y" }}</td>
-                                        <td>{{ a.Tipo }}</td>
-                                        {% if a.Medio == None %}
-                                            <td></td>
-                                        {% else %}
-                                            <td class="text-center">{{ a.get_Medio_display }}</td>
-                                        {% endif %}
-                                        {% if a.Medio == 1 %}
-                                            <td class="text-center">{{ a.Telefono }}</td>
-                                        {% else %}
-                                            <td></td>
-                                        {% endif %}
-                                        <td>{{ a.Comentario }}</td>
-                                        {% if a.Tipo.id == 9 %}
+                                    {% for actuacion in actuaciones %}
+                                        <tr>
+                                            <td>{{ actuacion.Fecha|date:"d/m/Y" }}</td>
                                             <td>
-                                                <a href="#" data-toggle="modal" data-target="#dateTimeModal"
-                                                   class="btn btn-sm btn-success">
-                                                    <i class="fa fa-file-text"></i> Carta
-                                                </a>
+                                                <span class="badge badge-soft-primary fs-xs">{{ actuacion.Tipo }}</span>
                                             </td>
-                                        {% elif a.Tipo.id == 10 %}
-                                            <td>
-                                                <a href="#" data-toggle="modal" data-target="#dateTimeModalED"
-                                                   class="btn btn-sm btn-info">
-                                                    <i class="fa fa-file-text"></i> Carta
-                                                </a>
+                                            {% if actuacion.Medio == None %}
+                                                <td></td>
+                                            {% else %}
+                                                <td>{{ actuacion.get_Medio_display }}</td>
+                                            {% endif %}
+                                            <td class="text-wrap" style="max-width: 400px;">
+                                                <small>{{ actuacion.Comentario|default_if_none:"" }}</small>
                                             </td>
-                                        {% elif a.Tipo.id == 11 %}
-                                            <td>
-                                                <a href="#" data-toggle="modal" data-target="#dateTimeModalEDfamilia"
-                                                   class="btn btn-sm btn-warning">
-                                                    <i class="fa fa-file-text"></i> Carta
-                                                </a>
-                                            </td>
-                                        {% endif %}
-                                    </tr>
-                                {% endfor %}
-
+                                        </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
-                    {% else %}
-                        <h3>No hay protocolo de absentismo abierto para <strong>{{ alum.Nombre }}</strong></h3>
-                    {% endif %}
-
-
-                    <!-- Modal para seleccionar la fecha y hora -->
-                    <div class="modal fade" id="dateTimeModal" tabindex="-1" role="dialog"
-                         aria-labelledby="dateTimeModalLabel" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h3 class="modal-title" id="dateTimeModalLabel">Seleccionar Fecha y Hora de la
-                                        reunión</h3>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <label for="fecha-reunion">Fecha:</label>
-                                    <input type="date" id="fecha-reunion" class="form-control">
-                                    <label for="hora-reunion" class="mt-2">Hora:</label>
-                                    <input type="time" id="hora-reunion" class="form-control">
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar
-                                    </button>
-                                    <button type="button" class="btn btn-warning" id="generatePdfButtonSinFecha">Generar
-                                        PDF sin fecha
-                                    </button>
-                                    <button type="button" class="btn btn-primary" id="generatePdfButton">Generar PDF
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <!-- Modal para seleccionar la fecha  -->
-                    <div class="modal fade" id="dateTimeModalED" tabindex="-1" role="dialog"
-                         aria-labelledby="dateTimeModalEDLabel" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title" id="dateTimeModalEDLabel">Seleccionar Fecha de reunión convocada con tutores legales</h4>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <label for="fecha-reunion-ED">Fecha:</label>
-                                    <input type="date" id="fecha-reunion-ED" class="form-control">
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar
-                                    </button>
-                                    <button type="button" class="btn btn-warning" id="generatePdfEDButtonSinFecha">Generar
-                                        PDF sin fecha
-                                    </button>
-                                    <button type="button" class="btn btn-primary" id="generatePdfEDButton">Generar PDF
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="modal fade" id="dateTimeModalEDfamilia" tabindex="-1" role="dialog"
-                         aria-labelledby="dateTimeModalEDfamiliaLabel" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h3 class="modal-title" id="dateTimeModalEDfamiliaLabel">Seleccionar Fecha y Hora de la
-                                        reunión</h3>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <label for="fecha-reunion-ED-familia">Fecha:</label>
-                                    <input type="date" id="fecha-reunion-ED-familia" class="form-control">
-                                    <label for="hora-reunion-ED-familia" class="mt-2">Hora:</label>
-                                    <input type="time" id="hora-reunion-ED-familia" class="form-control">
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar
-                                    </button>
-                                    <button type="button" class="btn btn-warning" id="generatePdfEDfamiliaButtonSinFecha">Generar
-                                        PDF sin fecha
-                                    </button>
-                                    <button type="button" class="btn btn-primary" id="generatePdfEDfamiliaButton">Generar PDF
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
+                    </div> </div> </div>
         </div>
     </div>
-
-    <div class="row animated fadeInRight">
-        <div class="col-lg-12">
-            <div class="ibox ">
-                <div class="ibox-title">
-                    <h3>Protocolos antiguos cerrados</h3>
-                </div>
-                <div class="ibox-content">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover">
-                            <thead>
-                            <tr>
-                                <th class="text-center">Fecha Apertura</th>
-                                <th class="text-center">Fecha Cierre</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-
-                            {% for p in protocolos_cerrados %}
-                                <tr>
-                                    <td class="text-center">{{ p.fecha_apertura|date:"d/m/Y" }}</td>
-                                    <td class="text-center">{{ p.fecha_cierre|date:"d/m/Y" }}</td>
-                                    <td style="text-align: center; vertical-align: middle;">
-                                        <a href="/absentismo/protocolo/{{ p.id }}/ver" class="btn btn-info btn-sm"
-                                           style="color: white;">Ver Actuaciones</a>
-                                    </td>
-
-
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-
-                </div>
-            </div>
-        </div>
-    </div>
-
-
 {% endblock %}
 
-
 {% block js %}
-    <script src="{% static 'js/plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/responsive.bootstrap5.min.js' %}"></script>
+
+    <script src="{% static 'plugins/datatables/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.bootstrap5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/jszip.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/pdfmake.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/vfs_fonts.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'plugins/datatables/buttons.print.min.js' %}"></script>
+
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
     <script>
-
-
         $(document).ready(function () {
-
-            $('#generatePdfButton').on('click', function () {
-                const fecha = $('#fecha-reunion').val();
-                const hora = $('#hora-reunion').val();
-                const protocoloId = "{{ protocolo.id }}";  // Asegúrate de tener el ID del protocolo en el contexto
-
-                if (fecha && hora) {
-                    $('#dateTimeModal').modal('hide');
-                    // Redirigir a la vista con los parámetros de fecha y hora seleccionados
-                    window.location.href = `/pdf/carta_abs_tutor/${protocoloId}?fecha=${fecha}&hora=${hora}`;
-                } else {
-                    alert("Por favor, selecciona una fecha y hora.");
-                }
+            // Inicialización de DataTable
+            $('#dataTables-protocolos').DataTable({
+                dom: "<'d-md-flex justify-content-between align-items-center my-2'<'dropdown'B>f>" +
+                     "rt" +
+                     "<'d-md-flex justify-content-between align-items-center mt-2'ip>",
+                responsive: true,
+                pageLength: 25,
+                order: [[0, 'desc']], // Ordenar por fecha descendente
+                language: {
+                    url: "{% static 'plugins/datatables/es-ES.json' %}",
+                    paginate: {
+                        first: '<i class="ti ti-chevrons-left"></i>',
+                        previous: '<i class="ti ti-chevron-left"></i>',
+                        next: '<i class="ti ti-chevron-right"></i>',
+                        last: '<i class="ti ti-chevrons-right"></i>'
+                    }
+                },
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="ti ti-download me-1"></i> Exportar',
+                        className: 'btn btn-sm btn-secondary dropdown-toggle',
+                        autoClose: true,
+                        buttons: [
+                            { extend: 'copy', text: '<i class="ti ti-copy me-1 align-middle"></i> Copiar', className: 'dropdown-item' },
+                            { extend: 'excel', text: '<i class="ti ti-file-spreadsheet me-1 align-middle"></i> Excel', className: 'dropdown-item' },
+                            { extend: 'pdf', text: '<i class="ti ti-file-text me-1 align-middle"></i> PDF', className: 'dropdown-item' },
+                            { extend: 'print', text: '<i class="ti ti-printer me-1 align-middle"></i> Imprimir', className: 'dropdown-item' }
+                        ]
+                    }
+                ]
             });
 
-            $('#generatePdfEDButton').on('click', function () {
-                const fecha = $('#fecha-reunion-ED').val();
-                const protocoloId = "{{ protocolo.id }}";  // Asegúrate de tener el ID del protocolo en el contexto
-
-                if (fecha) {
-                    $('#dateTimeModalED').modal('hide');
-                    // Redirigir a la vista con los parámetros de fecha y hora seleccionados
-                    window.location.href = `/pdf/carta_abs_ED/${protocoloId}?fecha=${fecha}`;
-                } else {
-                    alert("Por favor, selecciona una fecha.");
-                }
-            });
-
-            $('#generatePdfEDfamiliaButton').on('click', function () {
-                const fecha = $('#fecha-reunion-ED-familia').val();
-                const hora = $('#hora-reunion-ED-familia').val();
-                const protocoloId = "{{ protocolo.id }}";  // Asegúrate de tener el ID del protocolo en el contexto
-
-                if (fecha) {
-                    $('#dateTimeModalEDfamilia').modal('hide');
-                    // Redirigir a la vista con los parámetros de fecha y hora seleccionados
-                    window.location.href = `/pdf/carta_abs_familia_ED/${protocoloId}?fecha=${fecha}&hora=${hora}`;
-                } else {
-                    alert("Por favor, selecciona una fecha.");
-                }
-            });
-
-            $('#generatePdfButtonSinFecha').on('click', function () {
-
-                const protocoloId = "{{ protocolo.id }}";  // Asegúrate de tener el ID del protocolo en el contexto
-
-                $('#dateTimeModal').modal('hide');
-                // Redirigir a la vista con los parámetros de fecha y hora seleccionados
-                window.location.href = `/pdf/carta_abs_tutor/${protocoloId}`;
-
-            });
-
-            $('#generatePdfEDButtonSinFecha').on('click', function () {
-
-                const protocoloId = "{{ protocolo.id }}";  // Asegúrate de tener el ID del protocolo en el contexto
-
-                $('#dateTimeModalED').modal('hide');
-                // Redirigir a la vista con los parámetros de fecha y hora seleccionados
-                window.location.href = `/pdf/carta_abs_ED/${protocoloId}`;
-
-            });
-
-            $('#generatePdfEDfamiliaButtonSinFecha').on('click', function () {
-
-                const protocoloId = "{{ protocolo.id }}";  // Asegúrate de tener el ID del protocolo en el contexto
-
-                $('#dateTimeModalEDfamilia').modal('hide');
-                // Redirigir a la vista con los parámetros de fecha y hora seleccionados
-                window.location.href = `/pdf/carta_abs_familia_ED/${protocoloId}`;
-
-            });
-
-
-            $('.cerrar-protocolo').click(function () {
-                var protocoloId = $(this).data('id');
+            // Lógica para cerrar protocolo con SweetAlert2
+            $('.cerrar-protocolo').on('click', function (e) {
+                e.preventDefault();
+                const protocoloId = $(this).data('id');
 
                 Swal.fire({
                     title: "¿Estás seguro?",
-                    text: "Tendrás que abrir un nuevo protocolo en caso de nuevas actuaciones.",
+                    text: "Esta acción cerrará el protocolo de absentismo vigente.",
                     icon: "warning",
                     showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "Sí, cerrar.",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Sí, cerrar",
+                    cancelButtonText: "Cancelar"
                 }).then((result) => {
                     if (result.isConfirmed) {
-
                         $.ajax({
-                            url: '{% url "cerrar_protocolo" %}', // Asegúrate de que esta URL sea la correcta
-                            method: 'POST',
+                            url: `/absentismo/cerrar_protocolo/`, // Ajusta esta URL a la que apunte tu archivo urls.py
+                            type: 'POST',
                             data: {
-                                'id': protocoloId,
+                                'id': protocoloId, // <--- Enviamos el ID explícitamente
                                 'csrfmiddlewaretoken': '{{ csrf_token }}'
                             },
                             success: function (response) {
                                 if (response.success) {
-                                    Swal.fire({
-                                        title: "¡Cerrado!",
-                                        text: "El protocolo ha sido cerrado.",
-                                        icon: "success"
-                                    }).then(() => {
-                                        window.location.href = "/absentismo/misalumnos"; // Redirige después de cerrar el alert de éxito
+                                    Swal.fire("¡Cerrado!", "El protocolo ha sido cerrado.", "success")
+                                    .then(() => {
+                                        window.location.href = "/absentismo/alumnos";
                                     });
                                 } else {
-                                    Swal.fire({
-                                        title: "Error",
-                                        text: "No se pudo cerrar el protocolo.",
-                                        icon: "error"
-                                    });
+                                    // Ahora podremos ver el error real que devuelve el servidor
+                                    Swal.fire("Error", response.error || "No se pudo cerrar el protocolo.", "error");
                                 }
                             },
-                            error: function (xhr, status, error) {
-                                Swal.fire({
-                                    title: "Error",
-                                    text: "Ocurrió un error al intentar cerrar el protocolo.",
-                                    icon: "error"
-                                });
+                            error: function (xhr) {
+                                console.error(xhr.responseText); // Para que puedas ver el error en la consola del navegador
+                                Swal.fire("Error", "Ocurrió un error en el servidor.", "error");
                             }
                         });
                     }
@@ -372,4 +188,3 @@
         });
     </script>
 {% endblock %}
-

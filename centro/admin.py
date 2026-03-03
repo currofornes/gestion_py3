@@ -8,7 +8,7 @@ from django.forms import ModelForm, ModelChoiceField
 from centro.forms import AsignarProfesoresDepartamentoForm
 from centro.models import (
     Cursos, Alumnos, Departamentos, Profesores, Areas, Aulas, Niveles, CursoAcademico, InfoAlumnos, Centros, Materia,
-    MateriaImpartida, MatriculaMateria, LibroTexto
+    MateriaImpartida, MatriculaMateria, LibroTexto, CalendariosLectivos, PeriodosLectivos, Festivos
 )
 from centro.utils import get_current_academic_year
 from django.contrib.admin.widgets import FilteredSelectMultiple
@@ -424,3 +424,62 @@ class LibroTextoAdmin(admin.ModelAdmin):
 
 admin.site.site_header = "Gonzalo Nazareno"
 admin.site.index_title = "Gestión del Centro"
+
+
+# 1. Inline de Festivos para usar dentro de Periodos
+class FestivoInline(admin.TabularInline):
+    model = Festivos
+    extra = 1
+
+# 2. Inline de Periodos para usar dentro de Calendarios
+class PeriodoLectivoInline(admin.TabularInline):
+    model = PeriodosLectivos
+    extra = 0
+    fields = ('inicio', 'fin', 'dias_lectivos')
+    readonly_fields = ('dias_lectivos',)
+    # ESTA LÍNEA ES CLAVE: Crea un icono de "lápiz" para ir a la ficha del periodo
+    # y así poder editar sus festivos.
+    show_change_link = True
+
+class FestivoInline(admin.TabularInline):
+    model = Festivos
+    extra = 1
+    fields = ('fecha', 'descripcion')
+
+class PeriodoLectivoInline(admin.TabularInline):
+    model = PeriodosLectivos
+    extra = 0
+    fields = ('descripcion', 'inicio', 'fin', 'dias_lectivos')
+    readonly_fields = ('dias_lectivos',)
+    show_change_link = True
+
+@admin.register(CalendariosLectivos)
+class CalendariosLectivosAdmin(admin.ModelAdmin):
+    list_display = ('curso_academico',)
+    inlines = [PeriodoLectivoInline]
+
+@admin.register(PeriodosLectivos)
+class PeriodosLectivosAdmin(admin.ModelAdmin):
+    list_display = ('descripcion', 'get_curso', 'inicio', 'fin', 'dias_lectivos')
+    list_filter = ('calendario_lectivo__curso_academico',)
+    inlines = [FestivoInline]
+    readonly_fields = ('dias_lectivos',)
+
+    @admin.display(description="Curso")
+    def get_curso(self, obj):
+        return obj.calendario_lectivo.curso_academico
+
+@admin.register(Festivos)
+class FestivosAdmin(admin.ModelAdmin):
+    list_display = ('fecha', 'descripcion', 'get_mes', 'get_curso')
+    list_filter = ('periodo_lectivo__calendario_lectivo__curso_academico',)
+    search_fields = ('descripcion', 'fecha')
+    date_hierarchy = 'fecha'
+
+    @admin.display(description="Mes")
+    def get_mes(self, obj):
+        return obj.periodo_lectivo.inicio.strftime('%B')
+
+    @admin.display(description="Curso")
+    def get_curso(self, obj):
+        return obj.periodo_lectivo.calendario_lectivo.curso_academico

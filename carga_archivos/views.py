@@ -1,17 +1,17 @@
 """
 ╔════════════════════════════════════════════════════════════════════════════╗
-║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS         ║
+║                          GESTION@ - GESTIÓN DE CENTROS EDUCATIVOS          ║
 ║                                                                            ║
-║ Copyright © 2023-2026 Francisco Fornés Rumbao, Raúl Reina Molina          ║
+║ Copyright © 2023-2026 Francisco Fornés Rumbao, Raúl Reina Molina           ║
 ║                          Proyecto base por José Domingo Muñoz Rodríguez    ║
 ║                                                                            ║
-║ Todos los derechos reservados. Prohibida la reproducción, distribución,   ║
+║ Todos los derechos reservados. Prohibida la reproducción, distribución,    ║
 ║ modificación o comercialización sin consentimiento expreso de los autores. ║
 ║                                                                            ║
-║ Este archivo es parte de la aplicación Gestion@.                          ║
+║ Este archivo es parte de la aplicación Gestion@.                           ║
 ║                                                                            ║
-║ Para consultas sobre licencias o permisos:                                ║
-║ Email: fforrum559@g.educaand.es                                           ║
+║ Para consultas sobre licencias o permisos:                                 ║
+║ Email: fforrum559@g.educaand.es                                            ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -190,23 +190,61 @@ def RegAlum_procesar_datos(request):
             Q(Nombre=data['Curso']) | Q(NombresAntiguos__icontains=data['Curso'])
         ).first()
 
-        info_alumno, creado = InfoAlumnos.objects.get_or_create(
-            curso_academico=curso_academico,
-            Alumno=alumno,
-            defaults={
-                'Nivel': nivel,
-                'Unidad': unidad,
-                'Repetidor': repetidor,
-                'Edad': edad,
-                'Sexo': sexo
-            }
-        )
+        # Extracción de nuevos campos
+        direccion = data.get('Dirección')
+        localidad = data.get('Localidad de residencia')
+        telefono = data.get('Teléfono')
+        email = data.get('Correo Electrónico')
+
+        # Procesamiento Tutor 1
+        dni_t1 = data.get('DNI/Pasaporte Primer tutor')
+        nombre_t1 = f"{data.get('Nombre Primer tutor', '')} {data.get('Primer apellido Primer tutor', '')} {data.get('Segundo apellido Primer tutor', '')}".strip()
+
+        # Procesamiento Tutor 2
+        dni_t2 = data.get('DNI/Pasaporte Segundo tutor')
+        nombre_t2 = f"{data.get('Nombre Segundo tutor', '')} {data.get('Primer apellido Segundo tutor', '')} {data.get('Segundo apellido Segundo tutor', '')}".strip()
+
+        try:
+            info_alumno, creado = InfoAlumnos.objects.get_or_create(
+                curso_academico=curso_academico,
+                Alumno=alumno,
+                defaults={
+                    'Nivel': nivel,
+                    'Unidad': unidad,
+                    'Repetidor': repetidor,
+                    'Edad': edad,
+                    'Sexo': sexo,
+                    'Direccion': direccion,
+                    'Localidad': localidad,
+                    'Telefono': telefono,
+                    'Email': email,
+                    'DniTutor1': dni_t1,
+                    'NombreTutor1': nombre_t1,
+                    'DniTutor2': dni_t2,
+                    'NombreTutor2': nombre_t2
+                }
+            )
+        except Exception as e:
+            return JsonResponse({
+                'error': f'Error técnico: {str(e)}'
+            })
+
         if not creado:
+            # Actualización de campos existentes
             info_alumno.Unidad = unidad
             info_alumno.Repetidor = repetidor
             info_alumno.Edad = edad
             info_alumno.Sexo = sexo
             info_alumno.Nivel = nivel
+            # Actualización de nuevos campos
+            info_alumno.Direccion = direccion
+            info_alumno.Localidad = localidad
+            info_alumno.Telefono = telefono
+            info_alumno.Email = email
+            info_alumno.DniTutor1 = dni_t1
+            info_alumno.NombreTutor1 = nombre_t1
+            info_alumno.DniTutor2 = dni_t2
+            info_alumno.NombreTutor2 = nombre_t2
             info_alumno.save()
 
         return JsonResponse({'status': 'success'})

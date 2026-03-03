@@ -1,0 +1,540 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+<style>
+  /* ── Variables ───────────────────────────────────────── */
+  :root {
+    --c-ok:       #22c55e;   /* verde    — asistencia       */
+    --c-j:        #facc15;   /* amarillo — justificada      */
+    --c-nj:       #ef4444;   /* rojo     — no justificada   */
+    --c-off:      #e9ecef;   /* gris     — no lectivo       */
+    --c-fut:      #f4f6f8;   /* gris muy claro — futuro     */
+    --c-off-text: #adb5bd;
+    --font-cal:   'DM Mono', 'Courier New', monospace;
+    --radius:     6px;
+  }
+
+  /* ── Layout ─────────────────────────────────────────── */
+  .cal-page {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ── Cabecera ───────────────────────────────────────── */
+  .cal-header {
+    border-bottom: 3px solid #212529;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .cal-header .alumno-nombre {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  .cal-header .protocolo-meta {
+    font-size: .82rem;
+    color: #6c757d;
+    font-family: var(--font-cal);
+  }
+
+  /* ── Leyenda ────────────────────────────────────────── */
+  .leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.25rem;
+    margin-bottom: 2rem;
+    padding: .75rem 1rem;
+    background: #f8f9fa;
+    border-radius: var(--radius);
+    border: 1px solid #dee2e6;
+  }
+  .leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .78rem;
+    color: #495057;
+  }
+  /* Muestra: mismo ratio alto/ancho que un día real */
+  .leyenda-muestra {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0,0,0,.1);
+  }
+  .ley-ok  { background: var(--c-ok); }
+  .ley-j   { background: var(--c-j); }
+  .ley-nj  { background: var(--c-nj); }
+  .ley-off { background: var(--c-off); }
+  .ley-mix {
+    background: linear-gradient(to bottom,
+      #ef4444 0% 33.33%, #facc15 33.33% 66.66%, #22c55e 66.66% 100%);
+  }
+  .ley-fut {
+    background: var(--c-fut);
+    background-image: repeating-linear-gradient(
+      -45deg, transparent, transparent 3px,
+      rgba(0,0,0,.06) 3px, rgba(0,0,0,.06) 4px);
+  }
+
+  /* ── Grid de meses: 3 columnas ──────────────────────── */
+  .meses-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .pdf-salto {
+    grid-column: 1 / -1;
+    height: 0; margin: 0; padding: 0;
+    page-break-after: always;
+  }
+
+  /* ── Tarjeta de mes ──────────────────────────────────── */
+  .mes-card {
+    border: 1px solid #dee2e6;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .mes-header {
+    background: #212529; color: #fff;
+    padding: .55rem .9rem;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .mes-titulo {
+    font-family: var(--font-cal); font-size: .95rem;
+    font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .mes-anio { font-family: var(--font-cal); font-size: .78rem; opacity: .6; }
+
+  /* ── Tabla del mes ───────────────────────────────────── */
+  .mes-tabla { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .mes-tabla thead th {
+    font-family: var(--font-cal); font-size: .7rem; font-weight: 700;
+    text-align: center; padding: .35rem 0;
+    color: #495057; background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6; letter-spacing: .05em;
+  }
+  .mes-tabla thead th.th-fin { color: #adb5bd; }
+  .mes-tabla td { padding: 2px; }
+
+  /* ── Celda de día ────────────────────────────────────── */
+  /*
+   * .dia-wrap   — contenedor con aspect-ratio cuadrado y posición relativa
+   * .dia-barra  — rellena todo el wrap con el gradiente de tramos
+   * .dia-num    — número superpuesto, centrado
+   */
+  .dia-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: default;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .dia-wrap:hover {
+    transform: scale(1.18);
+    z-index: 10;
+    box-shadow: 0 3px 10px rgba(0,0,0,.22);
+  }
+
+  .dia-barra {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+  }
+
+  /* No lectivo */
+  .dia-wrap.no-lectivo .dia-barra { background: var(--c-off); }
+
+  /* Fuera del rango del curso */
+  .dia-wrap.fuera-rango .dia-barra { background: transparent; }
+
+  /* Futuro: trama diagonal sutil */
+  .dia-wrap.futuro .dia-barra {
+    background: var(--c-fut);
+    background-image: repeating-linear-gradient(
+      -45deg, transparent, transparent 3px,
+      rgba(0,0,0,.06) 3px, rgba(0,0,0,.06) 4px);
+  }
+
+  .dia-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-cal);
+    font-size: .72rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    text-shadow: 0 0 4px rgba(255,255,255,.65);
+    line-height: 1;
+    user-select: none;
+  }
+  /* Número sobre rojo puro → blanco sin sombra */
+  .dia-wrap.todo-nj .dia-num { color: #fff; text-shadow: none; }
+  /* Número en días grises (no lectivo, futuro, fuera-rango) → más suave */
+  .dia-wrap.no-lectivo .dia-num,
+  .dia-wrap.futuro .dia-num     { color: var(--c-off-text); font-weight: 400; text-shadow: none; }
+  .dia-wrap.fuera-rango .dia-num { color: #dee2e6; font-weight: 400; text-shadow: none; }
+
+  /* ── Resumen mensual ─────────────────────────────────── */
+  .mes-resumen {
+    display: flex; gap: .4rem; flex-wrap: wrap;
+    padding: .5rem .9rem;
+    border-top: 1px solid #dee2e6; background: #f8f9fa;
+  }
+  .res-chip {
+    font-size: .68rem; padding: .1rem .45rem;
+    border-radius: 20px; font-family: var(--font-cal);
+    font-weight: 600; border: 1px solid transparent;
+  }
+  .res-ok    { background: #dcfce7; color: #14532d; border-color: #86efac; }
+  .res-j     { background: #fef9c3; color: #713f12; border-color: #fde047; }
+  .res-nj    { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+  /* ── Resumen global ─────────────────────────────────── */
+  .resumen-global {
+    margin-top: 2rem;
+    border: 1px solid #dee2e6;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .rg-header {
+    background: #212529; color: #fff;
+    padding: .6rem 1.1rem;
+    font-family: var(--font-cal); font-size: .75rem;
+    font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  }
+  /* Barra proporcional de tramos */
+  .rg-barra-wrap { padding: .6rem 1.1rem .4rem; background: #f8f9fa; border-bottom: 1px solid #dee2e6; }
+  .rg-barra { height: 10px; border-radius: 5px; overflow: hidden; }
+  /* Stats */
+  .rg-stats {
+    display: flex; flex-wrap: wrap;
+    gap: .5rem 2.5rem;
+    padding: .85rem 1.1rem;
+    background: #f8f9fa;
+  }
+  .stat-item { display: flex; flex-direction: column; }
+  .stat-punto {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; vertical-align: middle; margin-right: 3px; margin-bottom: 1px;
+  }
+  .punto-ok  { background: var(--c-ok); }
+  .punto-j   { background: var(--c-j); border: 1px solid #d4a00a; }
+  .punto-nj  { background: var(--c-nj); }
+  .punto-tot { background: #6c757d; }
+  .stat-valor {
+    font-family: var(--font-cal); font-size: 1.6rem;
+    font-weight: 700; line-height: 1;
+  }
+  .stat-label { font-size: .72rem; color: #6c757d; margin-top: .15rem; }
+  .stat-ok    .stat-valor { color: #15803d; }
+  .stat-j     .stat-valor { color: #a16207; }
+  .stat-nj    .stat-valor { color: #dc2626; }
+  .stat-tot   .stat-valor { color: #212529; }
+  /* Nota al pie */
+  .rg-nota {
+    padding: .4rem 1.1rem .55rem;
+    background: #f8f9fa; border-top: 1px solid #dee2e6;
+    font-size: .72rem; color: #6c757d;
+  }
+
+  @media print {
+    .cal-page { max-width: 100%; }
+    .meses-grid { grid-template-columns: repeat(3, 1fr); gap: .75rem; }
+    .dia-wrap:hover { transform: none; box-shadow: none; }
+    .no-print { display: none !important; }
+  }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid py-4 cal-page" id="contenido-pdf">
+
+  {# ── Cabecera ── #}
+  <div class="cal-header d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <div>
+      <div class="alumno-nombre">{{ alumno.Nombre }}</div>
+      <div class="protocolo-meta mt-1">
+        {{ alumno.Unidad }} &nbsp;·&nbsp;
+        Protocolo #{{ protocolo.pk }} &nbsp;·&nbsp;
+        Apertura: {{ protocolo.fecha_apertura|date:"d/m/Y" }}
+        {% if protocolo.fecha_cierre %}
+          &nbsp;·&nbsp; Cierre: {{ protocolo.fecha_cierre|date:"d/m/Y" }}
+        {% endif %}
+      </div>
+    </div>
+    <div class="d-flex gap-2 no-print">
+      <a href="{% url 'detalle_protocolo' protocolo.alumno.id %}"
+         class="btn btn-sm btn-outline-secondary">
+        <i class="ti ti-arrow-left me-1"></i> Volver
+      </a>
+      <a href="{% url 'descargar_pdf_calendario' protocolo.pk %}"
+           class="btn btn-sm btn-outline-dark">
+          <i class="ti ti-file-download me-1"></i> Descargar PDF
+        </a>
+    </div>
+  </div>
+
+  {# ── Leyenda ── #}
+  <div class="leyenda">
+    <div class="leyenda-item">
+      <span class="leyenda-muestra ley-ok"></span>Asistencia completa
+    </div>
+    <div class="leyenda-item">
+      <span class="leyenda-muestra ley-j"></span>Falta justificada
+    </div>
+    <div class="leyenda-item">
+      <span class="leyenda-muestra ley-nj"></span>Falta no justificada
+    </div>
+    <div class="leyenda-item">
+      <span class="leyenda-muestra ley-mix"></span>Falta mixta (proporcional)
+    </div>
+    <div class="leyenda-item">
+      <span class="leyenda-muestra ley-off"></span>No lectivo / festivo
+    </div>
+    <div class="leyenda-item">
+      <span class="leyenda-muestra ley-fut"></span>Día futuro (no computa)
+    </div>
+  </div>
+
+  {# ── Sin datos ── #}
+  {% if not meses %}
+  <div class="alert alert-warning">
+    No hay calendario lectivo configurado para este curso académico.
+  </div>
+  {% endif %}
+
+  {# ── Grid de meses: filas de 3, con salto de página entre filas ── #}
+  {# La vista pasa "filas" (lista de listas de 3 meses) en lugar de "meses" plano #}
+  <div class="meses-grid">
+    {% for fila in filas %}
+
+      {# Separador de página PDF entre filas (no en la primera) #}
+      {% if not forloop.first %}
+      <div class="pdf-salto html2pdf__page-break"></div>
+      {% endif %}
+
+      {% for mes in fila %}
+      <div class="mes-card">
+
+        {# Cabecera del mes #}
+        <div class="mes-header">
+          <span class="mes-titulo">{{ mes.nombre }}</span>
+          <span class="mes-anio">{{ mes.anio }}</span>
+        </div>
+
+        {# Tabla de días #}
+        <table class="mes-tabla">
+          <thead>
+            <tr>
+              {% for d in mes.dias_semana %}
+              <th class="{% if forloop.counter > 5 %}th-fin{% endif %}">{{ d }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for semana in mes.semanas %}
+            <tr>
+              {% for dia in semana %}
+                {% if dia is None %}
+                <td></td>
+                {% elif dia.tipo == 'fuera-rango' %}
+                <td>
+                  <div class="dia-wrap fuera-rango">
+                    <div class="dia-barra"></div>
+                    <div class="dia-num">{{ dia.num }}</div>
+                  </div>
+                </td>
+                {% elif dia.tipo == 'no-lectivo' %}
+                <td>
+                  <div class="dia-wrap no-lectivo" title="{{ dia.tooltip }}">
+                    <div class="dia-barra"></div>
+                    <div class="dia-num">{{ dia.num }}</div>
+                  </div>
+                </td>
+                {% elif dia.tipo == 'futuro' %}
+                <td>
+                  <div class="dia-wrap futuro" title="Pendiente">
+                    <div class="dia-barra"></div>
+                    <div class="dia-num">{{ dia.num }}</div>
+                  </div>
+                </td>
+                {% elif dia.tramos_nj == 6 %}
+                <td>
+                  <div class="dia-wrap todo-nj" title="{{ dia.tooltip }}">
+                    <div class="dia-barra" style="background:{{ dia.gradiente }}"></div>
+                    <div class="dia-num">{{ dia.num }}</div>
+                  </div>
+                </td>
+                {% else %}
+                <td>
+                  <div class="dia-wrap" title="{{ dia.tooltip }}">
+                    <div class="dia-barra" style="background:{{ dia.gradiente }}"></div>
+                    <div class="dia-num">{{ dia.num }}</div>
+                  </div>
+                </td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        {# Resumen mensual en tramos #}
+        <div class="mes-resumen">
+          {% if mes.resumen.tr_lectivos == 0 %}
+            <span class="text-muted" style="font-size:.68rem">Sin días lectivos</span>
+          {% else %}
+            {% if mes.resumen.tr_ok %}
+            <span class="res-chip res-ok">↑ {{ mes.resumen.tr_ok }}h asist.</span>
+            {% endif %}
+            {% if mes.resumen.tr_j %}
+            <span class="res-chip res-j">J {{ mes.resumen.tr_j }}h</span>
+            {% endif %}
+            {% if mes.resumen.tr_nj %}
+            <span class="res-chip res-nj">NJ {{ mes.resumen.tr_nj }}h</span>
+            {% endif %}
+          {% endif %}
+        </div>
+
+      </div>{# /mes-card #}
+      {% endfor %}{# /fila #}
+
+    {% endfor %}{# /filas #}
+  </div>{# /meses-grid #}
+
+  {# ── Resumen global ── #}
+  {% if filas and totales %}
+  <div class="resumen-global mt-4">
+    <div class="rg-header">Resumen del protocolo &mdash; tramos horarios</div>
+
+    {# Barra proporcional visual #}
+    <div class="rg-barra-wrap">
+      <div class="rg-barra" style="background:{{ totales.barra }}"></div>
+    </div>
+
+    <div class="rg-stats">
+      <div class="stat-item stat-ok">
+        <span class="stat-valor">
+          <span class="stat-punto punto-ok"></span>{{ totales.tr_ok }}
+        </span>
+        <span class="stat-label">Tramos asistencia</span>
+      </div>
+
+      {% if totales.tr_j %}
+      <div class="stat-item stat-j">
+        <span class="stat-valor">
+          <span class="stat-punto punto-j"></span>{{ totales.tr_j }}
+        </span>
+        <span class="stat-label">Tramos justificados</span>
+      </div>
+      {% endif %}
+
+      {% if totales.tr_nj %}
+      <div class="stat-item stat-nj">
+        <span class="stat-valor">
+          <span class="stat-punto punto-nj"></span>{{ totales.tr_nj }}
+        </span>
+        <span class="stat-label">Tramos no justificados</span>
+      </div>
+      {% endif %}
+
+      <div class="stat-item stat-tot">
+        <span class="stat-valor">{{ totales.tr_lectivos }}</span>
+        <span class="stat-label">Total tramos lectivos</span>
+      </div>
+
+      <div class="stat-item stat-ok">
+        <span class="stat-valor">{{ totales.pct_ok }}<small style="font-size:.9rem;font-weight:400">%</small></span>
+        <span class="stat-label">Asistencia</span>
+      </div>
+
+      {% if totales.tr_nj %}
+      <div class="stat-item stat-nj">
+        <span class="stat-valor">{{ totales.pct_nj }}<small style="font-size:.9rem;font-weight:400">%</small></span>
+        <span class="stat-label">Absentismo NJ</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="rg-nota">
+      <i class="ti ti-info-circle me-1"></i>
+      Cada tramo equivale a 1 hora lectiva. Un día completo = 6 tramos.
+      Los días futuros no computan en los totales.
+      Para el detalle por periodo consulta el
+      <a href="{% url 'resumen_faltas_periodos' protocolo.pk %}">resumen de faltas por periodo</a>.
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+
+{% block js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+{# ── Tooltips Bootstrap ── #}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Tooltips en días del calendario
+    document.querySelectorAll('.dia[title]').forEach(function (el) {
+      if (el.title) {
+        new bootstrap.Tooltip(el, { placement: 'top', trigger: 'hover focus' });
+        el.dataset.bsOriginalTitle = el.title;
+        el.removeAttribute('title');
+      }
+    });
+
+    // ── Descarga PDF ──
+    document.getElementById('btn-descargar-pdf').addEventListener('click', function () {
+      const btn     = this;
+      const spinner = document.getElementById('spinner-pdf');
+      const icon    = document.getElementById('icon-pdf');
+      const nombre  = 'calendario_{{ alumno.Nombre|slugify }}_protocolo_{{ protocolo.pk }}.pdf';
+
+      // Estado de carga
+      btn.disabled = true;
+      spinner.classList.remove('d-none');
+      icon.classList.add('d-none');
+
+      const elemento = document.getElementById('contenido-pdf');
+
+      const opciones = {
+        margin:      [10, 8, 10, 8],   // mm: arriba, derecha, abajo, izquierda
+        filename:    nombre,
+        image:       { type: 'jpeg', quality: 0.97 },
+        html2canvas: {
+          scale:         2,             // mayor resolución
+          useCORS:       true,
+          letterRendering: true,
+        },
+        jsPDF: {
+          unit:        'mm',
+          format:      'a4',
+          orientation: 'landscape',    // horizontal para caber más meses por fila
+        },
+        pagebreak: { mode: ['avoid-all', 'css'] },
+      };
+
+      html2pdf()
+        .set(opciones)
+        .from(elemento)
+        .save()
+        .finally(function () {
+          btn.disabled = false;
+          spinner.classList.add('d-none');
+          icon.classList.remove('d-none');
+        });
+    });
+  });
+</script>
+{% endblock %}

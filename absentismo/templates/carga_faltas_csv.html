@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins border shadow-sm">
+                <div class="ibox-title">
+                    <h2 class="mb-1">{{ titulo|default:"Carga de Faltas desde Séneca" }}</h2>
+                    <h5 class="text-muted">Archivo esperado: <code class="fw-bold">RegFalAsiUniPer.csv</code></h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="ti ti-info-circle fs-4 me-2"></i>
+                        <div>
+                            Se procesarán las faltas para: <strong>{{ protocolo.alumno.Nombre }} {{ protocolo.alumno.Apellidos }}</strong>.
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="mt-4" id="formCargaCSV">
+                        {% csrf_token %}
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label fw-bold">{{ form.curso_academico.label }}:</label>
+                            <div class="col-sm-9">
+                                {{ form.curso_academico }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4 row">
+                            <label class="col-sm-2 col-form-label fw-bold" for="{{ form.archivo_csv.id_for_label }}">
+                                {{ form.archivo_csv.label }}:
+                            </label>
+                            <div class="col-sm-10">
+                                {{ form.archivo_csv }}
+                                <div class="form-text mt-2">
+                                    <i class="ti ti-file-description"></i> Solo se admiten archivos con extensión <strong>.csv</strong>.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hr-line-dashed"></div>
+
+                        <div class="row">
+                            <div class="col-sm-10 offset-sm-2">
+                                <button class="btn btn-primary px-4" type="submit" id="submitBtn">
+                                    <i class="ti ti-upload"></i> Procesar e Importar
+                                </button>
+                                <a href="/absentismo/{{ protocolo.alumno.id }}/protocolo" class="btn btn-outline-secondary px-4 ms-2">
+                                    Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'plugins/sweetalert2/sweetalert2.all.min.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('formCargaCSV');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('submit', function() {
+                // Feedback visual de carga nativo de Bootstrap 5
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando archivo...';
+            });
+        });
+    </script>
+{% endblock %}

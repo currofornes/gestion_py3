@@ -222,13 +222,33 @@
                     </a>
                 </li>
 
-
                 {% if user|has_group:"jefatura de estudios" %}
                 <li class="side-nav-item">
                     <a href="{% url 'gestionar_equipos' %}" class="side-nav-link">
                         <span class="menu-icon"><i class="ti ti-adjustments-horizontal"></i></span>
                         <span class="menu-text">Configurar Desdobles</span>
                     </a>
+                </li>
+                <li class="side-nav-item">
+                    <a data-bs-toggle="collapse" href="#sidebarAbsentismo" aria-expanded="false" aria-controls="sidebarAbsentismo" class="side-nav-link">
+                        <span class="menu-icon"><i class="ti ti-user-minus"></i></span>
+                        <span class="menu-text"> Absentismo </span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <div class="collapse" id="sidebarAbsentismo">
+                        <ul class="side-nav-second-level">
+                            <li class="side-nav-item">
+                                <a href="/absentismo/todoalumnado" class="side-nav-link">
+                                    <span class="menu-text">Todo el Alumnado</span>
+                                </a>
+                            </li>
+                            <li class="side-nav-item">
+                                <a href="/absentismo/alumnos" class="side-nav-link">
+                                    <span class="menu-text">Protocolos Abiertos</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 {% endif %}
             <li class="side-nav-title" data-lang="menu-title">CONVIVENCIA</li>

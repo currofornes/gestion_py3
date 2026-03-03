@@ -1,0 +1,498 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- Cabecera -->
+  <div class="row mb-3 align-items-center">
+    <div class="col">
+      <h4 class="mb-0">
+        <i class="mdi mdi-file-document-outline me-2 text-primary"></i>
+        Informe para Fiscalía de Menores — Anexo I
+      </h4>
+      <p class="text-muted mb-0 fs-sm mt-1">
+        Protocolo de absentismo de
+        <strong>{{ protocolo.alumno.Nombre }}</strong>
+        · Apertura: {{ protocolo.fecha_apertura|date:"d/m/Y" }}
+        {% if informe.ultima_modificacion %}
+          · <span class="text-muted">Última edición: {{ informe.ultima_modificacion|date:"d/m/Y H:i" }}</span>
+        {% endif %}
+      </p>
+    </div>
+    <div class="col-auto d-flex gap-2">
+      {% if informe.pk %}
+      <a href="{% url 'descargar_pdf_fm' protocolo.pk %}"
+         class="btn btn-outline-success btn-sm">
+        <i class="mdi mdi-file-pdf-box me-1"></i> Descargar PDF
+      </a>
+      {% endif %}
+      <a href="{% url 'detalle_protocolo' protocolo.alumno.id %}"
+         class="btn btn-outline-secondary btn-sm">
+        <i class="mdi mdi-arrow-left me-1"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <form method="post" id="form-fm" novalidate>
+    {% csrf_token %}
+
+{#    ════════════════════════════════════════════════════#}
+{#       BLOQUE 1 · ASIGNACIÓN DE TUTORES LEGALES#}
+{#    ═════════════════════════════════════════════════════#}
+    <div class="card mb-3">
+      <div class="card-header bg-light py-2">
+        <h6 class="mb-0 text-uppercase fs-xs fw-bold text-secondary">
+          Tutores legales
+        </h6>
+      </div>
+      <div class="card-body">
+
+        {% with info=protocolo.alumno.info_adicional.first %}
+        <p class="text-muted fs-sm mb-3">
+          Datos disponibles en el sistema —
+          Tutor 1: <strong>{{ info.NombreTutor1|default:"—" }}</strong> ({{ info.DniTutor1|default:"sin DNI" }}) ·
+          Tutor 2: <strong>{{ info.NombreTutor2|default:"—" }}</strong> ({{ info.DniTutor2|default:"sin DNI" }})
+        </p>
+        {% endwith %}
+
+        <label class="form-label fw-semibold">¿Cómo asignar los tutores en el informe?</label>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-2">
+          {% for val, etiqueta in asignacion_choices %}
+          <div class="col">
+            <div class="form-check border rounded px-3 py-2 h-100">
+              <input class="form-check-input" type="radio"
+                     name="asignacion_tutores" id="asig_{{ val }}"
+                     value="{{ val }}"
+                     {% if initial.asignacion_tutores == val %}checked{% endif %}
+                     required>
+              <label class="form-check-label fs-sm" for="asig_{{ val }}">{{ etiqueta }}</label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
+
+{#    ════════════════════════════════════════════════════#}
+{#       BLOQUE 2 · DATOS FAMILIARES#}
+{#    ═════════════════════════════════════════════════════#}
+    <div class="card mb-3">
+      <div class="card-header bg-light py-2">
+        <h6 class="mb-0 text-uppercase fs-xs fw-bold text-secondary">
+          Datos familiares
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Hermanos/as en el centro</label>
+            <div class="d-flex gap-3 flex-wrap mb-2">
+              {% for val, etiqueta in hermanos_choices %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio"
+                       name="hermanos_centro" id="hcent_{{ val }}"
+                       value="{{ val }}"
+                       {% if initial.hermanos_centro == val %}checked{% endif %}>
+                <label class="form-check-label" for="hcent_{{ val }}">{{ etiqueta }}</label>
+              </div>
+              {% endfor %}
+            </div>
+            <input type="number" name="hermanos_centro_numero" min="0" max="20"
+                   class="form-control form-control-sm" style="max-width:100px"
+                   placeholder="Nº" value="{{ initial.hermanos_centro_numero }}">
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Hermanos/as absentistas</label>
+            <div class="d-flex gap-3 flex-wrap mb-2">
+              {% for val, etiqueta in hermanos_choices %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio"
+                       name="hermanos_absentistas" id="habs_{{ val }}"
+                       value="{{ val }}"
+                       {% if initial.hermanos_absentistas == val %}checked{% endif %}>
+                <label class="form-check-label" for="habs_{{ val }}">{{ etiqueta }}</label>
+              </div>
+              {% endfor %}
+            </div>
+            <input type="number" name="hermanos_absentistas_numero" min="0" max="20"
+                   class="form-control form-control-sm" style="max-width:100px"
+                   placeholder="Nº" value="{{ initial.hermanos_absentistas_numero }}">
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_hermanos_nombres">Indicar nombres</label>
+            <textarea name="hermanos_nombres" id="id_hermanos_nombres"
+                      class="form-control" rows="2">{{ initial.hermanos_nombres }}</textarea>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_otros_convivientes">
+              Otros miembros que conviven con el/la menor
+            </label>
+            <textarea name="otros_convivientes" id="id_otros_convivientes"
+                      class="form-control" rows="2">{{ initial.otros_convivientes }}</textarea>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+{#    ════════════════════════════════════════════════════#}
+{#       BLOQUE 3 · INFORME DE ACTUACIONES#}
+{#    ═════════════════════════════════════════════════════#}
+    <div class="card mb-3">
+      <div class="card-header bg-light py-2">
+        <h6 class="mb-0 text-uppercase fs-xs fw-bold text-secondary">
+          Informe de actuaciones realizadas con el alumno/a
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_informe_actuaciones">Informe de actuaciones</label>
+            <textarea name="informe_actuaciones" id="id_informe_actuaciones"
+                      class="form-control" rows="6">{{ initial.informe_actuaciones }}</textarea>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_valoracion_educativa">
+              Valoración educativa (evolución académica, colaboración familiar)
+            </label>
+            <textarea name="valoracion_educativa" id="id_valoracion_educativa"
+                      class="form-control" rows="6">{{ initial.valoracion_educativa }}</textarea>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_comparecencia_menor">
+              Manifestaciones del/la menor mayor de 12 años (fecha, etc.)
+            </label>
+            <textarea name="comparecencia_menor" id="id_comparecencia_menor"
+                      class="form-control" rows="4">{{ initial.comparecencia_menor }}</textarea>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_llamadas_citaciones">
+              Llamadas y citaciones (Tutor/a, E.O.E., Equipo Directivo, con fechas)
+            </label>
+            <textarea name="llamadas_citaciones" id="id_llamadas_citaciones"
+                      class="form-control" rows="4">{{ initial.llamadas_citaciones }}</textarea>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label" for="id_comparecencia_tutores_legales">
+              Comparecencias de tutores legales (fecha, asistencia, compromisos)
+            </label>
+            <textarea name="comparecencia_tutores_legales" id="id_comparecencia_tutores_legales"
+                      class="form-control" rows="4">{{ initial.comparecencia_tutores_legales }}</textarea>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="card mb-3" id="card-adjuntos">
+      <div class="card-header bg-light py-2 d-flex align-items-center justify-content-between">
+        <h6 class="mb-0 text-uppercase fs-xs fw-bold text-secondary">
+          <i class="ti ti-paperclip me-1"></i> Documentos adjuntos
+        </h6>
+        <span class="badge bg-secondary" id="badge-num-adjuntos">{{ adjuntos|length }}</span>
+      </div>
+
+      <div class="card-body">
+        {# ── Lista de adjuntos ya guardados ── #}
+        <ul class="list-group list-group-flush mb-3" id="lista-adjuntos">
+          {% for adj in adjuntos %}
+          <li class="list-group-item px-0 d-flex align-items-center gap-2"
+              id="adjunto-{{ adj.pk }}">
+
+            {# Icono y nombre del fichero #}
+            <i class="ti ti-file-type-pdf text-danger fs-4 flex-shrink-0"></i>
+
+            <div class="flex-grow-1 min-w-0">
+              {# Descripción editable en línea #}
+              <div class="d-flex align-items-center gap-1 descripcion-wrapper">
+                <span class="descripcion-texto fw-semibold text-truncate"
+                      title="{{ adj.descripcion }}">{{ adj.descripcion }}</span>
+                <button type="button"
+                        class="btn btn-link btn-sm p-0 text-muted btn-editar-descripcion"
+                        data-id="{{ adj.pk }}"
+                        data-tipo="{% if 'fm' in request.resolver_match.url_name %}fm{% else %}ssc{% endif %}"
+                        title="Editar descripción">
+                  <i class="ti ti-pencil fs-xs"></i>
+                </button>
+              </div>
+              {# Formulario de edición (oculto hasta que se pulse el lápiz) #}
+              <div class="editar-descripcion-form d-none mt-1">
+                <div class="input-group input-group-sm">
+                  <input type="text" class="form-control input-descripcion"
+                         value="{{ adj.descripcion }}" maxlength="255">
+                  <button type="button" class="btn btn-primary btn-guardar-descripcion"
+                          data-id="{{ adj.pk }}"
+                          data-tipo="{% if 'fm' in request.resolver_match.url_name %}fm{% else %}ssc{% endif %}">
+                    <i class="ti ti-check"></i>
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary btn-cancelar-descripcion">
+                    <i class="ti ti-x"></i>
+                  </button>
+                </div>
+              </div>
+              {# Enlace al archivo #}
+              <a href="{{ adj.archivo.url }}" target="_blank"
+                 class="text-muted fs-xs text-decoration-none">
+                <i class="ti ti-external-link fs-xs me-1"></i>{{ adj.filename }}
+              </a>
+            </div>
+
+            {# Botón eliminar #}
+            <button type="button"
+                    class="btn btn-sm btn-outline-danger flex-shrink-0 btn-eliminar-adjunto"
+                    data-id="{{ adj.pk }}"
+                    data-tipo="{% if 'fm' in request.resolver_match.url_name %}fm{% else %}ssc{% endif %}"
+                    title="Eliminar adjunto">
+              <i class="ti ti-trash fs-sm"></i>
+            </button>
+          </li>
+          {% empty %}
+          <li class="list-group-item px-0 text-muted text-center fs-sm" id="li-sin-adjuntos">
+            Sin documentos adjuntos todavía.
+          </li>
+          {% endfor %}
+        </ul>
+
+        {# ── Formulario de subida ── #}
+        <div class="border rounded p-3 bg-light" id="zona-subida">
+          <p class="fw-semibold fs-sm mb-2">
+            <i class="ti ti-upload me-1"></i> Añadir nuevo adjunto
+          </p>
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+              <label class="form-label fs-xs mb-1" for="adj-descripcion">Descripción</label>
+              <input type="text" id="adj-descripcion" class="form-control form-control-sm"
+                     placeholder="Ej: Comparecencia del 12/01/2025" maxlength="255">
+            </div>
+            <div class="col-12 col-md-5">
+              <label class="form-label fs-xs mb-1" for="adj-archivo">Archivo PDF</label>
+              <input type="file" id="adj-archivo" class="form-control form-control-sm"
+                     accept=".pdf">
+            </div>
+            <div class="col-12 col-md-2">
+              <button type="button" id="btn-subir-adjunto"
+                      class="btn btn-primary btn-sm w-100">
+                <span class="spinner-border spinner-border-sm d-none me-1"
+                      id="spinner-subida" role="status"></span>
+                <i class="ti ti-plus me-1" id="icon-subida"></i> Añadir
+              </button>
+            </div>
+          </div>
+          <div class="text-danger fs-xs mt-2 d-none" id="error-subida"></div>
+        </div>
+      </div>
+    </div>
+
+{#    ════════════════════════════════════════════════════#}
+{#       BOTONES DE ACCIÓN#}
+{#    ═════════════════════════════════════════════════════#}
+    <div class="d-flex gap-2 justify-content-end">
+      <button type="submit" name="accion" value="guardar" class="btn btn-primary">
+        <i class="mdi mdi-content-save me-1"></i> Guardar
+      </button>
+      <button type="submit" name="accion" value="guardar_pdf" class="btn btn-success">
+        <i class="mdi mdi-file-pdf-box me-1"></i> Guardar y generar PDF
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{%  block js %}
+<script>
+(function () {
+  'use strict';
+
+  const CSRF        = '{{ csrf_token }}';
+  // ↓ Cambia esta URL según el informe (fm o ssc)
+  const URL_SUBIR   = "{% url 'subir_adjunto_fm' protocolo.pk %}";
+
+  /* ── Utilidades ── */
+  function urlEliminar(tipo, id) {
+    // Construimos la URL dinámicamente en el servidor con data-* del botón
+    return `/absentismo/adjunto-${tipo}/${id}/eliminar/`;
+  }
+  function urlDescripcion(tipo, id) {
+    return `/absentismo/adjunto-${tipo}/${id}/descripcion/`;
+  }
+
+  /* ── Actualizar badge de número de adjuntos ── */
+  function actualizarBadge() {
+    const n = document.querySelectorAll('#lista-adjuntos li[id^="adjunto-"]').length;
+    document.getElementById('badge-num-adjuntos').textContent = n;
+    const sinAdj = document.getElementById('li-sin-adjuntos');
+    if (sinAdj) sinAdj.classList.toggle('d-none', n > 0);
+  }
+
+  /* ── Crear <li> para un adjunto nuevo ── */
+  function crearLi({ id, descripcion, filename, url, tipo }) {
+    const li = document.createElement('li');
+    li.className = 'list-group-item px-0 d-flex align-items-center gap-2';
+    li.id        = `adjunto-${id}`;
+    li.innerHTML = `
+      <i class="ti ti-file-type-pdf text-danger fs-4 flex-shrink-0"></i>
+      <div class="flex-grow-1 min-w-0">
+        <div class="d-flex align-items-center gap-1 descripcion-wrapper">
+          <span class="descripcion-texto fw-semibold text-truncate"
+                title="${descripcion}">${descripcion}</span>
+          <button type="button"
+                  class="btn btn-link btn-sm p-0 text-muted btn-editar-descripcion"
+                  data-id="${id}" data-tipo="${tipo}" title="Editar descripción">
+            <i class="ti ti-pencil fs-xs"></i>
+          </button>
+        </div>
+        <div class="editar-descripcion-form d-none mt-1">
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control input-descripcion"
+                   value="${descripcion}" maxlength="255">
+            <button type="button" class="btn btn-primary btn-guardar-descripcion"
+                    data-id="${id}" data-tipo="${tipo}">
+              <i class="ti ti-check"></i>
+            </button>
+            <button type="button"
+                    class="btn btn-outline-secondary btn-cancelar-descripcion">
+              <i class="ti ti-x"></i>
+            </button>
+          </div>
+        </div>
+        <a href="${url}" target="_blank"
+           class="text-muted fs-xs text-decoration-none">
+          <i class="ti ti-external-link fs-xs me-1"></i>${filename}
+        </a>
+      </div>
+      <button type="button"
+              class="btn btn-sm btn-outline-danger flex-shrink-0 btn-eliminar-adjunto"
+              data-id="${id}" data-tipo="${tipo}" title="Eliminar adjunto">
+        <i class="ti ti-trash fs-sm"></i>
+      </button>`;
+    return li;
+  }
+
+  /* ── Subir adjunto ── */
+  document.getElementById('btn-subir-adjunto').addEventListener('click', async () => {
+    const desc    = document.getElementById('adj-descripcion').value.trim();
+    const file    = document.getElementById('adj-archivo').files[0];
+    const errDiv  = document.getElementById('error-subida');
+    const spinner = document.getElementById('spinner-subida');
+    const icon    = document.getElementById('icon-subida');
+
+    errDiv.classList.add('d-none');
+
+    if (!desc) { errDiv.textContent = 'Escribe una descripción.'; errDiv.classList.remove('d-none'); return; }
+    if (!file) { errDiv.textContent = 'Selecciona un archivo PDF.'; errDiv.classList.remove('d-none'); return; }
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      errDiv.textContent = 'Solo se admiten archivos PDF.'; errDiv.classList.remove('d-none'); return;
+    }
+
+    const fd = new FormData();
+    fd.append('csrfmiddlewaretoken', CSRF);
+    fd.append('descripcion', desc);
+    fd.append('archivo', file);
+
+    spinner.classList.remove('d-none');
+    icon.classList.add('d-none');
+
+    try {
+      const resp = await fetch(URL_SUBIR, { method: 'POST', body: fd });
+      const data = await resp.json();
+
+      if (data.ok) {
+        // Detectar el tipo (fm/ssc) desde la URL
+        const tipo = URL_SUBIR.includes('fm') ? 'fm' : 'ssc';
+        const lista = document.getElementById('lista-adjuntos');
+        // Eliminar el li "sin adjuntos" si existe
+        const sinAdj = document.getElementById('li-sin-adjuntos');
+        if (sinAdj) sinAdj.remove();
+
+        lista.appendChild(crearLi({ ...data, tipo }));
+        actualizarBadge();
+
+        // Limpiar formulario
+        document.getElementById('adj-descripcion').value = '';
+        document.getElementById('adj-archivo').value     = '';
+      } else {
+        errDiv.textContent = data.error || 'Error al subir el archivo.';
+        errDiv.classList.remove('d-none');
+      }
+    } catch {
+      errDiv.textContent = 'Error de red. Inténtalo de nuevo.';
+      errDiv.classList.remove('d-none');
+    } finally {
+      spinner.classList.add('d-none');
+      icon.classList.remove('d-none');
+    }
+  });
+
+  /* ── Delegación de eventos: eliminar / editar descripción ── */
+  document.getElementById('lista-adjuntos').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    const id   = btn.dataset.id;
+    const tipo = btn.dataset.tipo;
+    const li   = document.getElementById(`adjunto-${id}`);
+
+    /* Eliminar */
+    if (btn.classList.contains('btn-eliminar-adjunto')) {
+      if (!confirm('¿Eliminar este adjunto? Esta acción no se puede deshacer.')) return;
+      try {
+        const resp = await fetch(urlEliminar(tipo, id), {
+          method:  'POST',
+          headers: { 'X-CSRFToken': CSRF },
+        });
+        const data = await resp.json();
+        if (data.ok) { li.remove(); actualizarBadge(); }
+        else alert('No se pudo eliminar el adjunto.');
+      } catch { alert('Error de red.'); }
+    }
+
+    /* Abrir edición de descripción */
+    if (btn.classList.contains('btn-editar-descripcion')) {
+      li.querySelector('.descripcion-wrapper').classList.add('d-none');
+      li.querySelector('.editar-descripcion-form').classList.remove('d-none');
+      li.querySelector('.input-descripcion').focus();
+    }
+
+    /* Cancelar edición */
+    if (btn.classList.contains('btn-cancelar-descripcion')) {
+      li.querySelector('.descripcion-wrapper').classList.remove('d-none');
+      li.querySelector('.editar-descripcion-form').classList.add('d-none');
+    }
+
+    /* Guardar descripción */
+    if (btn.classList.contains('btn-guardar-descripcion')) {
+      const nueva = li.querySelector('.input-descripcion').value.trim();
+      if (!nueva) { alert('La descripción no puede estar vacía.'); return; }
+
+      const fd = new FormData();
+      fd.append('csrfmiddlewaretoken', CSRF);
+      fd.append('descripcion', nueva);
+
+      try {
+        const resp = await fetch(urlDescripcion(tipo, id), { method: 'POST', body: fd });
+        const data = await resp.json();
+        if (data.ok) {
+          li.querySelector('.descripcion-texto').textContent = data.descripcion;
+          li.querySelector('.descripcion-texto').title       = data.descripcion;
+          li.querySelector('.input-descripcion').value       = data.descripcion;
+          li.querySelector('.descripcion-wrapper').classList.remove('d-none');
+          li.querySelector('.editar-descripcion-form').classList.add('d-none');
+        } else alert(data.error || 'Error al guardar.');
+      } catch { alert('Error de red.'); }
+    }
+  });
+
+})();
+</script>
+{% endblock %}

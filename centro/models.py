@@ -16,15 +16,14 @@
 """
 
 
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Case, When, Value, IntegerField
+from django.core.exceptions import ValidationError
 
 from .utils import get_current_academic_year
-# from fusiona_old_bbdd import curso_academico_id
-from gestion import settings
 
 
 # Create your models here.
@@ -43,7 +42,10 @@ class CursoAcademico(models.Model):
             return CursoAcademico.objects.filter(año_inicio=inicio).first()
         else:
             raise NotImplementedError
-
+    @classmethod
+    def selector(cls):
+        curso_academico_actual = get_current_academic_year()
+        return CursoAcademico.objects.filter(año_fin__lte=curso_academico_actual.año_fin).order_by('-año_fin').all()
 
 class Aulas(models.Model):
     Aula = models.CharField(max_length=30)
@@ -281,6 +283,30 @@ class InfoAlumnos(models.Model):
     Sexo = models.CharField(max_length=1, verbose_name="Sexo", choices=C_SEXO, null=True, blank=True)
     CentroOrigen = models.ForeignKey('centro.Centros', on_delete=models.SET_NULL, null=True, blank=True)
 
+    # Nuevos campos para el informe de Fiscalía
+    Direccion = models.CharField(max_length=255, verbose_name="Dirección",
+                                 null=True, blank=True)
+    Localidad = models.CharField(max_length=100, verbose_name="Localidad",
+                                 null=True, blank=True)
+    Telefono = models.CharField(max_length=20, verbose_name="Teléfono",
+                                null=True, blank=True)
+    Email = models.EmailField(verbose_name="Correo Electrónico", null=True,
+                              blank=True)
+
+    # Datos del Primer Tutor (Padre/Representante 1)
+    DniTutor1 = models.CharField(max_length=20, verbose_name="DNI Tutor 1",
+                                 null=True, blank=True)
+    NombreTutor1 = models.CharField(max_length=255,
+                                    verbose_name="Nombre Tutor 1", null=True,
+                                    blank=True)
+
+    # Datos del Segundo Tutor (Madre/Representante 2)
+    DniTutor2 = models.CharField(max_length=20, verbose_name="DNI Tutor 2",
+                                 null=True, blank=True)
+    NombreTutor2 = models.CharField(max_length=255,
+                                    verbose_name="Nombre Tutor 2", null=True,
+                                    blank=True)
+
     class Meta:
         verbose_name = "Información Adicional de un Alumno"
         verbose_name_plural = "Información Adicional del Alumnado"
@@ -418,3 +444,116 @@ class PreferenciaHorario(models.Model):
     def __str__(self):
         return f"Preferencias de {self.profesor}"
 
+
+class CalendariosLectivos(models.Model):
+    curso_academico = models.OneToOneField(
+        'CursoAcademico',
+        on_delete=models.CASCADE,
+        related_name='calendario'
+    )
+
+    class Meta:
+        verbose_name = "Calendario Lectivo"
+        verbose_name_plural = "Calendarios Lectivos"
+
+    def __str__(self):
+        return f"Calendario {self.curso_academico}"
+
+
+class PeriodosLectivos(models.Model):
+    calendario_lectivo = models.ForeignKey(
+        CalendariosLectivos,
+        on_delete=models.CASCADE,
+        related_name='periodos_lectivos'
+    )
+    descripcion = models.CharField(max_length=255, blank=True, verbose_name="Descripción")
+    inicio = models.DateField()
+    fin = models.DateField()
+    dias_lectivos = models.IntegerField(default=0, editable=False)
+
+    class Meta:
+        verbose_name = "Periodo Lectivo"
+        verbose_name_plural = "Periodos Lectivos"
+        ordering = ['inicio']
+
+    def clean(self):
+        if self.inicio and self.fin:
+            if self.inicio > self.fin:
+                raise ValidationError("La fecha de inicio no puede ser posterior a la de fin.")
+            if self.inicio.month != self.fin.month:
+                raise ValidationError("El periodo debe estar comprendido dentro del mismo mes.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        # El cálculo inicial se hace aquí, pero se actualiza también desde el modelo Festivos
+        super().save(*args, **kwargs)
+        self.actualizar_dias_lectivos()
+
+    def actualizar_dias_lectivos(self):
+        """Calcula días de L-V excluyendo festivos registrados."""
+        total_dias = 0
+        current_date = self.inicio
+
+        # Obtenemos las fechas de los festivos registrados para este periodo
+        festivos_fechas = self.festivos.values_list('fecha', flat=True)
+
+        while current_date <= self.fin:
+            # weekday() < 5 significa de Lunes (0) a Viernes (4)
+            if current_date.weekday() < 5 and current_date not in festivos_fechas:
+                total_dias += 1
+            current_date += timedelta(days=1)
+
+        # Usamos update para evitar disparar el save() recursivamente
+        PeriodosLectivos.objects.filter(pk=self.pk).update(dias_lectivos=total_dias)
+
+    def __str__(self):
+        return f"{self.inicio.strftime('%b %Y')} ({self.inicio} a {self.fin})"
+
+    def __contains__(self, item):
+        if isinstance(item, date):
+            return self.inicio <= item <= self.fin
+        else:
+            return False
+
+    def nombre_corto(self):
+        return self.inicio.strftime('%b %Y')
+
+
+class Festivos(models.Model):
+    periodo_lectivo = models.ForeignKey(
+        PeriodosLectivos,
+        on_delete=models.CASCADE,
+        related_name='festivos'
+    )
+    fecha = models.DateField()
+    descripcion = models.CharField(max_length=255, blank=True, verbose_name="Descripción")
+
+    class Meta:
+        verbose_name = "Día Festivo"
+        verbose_name_plural = "Días Festivos"
+        unique_together = ('periodo_lectivo', 'fecha')
+
+    def clean(self):
+        if self.fecha:
+            # 1. Debe estar en el rango del periodo
+            if not (self.periodo_lectivo.inicio <= self.fecha <= self.periodo_lectivo.fin):
+                raise ValidationError(
+                    f"La fecha debe estar entre {self.periodo_lectivo.inicio} y {self.periodo_lectivo.fin}.")
+
+            # 2. Debe ser día de semana (L-V)
+            if self.fecha.weekday() >= 5:
+                raise ValidationError("No tiene sentido marcar un sábado o domingo como festivo lectivo.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        # Forzamos el recalculo en el padre
+        self.periodo_lectivo.actualizar_dias_lectivos()
+
+    def delete(self, *args, **kwargs):
+        periodo = self.periodo_lectivo
+        super().delete(*args, **kwargs)
+        periodo.actualizar_dias_lectivos()
+
+    def __str__(self):
+        return f"Festivo: {self.fecha}"

@@ -3,8 +3,7 @@
 
 {% block css %}
     <link href="{% static 'plugins/datatables/responsive.bootstrap5.min.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'plugins/select2/select2-bootstrap4.min.css' %}" rel="stylesheet"/>
-
+    <link href="{% static 'plugins/select2/select2-bootstrap4.css' %}" rel="stylesheet"/>
     <link href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}" rel="stylesheet" type="text/css">
 {% endblock %}
 
@@ -47,7 +46,27 @@
                                       0% Completado
                                   </div>
                                 </div>
-                            <div>
+                            </div>
+                        </div>
+                        <div id="errorReportContainer" style="display:none;" class="mt-4">
+                            <div class="alert alert-danger">
+                                <i class="ti ti-alert-triangle me-2"></i>
+                                <strong>Atención:</strong> Se han detectado errores en los siguientes registros. Revísalos en Séneca o en la base de datos de Alumnos.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered" id="tablaErrores">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Alumno/a</th>
+                                            <th>Unidad</th>
+                                            <th>DNI Tutor/a</th>
+                                            <th>Motivo del Error</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -58,7 +77,6 @@
 
 {% block js %}
     <script src="{% static 'plugins/select2/select2.min.js' %}"></script>
-    <script src="{% static 'plugins/bs-custom-file/bs-custom-file-input.min.js' %}"></script>
     <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
     <script>
         function getCookie(name) {
@@ -79,22 +97,37 @@
     </script>
     <script>
         $(document).ready(function() {
-            //bsCustomFileInput.init();
-
+            // 1. Inicialización de componentes
             $(".select2_CursoAcademico").select2({
                 theme: 'bootstrap4',
                 placeholder: "Selecciona un curso academico",
                 allowClear: false
             });
+
+            // 2. Manejo del formulario de carga
             $("form").on("submit", function(event) {
                 event.preventDefault();
 
-                const formData = new FormData(this);
+                // Referencias constantes a los elementos del DOM
                 const submitButton = $('#submit-button');
+                const progressBar = $('#progressBar');
+                const errorReportContainer = $('#errorReportContainer');
+                const tablaErroresBody = $('#tablaErrores tbody');
+                const formData = new FormData(this);
 
-                submitButton.prop('disabled', true);
-                submitButton.text('Procesando...');
+                // --- RESETEAR INTERFAZ (Limpieza de intentos previos) ---
+                submitButton.prop('disabled', true).text('Procesando...');
 
+                // Vaciamos la tabla de errores y ocultamos el contenedor
+                tablaErroresBody.empty();
+                errorReportContainer.hide();
+
+                // Reiniciamos la barra de progreso visualmente
+                progressBar.css('width', '0%')
+                           .attr('aria-valuenow', 0)
+                           .text('0% Completado');
+
+                // Fase 1: Subida inicial del CSV y obtención de datos
                 $.ajax({
                     url: '',
                     type: 'POST',
@@ -102,85 +135,98 @@
                     contentType: false,
                     processData: false,
                     success: (response) => {
-                        submitButton.prop('disabled', false);
-                        submitButton.text('Guardar');
-
                         const nro_registros = response.nro_registros;
-                        let registrosProcesados = 0;
-                        let errores = 0;
-                        const progressBar = $('#progressBar');
-                        function actualizarBarraProgreso() {
-                            const porcentaje = Math.round((registrosProcesados / nro_registros) * 100);
-                            let msg = `${porcentaje}% Completado`;
-                            progressBar.css('width', porcentaje + '%').attr('aria-valuenow', porcentaje).text(msg);
-                        }
-                        actualizarBarraProgreso()
+                        const datosAlumnos = response.datos;
 
+                        if (!datosAlumnos || nro_registros === 0) {
+                            Swal.fire('Aviso', 'El archivo no contiene registros o el formato es incorrecto.', 'info');
+                            submitButton.prop('disabled', false).text('Guardar');
+                            return;
+                        }
+
+                        let registrosProcesados = 0;
+                        let erroresDetallados = [];
                         const processingPromises = [];
 
-                        response.datos.forEach(fila => {
-                            processingPromises.push(
-                                new Promise((resolve, reject) => {
-                                    $.ajax({
-                                        url: 'procesar/',
-                                        type: 'POST',
-                                        contentType: 'application/json',
-                                        data: JSON.stringify(fila),
-                                        headers: {
-                                            'X-CSRFToken': getCookie('csrftoken')
-                                        },
-                                        success: (response) => {
-                                            registrosProcesados++;
-                                            actualizarBarraProgreso();
-                                            resolve();
-                                        },
-                                        error: (error) => {
-                                            registrosProcesados++;
-                                            actualizarBarraProgreso();
-                                            console.error(`El alumno ${fila["Alumno/a"]} se ha procesado con errores:`, error);
-                                            reject(error);
+                        // Función para actualizar la barra de progreso
+                        function actualizarBarra() {
+                            registrosProcesados++;
+                            const porcentaje = Math.round((registrosProcesados / nro_registros) * 100);
+                            progressBar.css('width', porcentaje + '%')
+                                       .attr('aria-valuenow', porcentaje)
+                                       .text(porcentaje + '% Completado');
+                        }
+
+                        // Fase 2: Procesamiento individual de cada fila
+                        datosAlumnos.forEach(fila => {
+                            const promesa = new Promise((resolve) => {
+                                $.ajax({
+                                    url: 'procesar/',
+                                    type: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(fila),
+                                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                                    success: (res) => {
+                                        if (res.error) {
+                                            erroresDetallados.push({
+                                                nombre: fila["Alumno/a"] || "Desconocido",
+                                                unidad: fila["Unidad"] || "N/A",
+                                                dni: fila["DNI/Pasaporte Primer tutor"] || "N/A",
+                                                motivo: res.error
+                                            });
                                         }
-                                    });
-                                })
-                            );
-                        });
-
-                        Promise.all(processingPromises)
-                            .then(() => {
-                                if(errores === 0){
-                                    Swal.fire({
-                                        title: 'Éxito',
-                                        text: nro_registros + " registros procesados.",
-                                        icon: 'success'
-                                    });
-                                }
-                                else {
-                                    submitButton.prop('disabled', false);
-                                    submitButton.text('Guardar');
-
-                                    Swal.fire({
-                                        title: 'Error',
-                                        text: `Han ocurrido ${errores} errores al procesar el archivo. Por favor, inténtalo de nuevo.`,
-                                        icon: 'error'
-                                    });
-                                }
-
-                            })
-                            .catch((error) => {
-                                console.error('Error:', error);
-                                errores++;
+                                    },
+                                    error: (xhr) => {
+                                        erroresDetallados.push({
+                                            nombre: fila["Alumno/a"] || "Error de red",
+                                            unidad: fila["Unidad"] || "-",
+                                            dni: "N/A",
+                                            motivo: "Error de servidor o conexión perdida."
+                                        });
+                                    },
+                                    complete: () => {
+                                        actualizarBarra(); // Se ejecuta siempre al terminar la petición
+                                        resolve();
+                                    }
+                                });
                             });
-                    },
-                    error: (error) => {
-                        console.error('Error:', error);
-                        submitButton.prop('disabled', false);
-                        submitButton.text('Guardar');
-
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'Ha ocurrido un error al procesar el archivo. Por favor, inténtalo de nuevo.',
-                            icon: 'error'
+                            processingPromises.push(promesa);
                         });
+
+                        // Finalización de todas las peticiones
+                        Promise.all(processingPromises).then(() => {
+                            submitButton.prop('disabled', false).text('Guardar');
+
+                            if (erroresDetallados.length === 0) {
+                                Swal.fire('¡Éxito!', `Se han procesado ${registrosProcesados} registros correctamente.`, 'success');
+                            } else {
+                                // Rellenar la tabla de errores con los nuevos datos
+                                erroresDetallados.forEach(err => {
+                                    tablaErroresBody.append(`
+                                        <tr>
+                                            <td>${err.nombre}</td>
+                                            <td><span class="badge bg-secondary">${err.unidad}</span></td>
+                                            <td><code>${err.dni}</code></td>
+                                            <td class="text-danger">${err.motivo}</td>
+                                        </tr>
+                                    `);
+                                });
+
+                                // Mostrar el reporte de errores
+                                errorReportContainer.fadeIn();
+
+                                Swal.fire({
+                                    title: 'Carga finalizada con avisos',
+                                    text: `Se procesaron los datos, pero ${erroresDetallados.length} registros fallaron.`,
+                                    icon: 'warning'
+                                });
+                            }
+                        });
+                    },
+                    error: (xhr) => {
+                        console.error('Error inicial:', xhr);
+                        submitButton.prop('disabled', false).text('Guardar');
+                        Swal.fire('Error', 'No se ha podido leer el archivo CSV.', 'error');
                     }
                 });
             });

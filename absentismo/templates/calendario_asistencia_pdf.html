@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Calendario de asistencia — {{ alumno.Nombre }}</title>
+<style>
+/* ═══════════════════════════════════════════════════
+   VARIABLES
+═══════════════════════════════════════════════════ */
+:root {
+  --negro:      #0f0f0f;
+  --cab-bg:     #1e1e1e;
+  --gris-th:    #f0f0ee;
+  --gris-borde: #d0d0cc;
+  --blanco:     #ffffff;
+  --radio:      2pt;
+  --font-body:  'DejaVu Sans', sans-serif;
+  --font-mono:  'DejaVu Sans Mono', monospace;
+
+  /* Colores funcionales de tramos */
+  --c-ok:  #22c55e;   /* verde    — asistencia      */
+  --c-j:   #facc15;   /* amarillo — justificada     */
+  --c-nj:  #ef4444;   /* rojo     — no justificada  */
+  --c-off: #e8e8e4;   /* gris     — no lectivo      */
+  --c-fut: #f4f4f2;   /* gris muy claro — día futuro */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  font-family: var(--font-body);
+  font-size: 7pt;
+  color: var(--negro);
+}
+
+/* ═══════════════════════════════════════════════════
+   PÁGINA — A4 vertical, 12 meses en una sola página
+═══════════════════════════════════════════════════ */
+@page {
+  size: A4 portrait;
+  margin: 10mm 12mm 14mm 12mm;
+
+  @bottom-left {
+    content: "{{ alumno.Nombre }}  ·  Protocolo #{{ protocolo.pk }}  ·  Curso {{ curso_academico_actual }}";
+    font-family: 'DejaVu Sans Mono', monospace;
+    font-size: 5pt;
+    color: #bbb;
+  }
+  @bottom-right {
+    content: "Generado el {{ fecha_generacion|date:'d/m/Y' }}";
+    font-family: 'DejaVu Sans Mono', monospace;
+    font-size: 5pt;
+    color: #bbb;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   CABECERA
+═══════════════════════════════════════════════════ */
+.doc-header {
+  display: table;
+  width: 100%;
+  border-bottom: 1.5pt solid var(--negro);
+  padding-bottom: 3.5pt;
+  margin-bottom: 4pt;
+}
+.dh-izq { display: table-cell; vertical-align: bottom; }
+.dh-der {
+  display: table-cell; vertical-align: bottom;
+  text-align: right; font-family: var(--font-mono);
+  font-size: 5.5pt; color: #666; white-space: nowrap;
+}
+.alumno-nombre {
+  font-size: 12pt; font-weight: bold;
+  letter-spacing: -0.02em; line-height: 1;
+}
+.alumno-meta {
+  font-family: var(--font-mono); font-size: 5.5pt;
+  color: #555; margin-top: 1.5pt;
+}
+.dh-der strong { display: block; font-size: 7pt; color: var(--negro); }
+
+/* ═══════════════════════════════════════════════════
+   LEYENDA — una sola fila con 4 items
+═══════════════════════════════════════════════════ */
+.leyenda {
+  display: table;
+  width: 100%;
+  margin-bottom: 4pt;
+  padding: 3pt 6pt;
+  background: #f8f8f6;
+  border: 0.5pt solid var(--gris-borde);
+  border-radius: var(--radio);
+}
+.ley-fila { display: table-row; }
+.ley-cel {
+  display: table-cell;
+  padding: 1pt 8pt 1pt 0;
+  white-space: nowrap;
+  font-size: 5.5pt;
+  color: #333;
+  vertical-align: middle;
+  width: 25%;
+}
+/* Muestra visual de la leyenda: rectángulo alto como un día real */
+.ley-muestra {
+  display: inline-block;
+  width: 7pt;
+  height: 14pt;          /* mismo ratio alto/ancho que un día */
+  border-radius: 1pt;
+  border: 0.5pt solid rgba(0,0,0,0.15);
+  vertical-align: middle;
+  margin-right: 3pt;
+}
+.ley-ok   { background: var(--c-ok); }
+.ley-j    { background: var(--c-j); }
+.ley-nj   { background: var(--c-nj); }
+.ley-off  { background: var(--c-off); border-color: var(--gris-borde) !important; }
+.ley-fut  {
+  background: var(--c-fut);
+  background-image: repeating-linear-gradient(
+    -45deg, transparent, transparent 2pt,
+    rgba(0,0,0,0.04) 2pt, rgba(0,0,0,0.04) 3pt
+  );
+}
+/* Muestra mixta: gradiente rojo-amarillo-verde */
+.ley-mix  {
+  background: linear-gradient(to bottom,
+    #ef4444 0%, #ef4444 33.33%,
+    #facc15 33.33%, #facc15 66.66%,
+    #22c55e 66.66%, #22c55e 100%);
+}
+
+/* ═══════════════════════════════════════════════════
+   GRID DE 12 MESES: 4 filas × 3 columnas
+═══════════════════════════════════════════════════ */
+.fila-meses {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  border-spacing: 4.5pt 0;
+  margin-bottom: 4pt;
+}
+.fila-meses:last-child { margin-bottom: 0; }
+
+.col-mes {
+  display: table-cell;
+  vertical-align: top;
+  width: 33.333%;
+}
+
+/* ═══════════════════════════════════════════════════
+   TARJETA DE MES
+═══════════════════════════════════════════════════ */
+.mes-card {
+  border: 0.5pt solid var(--gris-borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+}
+
+.mes-cab {
+  display: table; width: 100%;
+  background: var(--cab-bg); color: var(--blanco);
+  padding: 2.5pt 5pt;
+}
+.mes-cab-nom {
+  display: table-cell;
+  font-family: var(--font-mono); font-size: 6.5pt;
+  font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase;
+}
+.mes-cab-anio {
+  display: table-cell; text-align: right;
+  font-family: var(--font-mono); font-size: 5pt;
+  opacity: 0.5; vertical-align: bottom;
+}
+
+/* Tabla de días */
+.mes-tabla {
+  width: 100%; border-collapse: collapse; table-layout: fixed;
+}
+.mes-tabla thead th {
+  font-family: var(--font-mono); font-size: 5pt; font-weight: bold;
+  text-align: center; padding: 1.5pt 0;
+  background: var(--gris-th); border-bottom: 0.5pt solid var(--gris-borde);
+  color: #555; letter-spacing: 0.03em;
+}
+.mes-tabla thead th.fin { color: #c8c8c4; }
+
+.mes-tabla td { padding: 0.7pt 0.5pt; }
+
+/* ── Celda de día ─────────────────────────────────
+   Cada día es un contenedor de posición relativa.
+   El .dia-barra ocupa el 100% y lleva el gradiente.
+   El .dia-num es el número superpuesto.
+═══════════════════════════════════════════════════ */
+.dia-wrap {
+  position: relative;
+  border-radius: 1.5pt;
+  overflow: hidden;
+  /* Alto fijo: WeasyPrint necesita alto explícito para que
+     el gradiente se renderice correctamente en PDF       */
+  height: 14pt;
+}
+
+/* Barra de color que rellena toda la celda */
+.dia-barra {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 1.5pt;
+}
+
+/* No lectivo: gris plano, sin gradiente */
+.dia-wrap.no-lectivo .dia-barra {
+  background: var(--c-off);
+}
+
+/* Futuro: fondo casi blanco con número muy tenue y línea diagonal */
+.dia-wrap.futuro .dia-barra {
+  background: var(--c-fut);
+  /* Trama diagonal ligera para reforzar que "no cuenta" */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 2pt,
+    rgba(0,0,0,0.04) 2pt,
+    rgba(0,0,0,0.04) 3pt
+  );
+}
+.dia-wrap.futuro .dia-num {
+  color: #ccc;
+  font-weight: normal;
+  text-shadow: none;
+}
+
+/* Número del día superpuesto */
+.dia-num {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 5.5pt;
+  font-weight: bold;
+  line-height: 1;
+  /* Texto oscuro sobre colores claros; sombra para legibilidad */
+  color: #111;
+  text-shadow: 0 0 2pt rgba(255,255,255,0.7);
+}
+
+/* Número en días muy rojos → blanco para contrastar */
+.dia-wrap.todo-nj .dia-num {
+  color: #fff;
+  text-shadow: none;
+}
+
+/* Días fuera de rango (sin número real o celdas vacías de
+   semanas con días en meses vecinos) → vacío gris muy claro */
+.dia-wrap.fuera {
+  background: transparent;
+}
+.dia-wrap.fuera .dia-num {
+  color: #ddd;
+  font-weight: normal;
+  text-shadow: none;
+}
+
+/* ── Resumen mensual ── */
+.mes-resumen {
+  padding: 2pt 4pt 2.5pt;
+  background: #f8f8f6;
+  border-top: 0.5pt solid var(--gris-borde);
+  line-height: 1.7;
+}
+.chip {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 4.5pt; font-weight: bold;
+  padding: 0.5pt 3pt;
+  border-radius: 20pt;
+  border: 0.5pt solid transparent;
+  margin-right: 1pt;
+  white-space: nowrap;
+}
+.chip-ok    { background: #dcfce7; color: #14532d; border-color: #86efac; }
+.chip-j     { background: #fef9c3; color: #713f12; border-color: #fde047; }
+.chip-nj    { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+.chip-vacio { font-size: 4.5pt; color: #aaa; font-style: italic; }
+
+/* ═══════════════════════════════════════════════════
+   RESUMEN GLOBAL
+═══════════════════════════════════════════════════ */
+.resumen-global {
+  margin-top: 5pt;
+  border: 0.5pt solid var(--gris-borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+}
+.rg-header {
+  background: var(--cab-bg); color: var(--blanco);
+  padding: 2.5pt 8pt;
+  font-family: var(--font-mono); font-size: 5.5pt;
+  font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.rg-body {
+  display: table; width: 100%; table-layout: fixed;
+  background: #fafaf8;
+}
+
+/* Barra visual proporcional a los tramos */
+.rg-barra-wrap {
+  padding: 5pt 8pt 3pt;
+  border-bottom: 0.5pt solid var(--gris-borde);
+}
+.rg-barra {
+  height: 8pt;
+  border-radius: 2pt;
+  overflow: hidden;
+}
+
+/* Columnas de estadísticas */
+.rg-stats {
+  display: table; width: 100%; table-layout: fixed;
+  padding: 5pt 0 6pt;
+}
+.stat-col {
+  display: table-cell; text-align: center;
+  padding: 0 4pt;
+  border-right: 0.5pt solid var(--gris-borde);
+  vertical-align: middle;
+}
+.stat-col:last-child { border-right: none; }
+
+.stat-punto {
+  display: inline-block;
+  width: 5pt; height: 5pt;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 2pt;
+  margin-bottom: 1pt;
+}
+.punto-ok  { background: var(--c-ok); }
+.punto-j   { background: var(--c-j);  border: 0.3pt solid #d4a00a; }
+.punto-nj  { background: var(--c-nj); }
+.punto-tot { background: #888; }
+
+.stat-v {
+  display: block;
+  font-family: var(--font-mono); font-size: 13pt;
+  font-weight: bold; line-height: 1;
+}
+.stat-v sup { font-size: 7.5pt; }
+.stat-l {
+  display: block; font-size: 4.5pt;
+  color: #666; margin-top: 1.5pt; line-height: 1.3;
+}
+.c-ok  .stat-v { color: #15803d; }
+.c-j   .stat-v { color: #a16207; }
+.c-nj  .stat-v { color: #dc2626; }
+.c-tot .stat-v { color: var(--negro); }
+
+.rg-nota {
+  padding: 2.5pt 8pt 3pt;
+  background: #fafaf8;
+  border-top: 0.5pt solid var(--gris-borde);
+  font-size: 5pt; color: #999;
+}
+</style>
+</head>
+<body>
+
+{# ── Cabecera ── #}
+<div class="doc-header">
+  <div class="dh-izq">
+    <div class="alumno-nombre">{{ alumno.Nombre }}</div>
+    <div class="alumno-meta">
+      {{ alumno.Unidad }}
+      &nbsp;·&nbsp; Protocolo #{{ protocolo.pk }}
+      &nbsp;·&nbsp; Apertura: {{ protocolo.fecha_apertura|date:"d/m/Y" }}
+      {% if protocolo.fecha_cierre %}&nbsp;·&nbsp; Cierre: {{ protocolo.fecha_cierre|date:"d/m/Y" }}{% endif %}
+      &nbsp;·&nbsp; Curso {{ curso_academico_actual }}
+    </div>
+  </div>
+  <div class="dh-der">
+    <strong>Calendario de Asistencia</strong>
+  </div>
+</div>
+
+{# ── Leyenda simplificada: 1 fila de 5 items ── #}
+<div class="leyenda">
+  <div class="ley-fila">
+    <div class="ley-cel">
+      <span class="ley-muestra ley-ok"></span>Asistencia completa
+    </div>
+    <div class="ley-cel">
+      <span class="ley-muestra ley-j"></span>Falta justificada
+    </div>
+    <div class="ley-cel">
+      <span class="ley-muestra ley-nj"></span>Falta no justificada
+    </div>
+    <div class="ley-cel">
+      <span class="ley-muestra ley-mix"></span>Falta mixta (proporcional)
+    </div>
+    <div class="ley-cel">
+      <span class="ley-muestra ley-off"></span>No lectivo / festivo
+    </div>
+    <div class="ley-cel">
+      <span class="ley-muestra ley-fut"></span>Día futuro (no computa)
+    </div>
+  </div>
+</div>
+
+{# ── 4 filas de 3 meses ── #}
+{% for fila in filas %}
+<div class="fila-meses">
+  {% for mes in fila %}
+  <div class="col-mes">
+    <div class="mes-card">
+
+      <div class="mes-cab">
+        <div class="mes-cab-nom">{{ mes.nombre }}</div>
+        <div class="mes-cab-anio">{{ mes.anio }}</div>
+      </div>
+
+      <table class="mes-tabla">
+        <thead>
+          <tr>
+            {% for d in mes.dias_semana %}
+            <th class="{% if forloop.counter > 5 %}fin{% endif %}">{{ d }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for semana in mes.semanas %}
+          <tr>
+            {% for dia in semana %}
+              {% if dia is None %}
+              <td></td>
+              {% else %}
+                {% if dia.tipo == 'no-lectivo' %}
+                {# No lectivo: gris plano #}
+                <td>
+                  <div class="dia-wrap no-lectivo">
+                    <div class="dia-barra"></div>
+                    <div class="dia-num">{{ dia.num }}</div>
+                  </div>
+                </td>
+                {% elif dia.tipo == 'futuro' %}
+                {# Futuro: trama diagonal, no computa #}
+                <td>
+                  <div class="dia-wrap futuro">
+                    <div class="dia-barra"></div>
+                    <div class="dia-num">{{ dia.num }}</div>
+                  </div>
+                </td>
+                {% elif dia.tramos_nj == 6 %}
+                {# Todo rojo: número en blanco #}
+                <td>
+                  <div class="dia-wrap todo-nj">
+                    <div class="dia-barra" style="background:{{ dia.gradiente }}"></div>
+                    <div class="dia-num">{{ dia.num }}</div>
+                  </div>
+                </td>
+                {% else %}
+                {# Lectivo: gradiente proporcional #}
+                <td>
+                  <div class="dia-wrap">
+                    <div class="dia-barra" style="background:{{ dia.gradiente }}"></div>
+                    <div class="dia-num">{{ dia.num }}</div>
+                  </div>
+                </td>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {# Resumen mensual en tramos #}
+      <div class="mes-resumen">
+        {% if mes.resumen.tr_lectivos == 0 %}
+          <span class="chip-vacio">Sin días lectivos</span>
+        {% else %}
+          {% if mes.resumen.tr_ok %}
+          <span class="chip chip-ok">↑ {{ mes.resumen.tr_ok }}h</span>
+          {% endif %}
+          {% if mes.resumen.tr_j %}
+          <span class="chip chip-j">J {{ mes.resumen.tr_j }}h</span>
+          {% endif %}
+          {% if mes.resumen.tr_nj %}
+          <span class="chip chip-nj">NJ {{ mes.resumen.tr_nj }}h</span>
+          {% endif %}
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+
+{# ── Resumen global ── #}
+{% if totales %}
+<div class="resumen-global">
+  <div class="rg-header">Resumen del protocolo &mdash; tramos horarios</div>
+
+  {# Barra proporcional visual #}
+  <div class="rg-barra-wrap">
+    <div class="rg-barra" style="background:{{ totales.barra }}"></div>
+  </div>
+
+  <div class="rg-stats">
+    <div class="stat-col c-ok">
+      <span class="stat-v">
+        <span class="stat-punto punto-ok"></span>{{ totales.tr_ok }}
+      </span>
+      <span class="stat-l">Tramos asistencia</span>
+    </div>
+    {% if totales.tr_j %}
+    <div class="stat-col c-j">
+      <span class="stat-v">
+        <span class="stat-punto punto-j"></span>{{ totales.tr_j }}
+      </span>
+      <span class="stat-l">Tramos justificados</span>
+    </div>
+    {% endif %}
+    {% if totales.tr_nj %}
+    <div class="stat-col c-nj">
+      <span class="stat-v">
+        <span class="stat-punto punto-nj"></span>{{ totales.tr_nj }}
+      </span>
+      <span class="stat-l">Tramos no justificados</span>
+    </div>
+    {% endif %}
+    <div class="stat-col c-tot">
+      <span class="stat-v">{{ totales.tr_lectivos }}</span>
+      <span class="stat-l">Total tramos lectivos</span>
+    </div>
+    <div class="stat-col c-ok">
+      <span class="stat-v">{{ totales.pct_ok }}<sup>%</sup></span>
+      <span class="stat-l">Asistencia</span>
+    </div>
+    {% if totales.tr_nj %}
+    <div class="stat-col c-nj">
+      <span class="stat-v">{{ totales.pct_nj }}<sup>%</sup></span>
+      <span class="stat-l">Absentismo NJ</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="rg-nota">
+    Cada tramo equivale a 1 hora lectiva. Un día completo = 6 tramos.
+    Para el detalle por periodo consulta el informe de faltas.
+  </div>
+</div>
+{% endif %}
+
+</body>
+</html>
