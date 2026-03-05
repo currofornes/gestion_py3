@@ -285,7 +285,7 @@ def editar_actividad_economica(request, actividad_id):
 @login_required(login_url='/')
 def get_alumnos_unidad(request, unidad_id):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        alumnos = Alumnos.objects.filter(Unidad_id=unidad_id).values('id', 'Nombre')
+        alumnos = Alumnos.objects.filter(Unidad_id=unidad_id).values('id', 'Nombre').order_by('Nombre')
         return JsonResponse({'alumnos': list(alumnos)})
 
     return JsonResponse({'error': 'Esta no es una solicitud AJAX.'})
