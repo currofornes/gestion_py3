@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     'carga_archivos.apps.CargaArchivosConfig',
     'DACE.apps.DaceConfig',
     'transito.apps.TransitoConfig',
-    'permisos.apps.PermisosConfig'
+    'permisos.apps.PermisosConfig',
 ]
 
 MIDDLEWARE = [
@@ -153,7 +153,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # Cambios añadidos por RRM para poder almacenar archivos en el server y procesarlos posteriormente.
 # @FFR: Esto es el gérmen para poder subir archivos a gestiona exportados desde Séneca sin tener que hacerlos en local
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+MEDIA_URL = '/basededatos/media/'
 # Fin de cambios
 
 import configparser
@@ -204,7 +204,7 @@ EMAIL_HOST = configuracion.get('bd','EMAIL_HOST')
 #            'level': 'CRITICAL',
 #            'propagate': True,
 #        },
-#        
+#
 #        'xhtml2pdf': {
 #            'handlers': ['file'],
 #            'level': 'DEBUG'

@@ -117,6 +117,7 @@ class Niveles(models.Model):
     Nombre = models.CharField(max_length=255)
     Abr = models.CharField(max_length=50)
     NombresAntiguos = models.TextField(blank=True, null=True)
+    orden = models.PositiveSmallIntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.Nombre

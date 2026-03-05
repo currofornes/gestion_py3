@@ -259,6 +259,7 @@ class NivelesAdmin(admin.ModelAdmin):
 
     search_fields = ['Nombre', 'Abr']
     icon_name = 'subject'
+    ordering = ('orden',)
 
 
 @admin.register(CursoAcademico)
