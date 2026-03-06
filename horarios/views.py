@@ -533,6 +533,7 @@ def copiar_horario(request):
 @login_required(login_url='/')
 @user_passes_test(group_check_je, login_url='/')
 def docentes_liberados_view(request):
+    curso_academico_actual = get_current_academic_year()
     form = FiltroLiberadosForm(request.GET or None)
     resultados_agrupados = {}
 
@@ -547,7 +548,8 @@ def docentes_liberados_view(request):
         # 1. Ausencias
         ausencias = ItemGuardia.objects.filter(
             Fecha=fecha_hoy,
-            Tramo__in=tramos_ids
+            Tramo__in=tramos_ids,
+
         ).values_list('ProfesorAusente_id', 'Tramo')
         ausentes_set = set(ausencias)
 
@@ -556,7 +558,8 @@ def docentes_liberados_view(request):
             unidad__in=unidades_ids,
             tramo__in=tramos_ids,
             dia=dia_semana_actual,
-            profesor__Baja=False
+            profesor__Baja=False,
+            curso_academico=curso_academico_actual
         ).select_related('profesor', 'unidad', 'aula').order_by('tramo',
                                                                 'profesor__Apellidos')
 
