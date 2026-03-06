@@ -63,7 +63,4 @@ urlpatterns = [
     path('indexje/', dashboard_jefatura, name='dashboard_jefatura'),
 
     path('indexcons/', dashboard_conserjes, name='dashboard_conserjes'),
-
-
-
 ]

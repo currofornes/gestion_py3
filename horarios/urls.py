@@ -40,7 +40,7 @@ urlpatterns = [
 
     path('copiar_horario/', views.copiar_horario, name='copiar_horario'),
 
-
+    path('docentes-liberados/', views.docentes_liberados_view, name='docentes_liberados'),
 
 
 ]

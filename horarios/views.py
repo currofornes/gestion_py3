@@ -17,6 +17,7 @@
 
 from collections import OrderedDict, defaultdict
 from sqlite3 import IntegrityError
+from datetime import datetime
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
@@ -33,8 +34,10 @@ from centro.models import Cursos, Aulas
 from centro.utils import get_current_academic_year
 from centro.views import group_check_prof, group_check_prof_or_guardia, group_check_je, \
     group_check_prof_or_guardia_or_conserje
-from .forms import ItemHorarioForm, CopiarHorarioForm
+from guardias.models import ItemGuardia
+from .forms import ItemHorarioForm, CopiarHorarioForm, FiltroLiberadosForm
 from .models import Profesores, ItemHorario
+
 
 @login_required(login_url='/')
 @user_passes_test(group_check_prof_or_guardia_or_conserje, login_url='/')
@@ -526,3 +529,71 @@ def copiar_horario(request):
 
     return render(request, 'copiar_horario.html', context)
 
+
+@login_required(login_url='/')
+@user_passes_test(group_check_je, login_url='/')
+def docentes_liberados_view(request):
+    form = FiltroLiberadosForm(request.GET or None)
+    resultados_agrupados = {}
+
+    ahora = datetime.now()
+    dia_semana_actual = ahora.weekday() + 1
+    fecha_hoy = ahora.date()
+
+    if form.is_valid():
+        unidades_ids = form.cleaned_data['unidades']
+        tramos_ids = form.cleaned_data['tramos']
+
+        # 1. Ausencias
+        ausencias = ItemGuardia.objects.filter(
+            Fecha=fecha_hoy,
+            Tramo__in=tramos_ids
+        ).values_list('ProfesorAusente_id', 'Tramo')
+        ausentes_set = set(ausencias)
+
+        # 2. Horario
+        items_horario = ItemHorario.objects.filter(
+            unidad__in=unidades_ids,
+            tramo__in=tramos_ids,
+            dia=dia_semana_actual,
+            profesor__Baja=False
+        ).select_related('profesor', 'unidad', 'aula').order_by('tramo',
+                                                                'profesor__Apellidos')
+
+        # 3. Agrupación por Tramo -> Profesor (incluyendo Unidades y Aulas)
+        for item in items_horario:
+            if (item.profesor_id, item.tramo) not in ausentes_set:
+                tramo_nombre = item.get_tramo_display()
+
+                if tramo_nombre not in resultados_agrupados:
+                    resultados_agrupados[tramo_nombre] = {}
+
+                prof_nombre = str(
+                    item.profesor)  # Usa el __str__ (Apellidos, Nombre)
+
+                if prof_nombre not in resultados_agrupados[tramo_nombre]:
+                    resultados_agrupados[tramo_nombre][prof_nombre] = {
+                        'unidades': [],
+                        'aulas': []
+                    }
+
+                # Añadir unidad si no está ya (evitar duplicados)
+                if item.unidad not in \
+                        resultados_agrupados[tramo_nombre][prof_nombre][
+                            'unidades']:
+                    resultados_agrupados[tramo_nombre][prof_nombre][
+                        'unidades'].append(item.unidad)
+
+                # Añadir aula si no está ya
+                if item.aula not in \
+                        resultados_agrupados[tramo_nombre][prof_nombre][
+                            'aulas']:
+                    resultados_agrupados[tramo_nombre][prof_nombre][
+                        'aulas'].append(item.aula)
+
+    return render(request, 'docentes_liberados.html', {
+        'form': form,
+        'resultados': resultados_agrupados,
+        'dia_nombre': dict(ItemHorario.DIAS).get(dia_semana_actual,
+                                                 "Día no lectivo")
+    })

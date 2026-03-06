@@ -3,7 +3,7 @@ from django.forms.widgets import Select
 
 from .models import ItemHorario
 
-from centro.models import Profesores
+from centro.models import Profesores, Cursos
 
 
 class ItemHorarioForm(forms.ModelForm):
@@ -41,3 +41,15 @@ class CopiarHorarioForm(forms.Form):
             raise forms.ValidationError("El profesor de origen y destino no pueden ser el mismo.")
 
         return cleaned_data
+
+class FiltroLiberadosForm(forms.Form):
+    unidades = forms.ModelMultipleChoiceField(
+        queryset=Cursos.get_unidades_ordenadas(),
+        widget=forms.SelectMultiple(attrs={'class': 'form-control select2', 'data-toggle': 'select2'}),
+        label="Seleccionar Unidades"
+    )
+    tramos = forms.MultipleChoiceField(
+        choices=ItemHorario.TRAMOS,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control select2', 'data-toggle': 'select2'}),
+        label="Seleccionar Tramos Horarios"
+    )

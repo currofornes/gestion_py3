@@ -658,6 +658,12 @@
 
                         {% if user|has_group:"jefatura de estudios" %}
                             <li class="side-nav-item">
+                                <a href="{% url 'docentes_liberados' %}" class="side-nav-link">
+                                    <span class="menu-text">Docentes Liberados</span>
+                                </a>
+                            </li>
+
+                            <li class="side-nav-item">
                                 <a href="/horarios/aulaslibres" class="side-nav-link">
                                     <span class="menu-text" data-lang="pages-pricing">Aulas libres</span>
                                 </a>
@@ -712,7 +718,6 @@
                         <span class="menu-text" data-lang="landing-page">Calendario Días Asuntos propios</span>
                     </a>
                 </li>
-
 
             <li class="side-nav-title mt-2" data-lang="components-title">RESERVAS</li>
 
